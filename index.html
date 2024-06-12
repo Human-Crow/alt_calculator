@@ -1,21 +1,28 @@
 <!DOCTYPE html>
 <html>
-    <head>
-        <title>Alt Calculator</title>
-    </head>
-    <body>
-        <h1>Builderment Alt Calculator</h1>
-        <p>Fill in the resource amounts below</p>
-        <label for="resource">resource:</label>
-        <input type="number" id="resource" name="quantity" min="0">
-        <div id="output"></div>
-    </body>
-    <script>
-        var userInput = document.getElementById("resource");
-        var outputDiv = document.getElementById("output");
-        userInput.addEventListener("input", function () {
-            var newValue = userInput.value;
-            outputDiv.textContent = "User entered: " + newValue;
-        });
-      </script>
+<head>
+    <title>Alt Calculator</title>
+</head>
+<body>
+    <h1>Builderment Alt Calculator</h1>
+    <p>Fill in the resource amounts below</p>
+    <label for="resource">resource:</label>
+    <input type="number" id="resource" name="quantity" min="0">
+    <div id="output"></div>
+    <button id="calc_but">Calculate</button>
+    <div id="result"></div>
+</body>
+<script>
+    var userInput = document.getElementById("userInput");
+    var outputDiv = document.getElementById("output");
+
+    userInput.addEventListener("input", function () {
+      var newValue = userInput.value;
+      outputDiv.textContent = "User entered: " + newValue;
+    });
+    document.getElementById("calc_but").addEventListener("click", function () {
+        var result = parseFloat(userInput.value) + 4;
+		document.getElementById("result").textContent = "Result: " + result;
+    });
+    </script>
 </html>
