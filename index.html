@@ -16,18 +16,18 @@
             const glpk = GLPK();
 
             const options = {
-                msglev: glpk.GLP_MSG_ALL, // Set message level (optional)
-                presol: true, // Use presolver (optional)
+                msglev: glpk.GLP_MSG_ALL,
+                presol: true,
                 cb: {
-                    call: progress => console.log(progress), // Progress callback (optional)
-                    each: 1, // Callback frequency (optional)
+                    call: progress => console.log(progress),
+                    each: 1,
                 },
             };
 
             const res = glpk.solve({
                 name: 'LP',
                 objective: {
-                    direction: glpk.GLP_MAX, // Maximize
+                    direction: glpk.GLP_MAX,
                     name: 'z',
                     vars: [
                         { name: 'x', coef: 1.0 },
@@ -36,15 +36,15 @@
                 },
                 subjectTo: [
                     {
-                        name: 'cons1', // 2 * x + y <= 20
+                        name: 'cons1',
                         vars: [
                             { name: 'x', coef: 2.0 },
                             { name: 'y', coef: 1.0 },
                         ],
-                        bnds: { type: glpk.GLP_UP, ub: 20.0},
+                        bnds: { type: glpk.GLP_UP, ub: 20.0 },
                     },
                     {
-                        name: 'cons2', // 4 * x - 5 * y >= -10
+                        name: 'cons2',
                         vars: [
                             { name: 'x', coef: 4.0 },
                             { name: 'y', coef: -5.0 },
@@ -52,7 +52,7 @@
                         bnds: { type: glpk.GLP_LO, lb: -10.0 },
                     },
                     {
-                        name: 'cons3', // -x + 2 * y >= -2
+                        name: 'cons3',
                         vars: [
                             { name: 'x', coef: -1.0 },
                             { name: 'y', coef: 2.0 },
@@ -60,7 +60,7 @@
                         bnds: { type: glpk.GLP_LO, lb: -2.0 },
                     },
                     {
-                        name: 'cons4', // -x + 5 * y = 15
+                        name: 'cons4',
                         vars: [
                             { name: 'x', coef: -1.0 },
                             { name: 'y', coef: 5.0 },
