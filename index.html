@@ -2,18 +2,17 @@
 <html>
 <head>
     <title>Alt Calculator</title>
-    <script>
-        const GLPK = require('glpk.js');
-    </script>
 </head>
 <body>
     <h1>Builderment Alt Calculator</h1>
     <p>Fill in the resource amounts below</p>
 
-    <button id="calc_button">Calculate0</button>
+    <button id="calc_button">Calculate1</button>
     <div id="result"></div>
 
     <script>
+        import GLPK from './node_modules/glpk.js/dist/index.js';
+
         document.getElementById("calc_button").addEventListener("click", async function () {
             const glpk = GLPK();
 
