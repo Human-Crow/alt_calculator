@@ -2,7 +2,6 @@
 <html>
 <head>
     <title>Alt Calculator</title>
-    <script src="./node_modules/glpk.js/dist/glpk.js"></script>
 </head>
 <body>
     <h1>Builderment Alt Calculator</h1>
@@ -11,8 +10,10 @@
     <button id="calc_button">Calculate</button>
     <div id="result"></div>
 
-    <script>
-        document.getElementById("calc_button").addEventListener("click", function () {
+    <script type="module">
+        import { GLPK } from './node_modules/glpk.js/dist/glpk.js';
+
+        document.getElementById("calc_button").addEventListener("click", async function () {
             const glpk = GLPK();
 
             const options = {
@@ -24,50 +25,8 @@
                 },
             };
 
-            const res = glpk.solve({
-                name: 'LP',
-                objective: {
-                    direction: glpk.GLP_MAX,
-                    name: 'z',
-                    vars: [
-                        { name: 'x', coef: 1.0 },
-                        { name: 'y', coef: 2.0 },
-                    ],
-                },
-                subjectTo: [
-                    {
-                        name: 'cons1',
-                        vars: [
-                            { name: 'x', coef: 2.0 },
-                            { name: 'y', coef: 1.0 },
-                        ],
-                        bnds: { type: glpk.GLP_UP, ub: 20.0 },
-                    },
-                    {
-                        name: 'cons2',
-                        vars: [
-                            { name: 'x', coef: 4.0 },
-                            { name: 'y', coef: -5.0 },
-                        ],
-                        bnds: { type: glpk.GLP_LO, lb: -10.0 },
-                    },
-                    {
-                        name: 'cons3',
-                        vars: [
-                            { name: 'x', coef: -1.0 },
-                            { name: 'y', coef: 2.0 },
-                        ],
-                        bnds: { type: glpk.GLP_LO, lb: -2.0 },
-                    },
-                    {
-                        name: 'cons4',
-                        vars: [
-                            { name: 'x', coef: -1.0 },
-                            { name: 'y', coef: 5.0 },
-                        ],
-                        bnds: { type: glpk.GLP_FX, lb: 15.0, up: 15.0 },
-                    },
-                ],
+            const res = await glpk.solve({
+                // Your LP problem setup here...
             }, options);
 
             const z = res.result.z;
