@@ -24,21 +24,17 @@
     <label for="wolframite">Wolframite:</label>
     <input type="number" id="wolframite" min="0">
     <br>
-    <label for="uranium">Uranium:</label>
-    <input type="number" id="uranium" min="0">
-    <br>
     <button id="calc_button">Calculate</button>
     <div id="result"></div>
 
     <script>
-        document.getElementById("calc_but").addEventListener("click", function () {
+        document.getElementById("calc_button").addEventListener("click", function () {
             const wood = parseFloat(document.getElementById("wood").value);
             const stone = parseFloat(document.getElementById("stone").value);
             const iron = parseFloat(document.getElementById("iron").value);
             const copper = parseFloat(document.getElementById("copper").value);
             const coal = parseFloat(document.getElementById("coal").value);
             const wolframite = parseFloat(document.getElementById("wolframite").value);
-            const uranium = parseFloat(document.getElementById("uranium").value);
 
             const resources = [wood, stone, iron, copper, coal, wolframite];
             const et_ratio = [7242, 5028, 7932, 5315, 6954, 3520];
