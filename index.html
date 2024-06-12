@@ -6,23 +6,23 @@
 <body>
     <h1>Builderment Alt Calculator</h1>
     <p>Fill in the resource amounts below</p>
-    <label for="resource">resource:</label>
-    <input type="number" id="resource" name="quantity" min="0">
-    <div id="output"></div>
+    <label for="resource_1">resource 1:</label>
+    <input type="number" id="resource_1" min="0">
+	<br>
+    <label for="resource 2">resource 2:</label>
+    <input type="number" id="resource_2" min="0">
+    <br>
     <button id="calc_but">Calculate</button>
     <div id="result"></div>
-</body>
-<script>
-    var userInput = document.getElementById("userInput");
-    var outputDiv = document.getElementById("output");
 
-    userInput.addEventListener("input", function () {
-      var newValue = userInput.value;
-      outputDiv.textContent = "User entered: " + newValue;
-    });
-    document.getElementById("calc_but").addEventListener("click", function () {
-        var result = parseFloat(userInput.value) + 4;
-		document.getElementById("result").textContent = "Result: " + result;
-    });
+    <script>
+        var resource_1 = document.getElementById("resource_1");
+        var resource_2 = document.getElementById("resource_2");
+
+        document.getElementById("calc_but").addEventListener("click", function () {
+            var result = parseFloat(resource_1.value) + parseFloat(resource_2.value);
+            document.getElementById("result").textContent = "Result: " + result;
+        });
     </script>
+</body>
 </html>
