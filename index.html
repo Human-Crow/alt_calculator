@@ -11,8 +11,11 @@
         <div id="output"></div>
     </body>
     <script>
-        var userInput = document.getElementById("resource").value;
+        var userInput = document.getElementById("resource");
         var outputDiv = document.getElementById("output");
-        outputDiv.textContent = "User entered: " + userInput;
+        userInput.addEventListener("input", function () {
+            var newValue = userInput.value;
+            outputDiv.textContent = "User entered: " + newValue;
+        });
       </script>
 </html>
