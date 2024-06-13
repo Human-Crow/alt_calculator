@@ -1,21 +1,65 @@
 window.addEventListener("DOMContentLoaded", (event) => {
     const GLPK = require('glpk.js');
     document.getElementById("calc_button").addEventListener("click", function () {
-        const Wood_Extractors = parseFloat(document.getElementById("wood").value);
-        const Stone_Extractors = parseFloat(document.getElementById("stone").value);
-        const Iron_Extractors = parseFloat(document.getElementById("iron").value);
-        const Copper_Extractors = parseFloat(document.getElementById("copper").value);
-        const Coal_Extractors = parseFloat(document.getElementById("coal").value);
-        const Wolframite_Extractors = parseFloat(document.getElementById("wolframite").value);
-        const Uranium_Extractors = 0;
+        const glpk = GLPK();
 
-        const resources = [Wood_Extractors,Stone_Extractors,Iron_Extractors,Copper_Extractors,Coal_Extractors,Wolframite_Extractors];
-        const et_ratio = [7242,5028,7932,5315,6954,3520]
-        let score = 10000;
-        for (let i = 0; i < et_ratio.length; i++) {
-            score = Math.min(score, resources[i] * 30 / et_ratio[i]);
-        }
+        const options = {
+            msglev: glpk.GLP_MSG_ALL, // Set message level (optional)
+            presol: true, // Use presolver (optional)
+            cb: {
+                call: progress => console.log(progress), // Progress callback (optional)
+                each: 1, // Callback frequency (optional)
+            },
+        };
 
-        document.getElementById("result").textContent = "Score: " + score;
+        const res = glpk.solve({
+            name: 'LP',
+            objective: {
+                direction: glpk.GLP_MAX, // Maximize
+                name: 'z',
+                vars: [
+                    { name: 'x', coef: 1.0 },
+                    { name: 'y', coef: 2.0 },
+                ],
+            },
+            subjectTo: [
+                {
+                    name: 'cons1', // 2 * x + y <= 20
+                    vars: [
+                        { name: 'x', coef: 2.0 },
+                        { name: 'y', coef: 1.0 },
+                    ],
+                    bnds: { type: glpk.GLP_UP, ub: 20.0},
+                },
+                {
+                    name: 'cons2', // 4 * x - 5 * y >= -10
+                    vars: [
+                        { name: 'x', coef: 4.0 },
+                        { name: 'y', coef: -5.0 },
+                    ],
+                    bnds: { type: glpk.GLP_LO, lb: -10.0 },
+                },
+                {
+                    name: 'cons3', // -x + 2 * y >= -2
+                    vars: [
+                        { name: 'x', coef: -1.0 },
+                        { name: 'y', coef: 2.0 },
+                    ],
+                    bnds: { type: glpk.GLP_LO, lb: -2.0 },
+                },
+                {
+                    name: 'cons4', // -x + 5 * y = 15
+                    vars: [
+                        { name: 'x', coef: -1.0 },
+                        { name: 'y', coef: 5.0 },
+                    ],
+                    bnds: { type: glpk.GLP_FX, lb: 15.0, up: 15.0 },
+                },
+            ],
+        }, options);
+
+        const z = res.result.z;
+
+        document.getElementById("result").textContent = "Score: " + z;
     });
 });
