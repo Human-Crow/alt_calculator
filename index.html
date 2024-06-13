@@ -1,68 +1,54 @@
 <!DOCTYPE html>
 <html>
-    <head>
-        <title></title>
-        <meta content="">
-        <style></style>
-    </head>
-    <body>
-        <script type="module">
-            import GLPK from '/alt_calculator/node_modules/glpk.js/dist/index.js';
-            
-            (async () => {
+<head>
+    <title>Alt Calculator</title>
+    <script src="./node_modules/glpk.js/dist/glpk.js"></script>
+</head>
+<body>
+    <h1>Builderment Alt Calculator</h1>
+    <p>Fill in the resource amounts below</p>
 
-                const glpk = await GLPK();
+    <label for="wood">Wood:</label>
+    <input type="number" id="wood" min="0">
+    <br>
+    <label for="stone">Stone:</label>
+    <input type="number" id="stone" min="0">
+    <br>
+    <label for="iron">Iron:</label>
+    <input type="number" id="iron" min="0">
+    <br>
+    <label for="copper">Copper:</label>
+    <input type="number" id="copper" min="0">
+    <br>
+    <label for="coal">Coal:</label>
+    <input type="number" id="coal" min="0">
+    <br>
+    <label for="wolframite">Wolframite:</label>
+    <input type="number" id="wolframite" min="0">
+    <br>
 
-                function print(res) {
-                    const el = window.document.getElementById('out');
-                    el.innerHTML = `Solution: LP \n\n ${JSON.stringify(res, null, 2)}`;
-                };
+    <button id="calc_button">Calculate</button>
+    <div id="result"></div>
 
-                const lp = {
-                    name: 'LP',
-                    objective: {
-                        direction: glpk.GLP_MAX,
-                        name: 'obj',
-                        vars: [
-                            { name: 'x1', coef: 0.6 },
-                            { name: 'x2', coef: 0.5 }
-                        ]
-                    },
-                    subjectTo: [
-                        {
-                        name: 'cons1',
-                            vars: [
-                                { name: 'x1', coef: 1.0 },
-                                { name: 'x2', coef: 2.0 }
-                            ],
-                            bnds: { type: glpk.GLP_UP, ub: 1.0, lb: 0.0 }
-                        },
-                        {
-                            name: 'cons2',
-                            vars: [
-                                { name: 'x1', coef: 3.0 },
-                                { name: 'x2', coef: 1.0 }
-                            ],
-                            bnds: { type: glpk.GLP_UP, ub: 2.0, lb: 0.0 }
-                        }
-                    ]
-                };
+    <script>
+        document.getElementById("calc_button").addEventListener("click", function () {
+            const Wood_Extractors = parseFloat(document.getElementById("wood").value);
+            const Stone_Extractors = parseFloat(document.getElementById("stone").value);
+            const Iron_Extractors = parseFloat(document.getElementById("iron").value);
+            const Copper_Extractors = parseFloat(document.getElementById("copper").value);
+            const Coal_Extractors = parseFloat(document.getElementById("coal").value);
+            const Wolframite_Extractors = parseFloat(document.getElementById("wolframite").value);
+            const Uranium_Extractors = 0;
 
-                const opt = {
-                    msglev: glpk.GLP_MSG_OFF
-                };
+            const resources = [Wood_Extractors,Stone_Extractors,Iron_Extractors,Copper_Extractors,Coal_Extractors,Wolframite_Extractors];
+            const et_ratio = [7242,5028,7932,5315,6954,3520]
+            let score = 10000;
+            for (let i = 0; i < et_ratio.length; i++) {
+                score = Math.min(score, resources[i] * 30 / et_ratio[i]);
+            }
 
-                glpk.solve(lp, opt)
-                    .then(res => print(res))
-                    .catch(err => console.log(err));
-
-                console.log(await glpk.solve(lp, glpk.GLP_MSG_DBG));
-
-                window.document.getElementById('cplex').innerHTML = await glpk.write(lp);
-
-            })();
-        </script>
-        <pre id='cplex'></pre>
-        <pre id='out'></pre>
-    </body>
+            document.getElementById("result").textContent = "Score: " + score;
+        });
+    </script>
+</body>
 </html>
