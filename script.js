@@ -1,4 +1,5 @@
 window.addEventListener("DOMContentLoaded", (event) => {
+    const GLPK = require('glpk.js');
     document.getElementById("calc_button").addEventListener("click", function () {
         const Wood_Extractors = parseFloat(document.getElementById("wood").value);
         const Stone_Extractors = parseFloat(document.getElementById("stone").value);
