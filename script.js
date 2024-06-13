@@ -1,6 +1,6 @@
 window.addEventListener("DOMContentLoaded", (event) => {
-    import GLPK from "./glpk.js";
     document.getElementById("calc_button").addEventListener("click", function () {
+        import GLPK from "./glpk.js";
         const glpk = GLPK();
 
         const options = {
