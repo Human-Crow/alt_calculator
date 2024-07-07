@@ -17,7 +17,9 @@ document.getElementById("calc_button").addEventListener("click", function () {
             const wood_plank = res.result.vars.Wood_Plank;
             console.log(wood_plank);
             console.log(res)
-            document.getElementById("result").textContent = "Score: " + score;
+            document.getElementById("score").textContent = "Score: " + score;
+            const el = window.document.getElementById('all_items');
+            el.innerHTML = `All items:\n\n ${JSON.stringify(res.result.vars, null, 2)}`;
         };
     
         const lp = {
