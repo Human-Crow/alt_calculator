@@ -18,8 +18,9 @@ document.getElementById("calc_button").addEventListener("click", function () {
             console.log(wood_plank);
             console.log(res)
             document.getElementById("score").textContent = "Score: " + score;
-            const el = window.document.getElementById('all_items');
-            el.innerHTML = `All items:\n\n ${JSON.stringify(res.result.vars, null, 2)}`;
+            document.getElementById("all_items").textContent = `All items:\n
+            \nWood Plank: ${res.result.vars.Wood_Plank}
+            \nWood Plank: ${res.result.vars.Wood_Plank}`;
         };
     
         const lp = {
