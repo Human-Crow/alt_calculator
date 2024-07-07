@@ -13,14 +13,10 @@ document.getElementById("calc_button").addEventListener("click", function () {
         const glpk = await GLPK();
     
         function solver_output(res) {
-            const score = res.result.z;
-            const wood_plank = res.result.vars.Wood_Plank;
-            console.log(wood_plank);
             console.log(res)
-            document.getElementById("score").textContent = "Score: " + score;
-            document.getElementById("all_items").textContent = `All items:\n
-            \nWood Plank: ${res.result.vars.Wood_Plank}
-            \nWood Plank: ${res.result.vars.Wood_Plank}`;
+            document.getElementById("score").textContent = "Score: " + res.result.z;
+            const el = window.document.getElementById('all_items');
+            el.innerHTML = `Solution: LP \n\n ${JSON.stringify(res, null, 2)}`;
         };
     
         const lp = {
