@@ -16,7 +16,11 @@ document.getElementById("calc_button").addEventListener("click", function () {
             console.log(res)
             document.getElementById("score").textContent = "Score: " + res.result.z;
             const el = window.document.getElementById('all_items');
-            el.innerHTML = `Solution: LP \n\n ${JSON.stringify(res, null, 2)}`;
+            el.innerHTML = `All Items:
+                            ${JSON.stringify(res.result.vars, null, 2)
+                            .replace(/ /g,'').replace(/:/g,': ').replace(/"/g,'')
+                            .replace(/_/g,' ').replace(/,/g,'')
+                            .replace(/{/g,'').replace(/}/g,'')}`;
         };
     
         const lp = {
