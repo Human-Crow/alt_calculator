@@ -1,26 +1,30 @@
 import GLPK from './glpk.js';
 
-document.getElementById("calc_button").addEventListener("click", function () {
-    const Wood_Extractors = parseFloat(document.getElementById("wood").value);
-    const Stone_Extractors = parseFloat(document.getElementById("stone").value);
-    const Iron_Extractors = parseFloat(document.getElementById("iron").value);
-    const Copper_Extractors = parseFloat(document.getElementById("copper").value);
-    const Coal_Extractors = parseFloat(document.getElementById("coal").value);
-    const Wolframite_Extractors = parseFloat(document.getElementById("wolframite").value);
+const ET_RATIO = [7242, 5028, 7932, 5315, 6954, 3520];
+const EX_RATE = 30;
+const UR_EX_RATE = 10;
+
+export function initialize() {
+    document.getElementById("alt_button").addEventListener("click", alt_solver);
+    document.getElementById("norm_button").addEventListener("click", et_calculator);
+}
+
+function alt_solver() {
+    const [
+        Wood_Extractors,
+        Stone_Extractors,
+        Iron_Extractors,
+        Copper_Extractors,
+        Coal_Extractors,
+        Wolframite_Extractors
+    ] = get_extractor_values();
     const Uranium_Extractors = 0;
 
     (async () => {
         const glpk = await GLPK();
     
         function solver_output(res) {
-            console.log(res)
-            document.getElementById("score").textContent = "Score: " + res.result.z;
-            const el = window.document.getElementById('all_items');
-            el.innerHTML = `All Items:
-                            ${JSON.stringify(res.result.vars, null, 2)
-                            .replace(/ /g,'').replace(/:/g,': ').replace(/"/g,'')
-                            .replace(/_/g,' ').replace(/,/g,'')
-                            .replace(/{/g,'').replace(/}/g,'')}`;
+            display_result(res.result.vars);
         };
     
         const lp = {
@@ -36,43 +40,43 @@ document.getElementById("calc_button").addEventListener("click", function () {
                     vars: [
                         { name: 'Wood_Log', coef: 1.0 },
                     ],
-                    bnds: { type: glpk.GLP_UP, ub: Wood_Extractors * 30, lb: 0.0},
+                    bnds: { type: glpk.GLP_UP, ub: Wood_Extractors * EX_RATE, lb: 0.0},
                 },
                 {
                     vars: [
                         { name: 'Stone', coef: 1.0 },
                     ],
-                    bnds: { type: glpk.GLP_UP, ub: Stone_Extractors * 30, lb: 0.0},
+                    bnds: { type: glpk.GLP_UP, ub: Stone_Extractors * EX_RATE, lb: 0.0},
                 },
                 {
                     vars: [
                         { name: 'Iron_Ore', coef: 1.0 },
                     ],
-                    bnds: { type: glpk.GLP_UP, ub: Iron_Extractors * 30, lb: 0.0},
+                    bnds: { type: glpk.GLP_UP, ub: Iron_Extractors * EX_RATE, lb: 0.0},
                 },
                 {
                     vars: [
                         { name: 'Copper_Ore', coef: 1.0 },
                     ],
-                    bnds: { type: glpk.GLP_UP, ub: Copper_Extractors * 30, lb: 0.0},
+                    bnds: { type: glpk.GLP_UP, ub: Copper_Extractors * EX_RATE, lb: 0.0},
                 },
                 {
                     vars: [
                         { name: 'Coal', coef: 1.0 },
                     ],
-                    bnds: { type: glpk.GLP_UP, ub: Coal_Extractors * 30, lb: 0.0},
+                    bnds: { type: glpk.GLP_UP, ub: Coal_Extractors * EX_RATE, lb: 0.0},
                 },
                 {
                     vars: [
                         { name: 'Wolframite', coef: 1.0 },
                     ],
-                    bnds: { type: glpk.GLP_UP, ub: Wolframite_Extractors * 30, lb: 0.0},
+                    bnds: { type: glpk.GLP_UP, ub: Wolframite_Extractors * EX_RATE, lb: 0.0},
                 },
                 {
                     vars: [
                         { name: 'Uranium_Ore', coef: 1.0 },
                     ],
-                    bnds: { type: glpk.GLP_UP, ub: Uranium_Extractors * 10, lb: 0.0},
+                    bnds: { type: glpk.GLP_UP, ub: Uranium_Extractors * UR_EX_RATE, lb: 0.0},
                 },
 
                 {
@@ -525,6 +529,101 @@ document.getElementById("calc_button").addEventListener("click", function () {
             .then(res => solver_output(res))
             .catch(err => console.log(err));
     })();
-});
+}
 
+function et_calculator() {
+    const all_scores = [];
+    const ex_values = get_extractor_values();
+    for (let i = 0; i < ET_RATIO.length; i++) {
+        all_scores.push(ex_values[i] * EX_RATE / ET_RATIO[i]);
+    }
+    const all = {};
+    const Earth_Token = Math.min(...all_scores); all["Earth_Token"] = Earth_Token;
+    const Matter_Duplicator = Earth_Token; all["Matter_Duplicator"] = Matter_Duplicator;
+    const Atomic_Locator = 4 * Matter_Duplicator; all["Atomic_Locator"] = Atomic_Locator;
+    const Energy_Cube = 5 * Matter_Duplicator; all["Energy_Cube"] = Energy_Cube;
+    const Particle_Glue = 100 * Matter_Duplicator; all["Particle_Glue"] = Particle_Glue;
+    const Quantum_Entangler = 2 * Matter_Duplicator; all["Quantum_Entangler"] = Quantum_Entangler;
+    const Electron_Microscope = 2 * Atomic_Locator; all["Electron_Microscope"] = Electron_Microscope;
+    const Super_Computer = 2 * Atomic_Locator; all["Super_Computer"] = Super_Computer;
+    const Matter_Compressor = 1/10 * Particle_Glue; all["Matter_Compressor"] = Matter_Compressor;
+    const Magnetic_Field_Generator = Quantum_Entangler; all["Magnetic_Field_Generator"] = Magnetic_Field_Generator;
+    const Condenser_Lens = 4 * Electron_Microscope; all["Condenser_Lens"] = Condenser_Lens;
+    const Tank = Matter_Compressor; all["Tank"] = Tank;
+    const Stabilizer = 2 * Quantum_Entangler + Magnetic_Field_Generator; all["Stabilizer"] = Stabilizer;
+    const Gyroscope = 2 * Stabilizer; all["Gyroscope"] = Gyroscope;
+    const Computer = Stabilizer + 2 * Super_Computer; all["Computer"] = Computer;
+    const Heat_Sink = 3 * Computer + 8 * Super_Computer; all["Heat_Sink"] = Heat_Sink;
+    const Industrial_Frame = Energy_Cube + Matter_Compressor + Magnetic_Field_Generator; all["Industrial_Frame"] = Industrial_Frame;
+    const Electric_Motor = Stabilizer + 2 * Matter_Compressor; all["Electric_Motor"] = Electric_Motor;
+    const Battery = 2 * Energy_Cube + Electric_Motor; all["Battery"] = Battery;
+    const Turbocharger = Super_Computer + 2 * Matter_Compressor; all["Turbocharger"] = Turbocharger;
+    const Nano_Wire = 2 * Electron_Microscope + 2 * Turbocharger + 10 * Magnetic_Field_Generator; all["Nano_Wire"] = Nano_Wire;
+    const Carbon_Fiber = 2 * Nano_Wire; all["Carbon_Fiber"] = Carbon_Fiber;
+    const Concrete = 6 * Industrial_Frame + 4 * Tank + 24 * Atomic_Locator; all["Concrete"] = Concrete;
+    const Electromagnet = 8 * Battery + 8 * Electron_Microscope + 10 * Magnetic_Field_Generator; all["Electromagnet"] = Electromagnet;
+    const Logic_Circuit = 3 * Computer + 4 * Turbocharger; all["Logic_Circuit"] = Logic_Circuit;
+    const Metal_Frame = Computer + 2 * Industrial_Frame + 2 * Electron_Microscope; all["Metal_Frame"] = Metal_Frame;
+    const Rotor = 2 * Gyroscope + 2 * Electric_Motor; all["Rotor"] = Rotor;
+    const Copper_Wire = 6 * Electromagnet + 3 * Logic_Circuit + 12 * Gyroscope + 50 * Atomic_Locator; all["Copper_Wire"] = Copper_Wire;
+    const Copper_Ingot = 3/2 * Copper_Wire + 5 * Heat_Sink; all["Copper_Ingot"] = Copper_Ingot;
+    const Coupler = 4 * Turbocharger + 8 * Super_Computer; all["Coupler"] = Coupler;
+    const Nuclear_Fuel_Cell = 0; all["Nuclear_Fuel_Cell"] = Nuclear_Fuel_Cell;
+    const Empty_Fuel_Cell = Nuclear_Fuel_Cell; all["Empty_Fuel_Cell"] = Empty_Fuel_Cell;
+    const Enriched_Uranium = Nuclear_Fuel_Cell; all["Enriched_Uranium"] = Enriched_Uranium;
+    const Steel_Rod = Rotor + Concrete; all["Steel_Rod"] = Steel_Rod;
+    const Steel = 3 * Steel_Rod; all["Steel"] = Steel;
+    const Glass = 3 * Condenser_Lens + 4 * Nano_Wire + 5 * Empty_Fuel_Cell + 2 * Tank; all["Glass"] = Glass;
+    const Tungsten_Carbide = Coupler + 3 * Empty_Fuel_Cell + 8 * Industrial_Frame + 4 * Tank; all["Tungsten_Carbide"] = Tungsten_Carbide;
+    const Tungsten_Ore = 2 * Tungsten_Carbide; all["Tungsten_Ore"] = Tungsten_Ore;
+    const Graphite = 4 * Carbon_Fiber + 8 * Battery + Steel + Tungsten_Carbide; all["Graphite"] = Graphite;
+    const Iron_Gear = 4 * Electric_Motor + 8 * Turbocharger; all["Iron_Gear"] = Iron_Gear;
+    const Iron_Plating = 4 * Metal_Frame + 2 * Rotor; all["Iron_Plating"] = Iron_Plating;
+    const Iron_Ingot = 2 * Iron_Gear + 2 * Iron_Plating + 2 * Electromagnet; all["Iron_Ingot"] = Iron_Ingot;
+    const Silicon = 2 * Logic_Circuit; all["Silicon"] = Silicon;
+    const Sand = 2 * Silicon + 4 * Glass + 10 * Concrete; all["Sand"] = Sand;
+    const Wood_Frame = Metal_Frame; all["Wood_Frame"] = Wood_Frame;
+    const Wood_Plank = 4 * Wood_Frame; all["Wood_Plank"] = Wood_Plank;
+    const Wood_Log = Wood_Plank + 3 * Graphite; all["Wood_Log"] = Wood_Log;
+    const Stone = Sand; all["Stone"] = Stone;
+    const Iron_Ore = Iron_Ingot + 6 * Steel; all["Iron_Ore"] = Iron_Ore;
+    const Copper_Ore = Copper_Ingot; all["Copper_Ore"] = Copper_Ore;
+    const Coal = 3 * Graphite; all["Coal"] = Coal;
+    const Wolframite = 5 * Tungsten_Ore; all["Wolframite"] = Wolframite;
+    const Uranium_Ore = 30 * Enriched_Uranium; all["Uranium_Ore"] = Uranium_Ore;
+    display_result(all);
+}
 
+function get_extractor_values() {
+    let result = [];
+    for (const resource of ["wood","stone","iron","copper","coal","wolframite"]) {
+        result.push(parseFloat(document.getElementById(resource).value));
+    }
+    return result;
+}
+
+function display_result(item_dict) {
+    let text_value = "";
+    let keys = Object.keys(item_dict);
+    const first_keys = [
+        "Earth_Token", 
+        "Wood_Log", 
+        "Stone", 
+        "Iron_Ore", 
+        "Copper_Ore", 
+        "Coal", 
+        "Wolframite",
+        "Uranium_Ore"
+    ];
+    const last_keys = keys.filter(item => !first_keys.includes(item));
+    last_keys.sort();
+    keys = first_keys.concat(last_keys);
+    for (const key of keys) {
+        text_value += `${key.replace(/_/g,' ')}: ${Nround(item_dict[key],6)}\n`
+    }
+    document.getElementById("all_items").textContent = text_value;
+}
+
+function Nround(value, decimals) {
+    return Math.round(value * 10**decimals) / (10**decimals);
+}

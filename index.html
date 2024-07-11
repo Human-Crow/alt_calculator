@@ -5,34 +5,37 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     
     <title>Alt Calculator</title>
-    <script type="module" src="script.js"></script>
 </head>
 <body>
     <h1>Builderment Alt Calculator</h1>
-    <p>Fill in the resource amounts below</p>
+    <p>Available Extractors:</p>
 
     <label for="wood">Wood:</label>
-    <input type="number" id="wood" min="0">
+    <input type="number" id="wood" min="0" value="740">
     <br>
     <label for="stone">Stone:</label>
-    <input type="number" id="stone" min="0">
+    <input type="number" id="stone" min="0" value="656">
     <br>
     <label for="iron">Iron:</label>
-    <input type="number" id="iron" min="0">
+    <input type="number" id="iron" min="0" value="771">
     <br>
     <label for="copper">Copper:</label>
-    <input type="number" id="copper" min="0">
+    <input type="number" id="copper" min="0" value="645">
     <br>
     <label for="coal">Coal:</label>
-    <input type="number" id="coal" min="0">
+    <input type="number" id="coal" min="0" value="784">
     <br>
     <label for="wolframite">Wolframite:</label>
-    <input type="number" id="wolframite" min="0">
-    <br>
+    <input type="number" id="wolframite" min="0" value="367">
+    <br><br>
 
-    <button id="calc_button">Calculate</button>
-    <pre id="score"></pre>
-
+    <button id="alt_button">Calculate Alt</button>
+    <button id="norm_button">Calculate Normal</button>
     <pre id="all_items"></pre>
+    
+    <script type="module">
+        import { initialize } from './script.js';
+        initialize();
+    </script>
 </body>
 </html>
