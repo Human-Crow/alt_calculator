@@ -8,7 +8,7 @@
 
     <style>
         .form-container {
-            max-width: 200px;
+            max-width: 150px;
         }
         .input-row {
             display: flex;
@@ -22,6 +22,10 @@
         .input {
             flex: 2;
             max-width: 50px;
+        }
+        .button {
+            width: 150px;
+            height: 25px;
         }
     </style>
 </head>
@@ -65,9 +69,11 @@
             <input class="input" type="number" id="wolframite" min="0" value="367">
         </div>
     </div>
-
-    <button id="alt_button">Calculate Alt</button>
-    <button id="norm_button">Calculate Normal</button>
+    <br>
+    <button class="button" id="alt_button">Calculate Alt</button>
+    <br>
+    <button class="button" id="norm_button">Calculate Normal</button>
+    
     <pre id="all_items"></pre>
     
     <script type="module">
