@@ -1,0 +1,38 @@
+h1 {color: #ffffff;}
+p {color: #ffffff;}
+pre {color: #ffffff;}
+body {
+    background-color: #1e1e1e;
+    transform: scale(1.5);
+    transform-origin: top left;
+    width: 66.66%;
+}
+.form-container {
+    max-width: 150px;
+}
+.input-row {
+    display: flex;
+    align-items: center;
+}
+label {
+    color: #ffffff;
+    flex: 1;
+    text-align: right;
+    padding-right: 10px;
+}
+input {
+    color: #ffffff;
+    background-color: #1e1e1e;
+    border: 1px solid #ffffff;
+    border-radius: 8px;
+    flex: 2;
+    max-width: 50px;
+}
+button {
+    color: #ffffff;
+    background-color: #1e1e1e;
+    border: 1px solid #ffffff;
+    border-radius: 8px;
+    width: 150px;
+    height: 25px;
+}
