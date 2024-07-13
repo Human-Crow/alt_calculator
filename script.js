@@ -1,15 +1,23 @@
 import GLPK from './glpk.js';
 
+document.getElementById("alt_button").onclick = async function() {
+    display_result(await alt_solver());
+};
+document.getElementById("norm_button").onclick = function() {
+    display_result(norm_solver());
+};
+document.getElementById("rec_button").onclick = recipe_ratios;
+
 const ET_RATIO = [7242, 5028, 7932, 5315, 6954, 3520];
 const EX_RATE = 30;
 const UR_EX_RATE = 10;
+const ALT_RECIPES = [
+    "Concrete","Copper_Wire","Electric_Motor","Electromagnet",
+    "Industrial_Frame","Iron_Gear","Logic_Circuit","Rotor","Steel",
+    "Super_Computer","Tungsten_Carbide","Turbocharger"
+];
 
-export function initialize() {
-    document.getElementById("alt_button").addEventListener("click", alt_solver);
-    document.getElementById("norm_button").addEventListener("click", et_calculator);
-}
-
-function alt_solver() {
+async function alt_solver() {
     const [
         Wood_Extractors,
         Stone_Extractors,
@@ -20,12 +28,8 @@ function alt_solver() {
     ] = get_extractor_values();
     const Uranium_Extractors = 0;
 
-    (async () => {
+    try {
         const glpk = await GLPK();
-    
-        function solver_output(res) {
-            display_result(res.result.vars);
-        };
     
         const lp = {
             name: 'LP',
@@ -525,13 +529,14 @@ function alt_solver() {
             msglev: glpk.GLP_MSG_OFF
         };
     
-        glpk.solve(lp, opt)
-            .then(res => solver_output(res))
-            .catch(err => console.log(err));
-    })();
+        const res = await glpk.solve(lp, opt);
+        return res.result.vars;
+    } catch (err) {
+        console.error("Error:", err);
+    }
 }
 
-function et_calculator() {
+function norm_solver() {
     const all_scores = [];
     const ex_values = get_extractor_values();
     for (let i = 0; i < ET_RATIO.length; i++) {
@@ -591,13 +596,26 @@ function et_calculator() {
     const Coal = 3 * Graphite; all["Coal"] = Coal;
     const Wolframite = 5 * Tungsten_Ore; all["Wolframite"] = Wolframite;
     const Uranium_Ore = 30 * Enriched_Uranium; all["Uranium_Ore"] = Uranium_Ore;
-    display_result(all);
+    return all;
+}
+
+async function recipe_ratios() {
+    const all_items = await alt_solver();
+    let text_value = "";
+    for (const key of ALT_RECIPES) {
+        const alt = all_items[key +"_ALT"];
+        const norm = all_items[key];
+        const value = (alt + norm <= 0)? 0 : (alt / (alt + norm));
+        text_value += `${key.replace(/_/g,' ')} ALT: ${Nround(value*100, 4)}%\n`;
+    }
+    document.getElementById("output").textContent = text_value;
 }
 
 function get_extractor_values() {
     let result = [];
     for (const resource of ["wood","stone","iron","copper","coal","wolframite"]) {
-        result.push(parseFloat(document.getElementById(resource).value));
+        const value = parseFloat(document.getElementById(resource).value);
+        result.push(isNaN(value)? 0:value);
     }
     return result;
 }
@@ -606,22 +624,19 @@ function display_result(item_dict) {
     let text_value = "";
     let keys = Object.keys(item_dict);
     const first_keys = [
-        "Earth_Token", 
-        "Wood_Log", 
-        "Stone", 
-        "Iron_Ore", 
-        "Copper_Ore", 
-        "Coal", 
-        "Wolframite",
-        "Uranium_Ore"
+        "Earth_Token", "Wood_Log", "Stone", "Iron_Ore", 
+        "Copper_Ore", "Coal", "Wolframite","Uranium_Ore"
     ];
     const last_keys = keys.filter(item => !first_keys.includes(item));
     last_keys.sort();
     keys = first_keys.concat(last_keys);
     for (const key of keys) {
         text_value += `${key.replace(/_/g,' ')}: ${Nround(item_dict[key],6)}\n`
+        if (key == "Earth_Token" || key == "Uranium_Ore") {
+            text_value += "\n";
+        }
     }
-    document.getElementById("all_items").textContent = text_value;
+    document.getElementById("output").textContent = text_value;
 }
 
 function Nround(value, decimals) {
