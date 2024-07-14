@@ -1,5 +1,22 @@
 import GLPK from './glpk.js';
 
+
+document.addEventListener('DOMContentLoaded', () => {
+    const fields = document.querySelectorAll('.resource');
+    fields.forEach(field => {
+        field.addEventListener('paste', e => {
+            const data = e.clipboardData.items[0];
+            if(data.kind == 'string' && data.type == 'text/plain') {
+                data.getAsString(str => {
+                    str.split(/\s/).forEach((value, i) => {
+                        fields[i] && (fields[i].value = value || '');
+                    })
+                });
+            }
+        });
+    });
+});
+
 document.getElementById("alt_button").onclick = async function() {
     display_result(await alt_solver());
 };
@@ -7,6 +24,7 @@ document.getElementById("norm_button").onclick = function() {
     display_result(norm_solver());
 };
 document.getElementById("rec_button").onclick = recipe_ratios;
+
 
 const ET_RATIO = [7242, 5028, 7932, 5315, 6954, 3520];
 const EX_RATE = 30;
