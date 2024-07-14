@@ -36,3 +36,9 @@ button {
     width: 150px;
     height: 25px;
 }
+button:hover {
+    background-color: #3e3e3e;
+}
+input:hover {
+    background-color: #3e3e3e;
+}

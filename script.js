@@ -1,7 +1,6 @@
 import GLPK from './glpk.js';
 
 
-
 document.addEventListener('DOMContentLoaded', () => {
     const fields = document.querySelectorAll('.resource');
     fields.forEach(field => {
@@ -17,8 +16,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 });
-
-
 
 document.getElementById("alt_button").onclick = async function() {
     display_result(await alt_solver());
