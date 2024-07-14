@@ -1,21 +1,24 @@
 import GLPK from './glpk.js';
 
 
+
 document.addEventListener('DOMContentLoaded', () => {
     const fields = document.querySelectorAll('.resource');
     fields.forEach(field => {
         field.addEventListener('paste', e => {
             const data = e.clipboardData || window.clipboardData;
             if (data) {
-                data.items[0].getAsString(str => {
-                    str.split(/\s/).forEach((value, i) => {
-                        fields[i] && (fields[i].value = value || '');
-                    });
+                field.blur();
+                const str = data.getData('text/plain');
+                str.split(/\s/).forEach((value, i) => {
+                    fields[i] && (fields[i].value = value || '');
                 });
             }
         });
     });
 });
+
+
 
 document.getElementById("alt_button").onclick = async function() {
     display_result(await alt_solver());
