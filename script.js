@@ -23,17 +23,53 @@ document.getElementById("alt_button").onclick = async function() {
 document.getElementById("norm_button").onclick = function() {
     display_result(norm_solver());
 };
+document.getElementById("boost_button").onclick = async function() {
+    display_result(norm_boost_solver());
+};
 document.getElementById("rec_button").onclick = recipe_ratios;
 
 
-const ET_RATIO = [7242, 5028, 7932, 5315, 6954, 3520];
+const R = {
+    wood: 0,
+    stone: 1,
+    iron: 2,
+    copper: 3,
+    coal: 4,
+    wolframite: 5,
+    uranium: 6,
+    list: [0, 1, 2, 3, 4, 5]
+};
+
+const NUCLEAR_BOOST = 1.4;
+const COAL_BOOST = 1.2;
 const EX_RATE = 30;
 const UR_EX_RATE = 10;
+const COAL_PP_RATE = 20;
+const FUEL_COST_RATIO = [18,20,18,0,18,30,30];
+const ALT_FUEL_COST_RATIO = [0,20,18,0,18,7.5,30];
+const ET_RATIO = [7242,5028,7932,5315,6954,3520];
+const MAX_RES_NUMS = [610,410,310,210];
+
+const AV_UR = 7;
+const UR_PATCH_ERROR = 2;
+const SCORE_ERROR = 0.98;
+const COAL_BOOST_UR = 1.2;
+const PLANT_CONS = [
+    {coal: 17.97, nuclear: 23.29},
+    {coal: 17.15, nuclear: 33.09},
+    {coal: 16.36, nuclear: 41.28},
+    {coal: 14.50, nuclear: 50.22},
+    {coal: 12.57, nuclear: 50.79}
+];
+const double_ERROR = -1e-8;
+const SIG = 6;
+
 const ALT_RECIPES = [
     "Concrete","Copper_Wire","Electric_Motor","Electromagnet",
     "Industrial_Frame","Iron_Gear","Logic_Circuit","Rotor","Steel",
     "Super_Computer","Tungsten_Carbide","Turbocharger"
 ];
+
 
 async function alt_solver() {
     const [
@@ -42,9 +78,9 @@ async function alt_solver() {
         Iron_Extractors,
         Copper_Extractors,
         Coal_Extractors,
-        Wolframite_Extractors
+        Wolframite_Extractors,
+        Uranium_Extractors
     ] = get_extractor_values();
-    const Uranium_Extractors = 0;
 
     try {
         const glpk = await GLPK();
@@ -617,6 +653,19 @@ function norm_solver() {
     return all;
 }
 
+function norm_boost_solver() {
+    let all_items = norm_solver();
+    const b_vars = SeedBoost(get_extractor_values());
+    for (let [key, value] of Object.entries(all_items)) {
+        all_items[key] = value * b_vars.boost;
+    }
+    return all_items;
+}
+
+function alt_boost_solver() {
+
+}
+
 async function recipe_ratios() {
     const all_items = await alt_solver();
     let text_value = "";
@@ -624,14 +673,14 @@ async function recipe_ratios() {
         const alt = all_items[key +"_ALT"];
         const norm = all_items[key];
         const value = (alt + norm <= 0)? 0 : (alt / (alt + norm));
-        text_value += `${key.replace(/_/g,' ')} ALT: ${Nround(value*100, 4)}%\n`;
+        text_value += `${key.replace(/_/g,' ')} ALT: ${roundN(value*100, 4)}%\n`;
     }
     document.getElementById("output").textContent = text_value;
 }
 
 function get_extractor_values() {
     let result = [];
-    for (const resource of ["wood","stone","iron","copper","coal","wolframite"]) {
+    for (const resource of ["wood","stone","iron","copper","coal","wolframite","uranium"]) {
         const value = parseFloat(document.getElementById(resource).value);
         result.push(isNaN(value)? 0:value);
     }
@@ -649,7 +698,7 @@ function display_result(item_dict) {
     last_keys.sort();
     keys = first_keys.concat(last_keys);
     for (const key of keys) {
-        text_value += `${key.replace(/_/g,' ')}: ${Nround(item_dict[key],6)}\n`
+        text_value += `${key.replace(/_/g,' ')}: ${roundN(item_dict[key],6)}\n`
         if (key == "Earth_Token" || key == "Uranium_Ore") {
             text_value += "\n";
         }
@@ -657,6 +706,96 @@ function display_result(item_dict) {
     document.getElementById("output").textContent = text_value;
 }
 
-function Nround(value, decimals) {
+function SeedBoost(resources, alt_ET_ratio=[]) {
+    console.log(resources)
+    const et_ratio = (alt_ET_ratio.length == 0)? ET_RATIO : alt_ET_ratio;
+    const fuel_cost_ratio = (alt_ET_ratio.length == 0)? FUEL_COST_RATIO : ALT_FUEL_COST_RATIO;
+    const av_resource = (resources[R.wood] + resources[R.iron] + resources[R.coal]) /3;
+    let resource_amount = 5;
+    for (const max_num of MAX_RES_NUMS) {
+        if (av_resource > max_num) {break;}
+        resource_amount--;
+    }
+    let npp_cost = [];
+    let score = {max: 1000000.0, min: 1000000.0};
+    const Plant = PLANT_CONS[resource_amount -1];
+    const nuclear_plants = resources[R.uranium] * UR_EX_RATE / fuel_cost_ratio[R.uranium] * COAL_BOOST_UR;
+    for (const res of R.list) {
+        npp_cost[res] = nuclear_plants * fuel_cost_ratio[res] / EX_RATE;
+        score.min = Math.min(score.min, resources[res] / et_ratio[res] * EX_RATE);
+        score.max = Math.min(score.max, (resources[res] * NUCLEAR_BOOST - npp_cost[res]) / et_ratio[res] * EX_RATE * SCORE_ERROR);
+    }
+    const nuc_extractors = nuclear_plants * Plant.nuclear * (NUCLEAR_BOOST -1);
+    const factor = 1- COAL_PP_RATE / (COAL_BOOST -1) / Plant.coal / EX_RATE;
+    const ur_boost_cost = (COAL_BOOST_UR != 1.2)? 0: ((Math.round(resources[R.uranium] / AV_UR) + UR_PATCH_ERROR) * COAL_PP_RATE / EX_RATE);
+
+    let extra_coal;
+    function is_possible(possible_score) {
+        let extra_needed = [0,0,0,0,0,0];
+        let min_nuc_ex = [0,0,0,0,0,0];
+        let still_needed = [0,0,0,0,0,0];
+        let total_needed_coal;
+        let sum_still_needed = 0;
+        let sum_min_nuc_ex = 0;
+        for (const res of R.list) {
+            const total_needed = possible_score / EX_RATE * et_ratio[res] / SCORE_ERROR + npp_cost[res];
+            if (res == R.coal) {
+                extra_needed[res] = resources[R.coal] * (COAL_BOOST -1);
+                total_needed_coal = total_needed;
+            } else {
+                if (total_needed > resources[res]) {
+                    extra_needed[res] = total_needed - resources[res];
+                }
+            }
+            const total_boost = extra_needed[res] / resources[res] +1;
+            const min_nuc_boosted = (total_boost - COAL_BOOST) / (NUCLEAR_BOOST - COAL_BOOST);
+            if (min_nuc_boosted > 0) {
+                min_nuc_ex[res] = min_nuc_boosted * resources[res] * (NUCLEAR_BOOST -1);
+            }
+            if (res != R.coal) {
+                still_needed[res] = extra_needed[res] - min_nuc_ex[res];
+            }
+            sum_still_needed += still_needed[res];
+            sum_min_nuc_ex += min_nuc_ex[res];
+        }
+        const leftover_nuc_ex = Math.max(0.0, nuc_extractors - sum_min_nuc_ex);
+        let sum_coal_ex = 0;
+        let sum_total_nuc_ex = 0;
+        for (const res of R.list) {
+            const extra_ex = leftover_nuc_ex / sum_still_needed * still_needed[res];
+            const extra_nuc_ex = Math.min(still_needed[res], extra_ex);
+            const total_nuc_ex = extra_nuc_ex + min_nuc_ex[res];
+            const coal_ex = extra_needed[res] - total_nuc_ex;
+            sum_total_nuc_ex += total_nuc_ex;
+            sum_coal_ex += coal_ex;
+        }
+        const coal_excess = resources[R.coal] * COAL_BOOST - total_needed_coal - ur_boost_cost - sum_coal_ex * (1- factor);
+        const nuc_boost_coal = Math.min(1.0, -1* coal_excess / resources[R.coal] / factor / (NUCLEAR_BOOST - COAL_BOOST));
+        const nuc_check = leftover_nuc_ex - nuc_boost_coal * resources[R.coal] * (NUCLEAR_BOOST -1);
+        const coal_check = coal_excess + nuc_boost_coal * factor * (NUCLEAR_BOOST - COAL_BOOST) * resources[R.coal];
+        extra_coal = resources[R.coal] * (nuc_boost_coal * NUCLEAR_BOOST + (1- nuc_boost_coal) * COAL_BOOST) - total_needed_coal;
+        return nuc_check >= double_ERROR && coal_check >= double_ERROR;
+    }
+
+    let score_range = {...score};
+    let estimate_score;
+    for (let i = 0; i < 100; i++) {
+        estimate_score = (score_range.max + score_range.min)/2;
+        if (roundN(score_range.max - score_range.min, SIG) == 0.0) {break;}
+        if (is_possible(estimate_score)) {
+            score_range.min = estimate_score;
+        } else {
+            score_range.max = estimate_score;
+        }
+    }
+    const result = {
+        boost: estimate_score / score.min,
+        plants: nuclear_plants,
+        extra_coal: extra_coal
+    };
+    return result;
+}
+
+function roundN(value, decimals) {
     return Math.round(value * 10**decimals) / (10**decimals);
 }
