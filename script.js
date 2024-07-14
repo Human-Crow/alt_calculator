@@ -5,17 +5,17 @@ document.addEventListener('DOMContentLoaded', () => {
     const fields = document.querySelectorAll('.resource');
     fields.forEach(field => {
         field.addEventListener('paste', e => {
-            const data = e.clipboardData.items[0];
-            if(data.kind == 'string' && data.type == 'text/plain') {
-                data.getAsString(str => {
-                    str.split(/\s/).forEach((value, i) => {
-                        fields[i] && (fields[i].value = value || '');
-                    })
+            const data = e.clipboardData || window.clipboardData;
+            if (data) {
+                const text = data.getData('text/plain');
+                text.split(/\s/).forEach((value, i) => {
+                    fields[i] && (fields[i].value = value || '');
                 });
             }
         });
     });
 });
+
 
 document.getElementById("alt_button").onclick = async function() {
     display_result(await alt_solver());
