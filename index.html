@@ -49,20 +49,22 @@
     </div>
     <div class="form-container">
         <div class="input-row">
-            <label for="Uranium">Uranium:</label>
+            <label for="uranium">Uranium:</label>
             <input class="resource" name="resource[]"  type="number" id="uranium" min="0">
         </div>
     </div>
     <br>
     <p style="margin: 0">Calculate:</p>
-    <button id="norm_button">Normal Score</button>
+    <label for="boost_box">Boost:</label>
+    <input type="checkbox" id="boost_box" name="boost_box">
+    <label for="alt_box">Alt:</label>
+    <input type="checkbox" id="alt_box" name="alt_box">
     <br>
-    <button id="alt_button">Alt Score</button>
-    <br>
-    <button id="boost_button">Boosted Score</button>
-    <br>
-    <button id="rec_button">Alt Recipes</button>
-    
+    <button id="score_button">Score</button>
+    <button style="display: none;" id="alt_recipe_button">Alt Recipes</button>
+    <button style="display: none;" id="res_boosts_button">Resource Boosts</button>
+
+    <pre style="color: rgb(255, 110, 110); margin: 0;" id="boost_note"></pre>
     <pre id="output"></pre>
     
     <script type="module" src="./script.js"></script>

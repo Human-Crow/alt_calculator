@@ -1,5 +1,30 @@
 import GLPK from './glpk.js';
 
+const alt_box = document.getElementById("alt_box");
+const boost_box = document.getElementById("boost_box");
+const boost_note = document.getElementById("boost_note");
+const alt_recipe_button = document.getElementById("alt_recipe_button");
+const res_boosts_button = document.getElementById("res_boosts_button");
+const output = document.getElementById("output");
+
+alt_box.addEventListener('change', function() {
+    output.textContent = "";
+    if (alt_box.checked) {
+        alt_recipe_button.style.display = 'block';
+    } else {
+        alt_recipe_button.style.display = 'none';
+    }
+});
+boost_box.addEventListener('change', function() {
+    output.textContent = "";
+    if (boost_box.checked) {
+        res_boosts_button.style.display = 'block';
+        boost_note.textContent = "The calculations are\nbased on an approximation";
+    } else {
+        res_boosts_button.style.display = 'none';
+        boost_note.textContent = "";
+    }
+});
 
 document.addEventListener('DOMContentLoaded', () => {
     const fields = document.querySelectorAll('.resource');
@@ -17,16 +42,21 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 });
 
-document.getElementById("alt_button").onclick = async function() {
-    display_result(await alt_solver());
+
+alt_recipe_button.onclick = show_recipe_ratios;
+res_boosts_button.onclick = function() {show_resource_boosts(alt_box.checked)};
+
+document.getElementById("score_button").onclick = async function() {
+    if (alt_box.checked && boost_box.checked) {
+        show_result(await alt_boost_solver());
+    } else if (alt_box.checked) {
+        show_result(await alt_solver());
+    } else if (boost_box.checked) {
+        show_result(norm_boost_solver());
+    } else {
+        show_result(norm_solver());
+    }
 };
-document.getElementById("norm_button").onclick = function() {
-    display_result(norm_solver());
-};
-document.getElementById("boost_button").onclick = async function() {
-    display_result(norm_boost_solver());
-};
-document.getElementById("rec_button").onclick = recipe_ratios;
 
 
 const R = {
@@ -654,60 +684,58 @@ function norm_solver() {
 }
 
 function norm_boost_solver() {
-    let all_items = norm_solver();
+    let all = norm_solver();
     const b_vars = SeedBoost(get_extractor_values());
-    for (let [key, value] of Object.entries(all_items)) {
-        all_items[key] = value * b_vars.boost;
+    for (let [key, value] of Object.entries(all)) {
+        all[key] = value * b_vars.boost;
     }
-    return all_items;
+    const Nuclear_Fuel_Cell = b_vars.plants; all["Nuclear_Fuel_Cell"] += Nuclear_Fuel_Cell;
+    const Empty_Fuel_Cell = Nuclear_Fuel_Cell; all["Empty_Fuel_Cell"] += Empty_Fuel_Cell;
+    const Steel_Rod = Nuclear_Fuel_Cell; all["Steel_Rod"] += Steel_Rod;
+    const Enriched_Uranium = Nuclear_Fuel_Cell; all["Enriched_Uranium"] += Enriched_Uranium;
+    const Glass = 5 * Empty_Fuel_Cell; all["Glass"] += Glass;
+    const Tungsten_Carbide = 3 * Empty_Fuel_Cell; all["Tungsten_Carbide"] += Tungsten_Carbide;
+    const Steel = 3 * Steel_Rod; all["Steel"] += Steel;
+    const Tungsten_Ore = 2 * Tungsten_Carbide; all["Tungsten_Ore"] += Tungsten_Ore;
+    const Sand = 4 * Glass; all["Sand"] += Sand;
+    const Graphite = Tungsten_Carbide + Steel; all["Graphite"] += Graphite;
+    const Uranium_Ore = 30 * Enriched_Uranium; all["Uranium_Ore"] += Uranium_Ore;
+    const Stone = Sand; all["Stone"] += Stone;
+    const Wolframite = 5 * Tungsten_Ore; all["Wolframite"] += Wolframite;
+    const Iron_Ore = 6 * Steel; all["Iron_Ore"] += Iron_Ore;
+    const Coal = 3 * Graphite + EX_RATE * b_vars.extra_coal; all["Coal"] += Coal;
+    const Wood_Log = 3 * Graphite; all["Wood_Log"] += Wood_Log;
+    return all;
 }
 
-function alt_boost_solver() {
-
-}
-
-async function recipe_ratios() {
-    const all_items = await alt_solver();
-    let text_value = "";
-    for (const key of ALT_RECIPES) {
-        const alt = all_items[key +"_ALT"];
-        const norm = all_items[key];
-        const value = (alt + norm <= 0)? 0 : (alt / (alt + norm));
-        text_value += `${key.replace(/_/g,' ')} ALT: ${roundN(value*100, 4)}%\n`;
+async function alt_boost_solver() {
+    let all = await alt_solver();
+    let alt_ET_ratio = [];
+    for (const resource of ["Wood_Log", "Stone", "Iron_Ore","Copper_Ore", "Coal", "Wolframite"]) {
+        alt_ET_ratio.push(all[resource] / all["Earth_Token"]);
     }
-    document.getElementById("output").textContent = text_value;
-}
-
-function get_extractor_values() {
-    let result = [];
-    for (const resource of ["wood","stone","iron","copper","coal","wolframite","uranium"]) {
-        const value = parseFloat(document.getElementById(resource).value);
-        result.push(isNaN(value)? 0:value);
+    const b_vars = SeedBoost(get_extractor_values(), alt_ET_ratio);
+    for (let [key, value] of Object.entries(all)) {
+        all[key] = value * b_vars.boost;
     }
-    return result;
-}
-
-function display_result(item_dict) {
-    let text_value = "";
-    let keys = Object.keys(item_dict);
-    const first_keys = [
-        "Earth_Token", "Wood_Log", "Stone", "Iron_Ore", 
-        "Copper_Ore", "Coal", "Wolframite","Uranium_Ore"
-    ];
-    const last_keys = keys.filter(item => !first_keys.includes(item));
-    last_keys.sort();
-    keys = first_keys.concat(last_keys);
-    for (const key of keys) {
-        text_value += `${key.replace(/_/g,' ')}: ${roundN(item_dict[key],6)}\n`
-        if (key == "Earth_Token" || key == "Uranium_Ore") {
-            text_value += "\n";
-        }
-    }
-    document.getElementById("output").textContent = text_value;
+    const Nuclear_Fuel_Cell = b_vars.plants; all["Nuclear_Fuel_Cell"] += Nuclear_Fuel_Cell;
+    const Empty_Fuel_Cell = Nuclear_Fuel_Cell; all["Empty_Fuel_Cell"] += Empty_Fuel_Cell;
+    const Steel_Rod = Nuclear_Fuel_Cell; all["Steel_Rod"] += Steel_Rod;
+    const Enriched_Uranium = Nuclear_Fuel_Cell; all["Enriched_Uranium"] += Enriched_Uranium;
+    const Glass = 5 * Empty_Fuel_Cell; all["Glass"] += Glass;
+    const Tungsten_Carbide_ALT = 3 * Empty_Fuel_Cell; all["Tungsten_Carbide_ALT"] += Tungsten_Carbide_ALT;
+    const Steel_ALT = 3 * Steel_Rod + 0.5 * Tungsten_Carbide_ALT; all["Steel_ALT"] += Steel_ALT;
+    const Tungsten_Ore = 0.5 * Tungsten_Carbide_ALT; all["Tungsten_Ore"] += Tungsten_Ore;
+    const Sand = 4 * Glass; all["Sand"] += Sand;
+    const Uranium_Ore = 30 * Enriched_Uranium; all["Uranium_Ore"] += Uranium_Ore;
+    const Stone = Sand; all["Stone"] += Stone;
+    const Wolframite = 5 * Tungsten_Ore; all["Wolframite"] += Wolframite;
+    const Iron_Ore = 4 * Steel_ALT; all["Iron_Ore"] += Iron_Ore;
+    const Coal = 4 * Steel_ALT + EX_RATE * b_vars.extra_coal; all["Coal"] += Coal;
+    return all;
 }
 
 function SeedBoost(resources, alt_ET_ratio=[]) {
-    console.log(resources)
     const et_ratio = (alt_ET_ratio.length == 0)? ET_RATIO : alt_ET_ratio;
     const fuel_cost_ratio = (alt_ET_ratio.length == 0)? FUEL_COST_RATIO : ALT_FUEL_COST_RATIO;
     const av_resource = (resources[R.wood] + resources[R.iron] + resources[R.coal]) /3;
@@ -725,12 +753,15 @@ function SeedBoost(resources, alt_ET_ratio=[]) {
         score.min = Math.min(score.min, resources[res] / et_ratio[res] * EX_RATE);
         score.max = Math.min(score.max, (resources[res] * NUCLEAR_BOOST - npp_cost[res]) / et_ratio[res] * EX_RATE * SCORE_ERROR);
     }
+    if (score.min == 0) {score.min = NaN;};
+    if (score.max == 0) {score.max = NaN;};
     const nuc_extractors = nuclear_plants * Plant.nuclear * (NUCLEAR_BOOST -1);
     const factor = 1- COAL_PP_RATE / (COAL_BOOST -1) / Plant.coal / EX_RATE;
     const ur_boost_cost = (COAL_BOOST_UR != 1.2)? 0: ((Math.round(resources[R.uranium] / AV_UR) + UR_PATCH_ERROR) * COAL_PP_RATE / EX_RATE);
 
     let extra_coal;
-    function is_possible(possible_score) {
+    let nuc_boost_coal;
+    function is_possible(possible_score, nuc_boost_coal_par=0) {
         let extra_needed = [0,0,0,0,0,0];
         let min_nuc_ex = [0,0,0,0,0,0];
         let still_needed = [0,0,0,0,0,0];
@@ -740,7 +771,7 @@ function SeedBoost(resources, alt_ET_ratio=[]) {
         for (const res of R.list) {
             const total_needed = possible_score / EX_RATE * et_ratio[res] / SCORE_ERROR + npp_cost[res];
             if (res == R.coal) {
-                extra_needed[res] = resources[R.coal] * (COAL_BOOST -1);
+                extra_needed[res] = resources[R.coal] * (nuc_boost_coal_par * NUCLEAR_BOOST + (1- nuc_boost_coal_par) * COAL_BOOST -1);
                 total_needed_coal = total_needed;
             } else {
                 if (total_needed > resources[res]) {
@@ -761,17 +792,25 @@ function SeedBoost(resources, alt_ET_ratio=[]) {
         const leftover_nuc_ex = Math.max(0.0, nuc_extractors - sum_min_nuc_ex);
         let sum_coal_ex = 0;
         let sum_total_nuc_ex = 0;
+        let nuc_boost_res = [];
+        let coal_boost_res = [];
         for (const res of R.list) {
             const extra_ex = leftover_nuc_ex / sum_still_needed * still_needed[res];
             const extra_nuc_ex = Math.min(still_needed[res], extra_ex);
             const total_nuc_ex = extra_nuc_ex + min_nuc_ex[res];
             const coal_ex = extra_needed[res] - total_nuc_ex;
+            nuc_boost_res[res] = total_nuc_ex / (NUCLEAR_BOOST -1) / resources[res];
+            coal_boost_res[res] = coal_ex / (COAL_BOOST -1) / resources[res];
             sum_total_nuc_ex += total_nuc_ex;
             sum_coal_ex += coal_ex;
         }
+        if (nuc_boost_coal_par != 0) {
+            coal_boost_res.push(1); nuc_boost_res.push(0);
+            return [coal_boost_res, nuc_boost_res];
+        }
         const coal_excess = resources[R.coal] * COAL_BOOST - total_needed_coal - ur_boost_cost - sum_coal_ex * (1- factor);
-        const nuc_boost_coal = Math.min(1.0, -1* coal_excess / resources[R.coal] / factor / (NUCLEAR_BOOST - COAL_BOOST));
-        const nuc_check = leftover_nuc_ex - nuc_boost_coal * resources[R.coal] * (NUCLEAR_BOOST -1);
+        nuc_boost_coal = Math.max(0, Math.min(1.0, -1* coal_excess / resources[R.coal] / factor / (NUCLEAR_BOOST - COAL_BOOST)));
+        const nuc_check = nuc_extractors - sum_min_nuc_ex - nuc_boost_coal * resources[R.coal] * (NUCLEAR_BOOST -1);
         const coal_check = coal_excess + nuc_boost_coal * factor * (NUCLEAR_BOOST - COAL_BOOST) * resources[R.coal];
         extra_coal = resources[R.coal] * (nuc_boost_coal * NUCLEAR_BOOST + (1- nuc_boost_coal) * COAL_BOOST) - total_needed_coal;
         return nuc_check >= double_ERROR && coal_check >= double_ERROR;
@@ -788,11 +827,75 @@ function SeedBoost(resources, alt_ET_ratio=[]) {
             score_range.max = estimate_score;
         }
     }
+    const [coal_boosts, nuc_boosts] = is_possible(estimate_score, nuc_boost_coal);
     const result = {
         boost: estimate_score / score.min,
         plants: nuclear_plants,
-        extra_coal: extra_coal
+        extra_coal: extra_coal,
+        coal_boosts: coal_boosts,
+        nuc_boosts: nuc_boosts
     };
+    return result;
+}
+
+async function show_recipe_ratios() {
+    const all_items = await alt_solver();
+    let text_value = "";
+    for (const key of ALT_RECIPES) {
+        const alt = all_items[key +"_ALT"];
+        const norm = all_items[key];
+        const value = (alt + norm <= 0)? 0 : (alt / (alt + norm));
+        text_value += `${key.replace(/_/g,' ')} ALT: ${roundN(value*100, 4)}%\n`;
+    }
+    output.textContent = text_value;
+}
+
+async function show_resource_boosts(alt_bool) {
+    let b_vars;
+    if (alt_bool) {
+        let all = await alt_solver();
+        let alt_ET_ratio = [];
+        for (const resource of ["Wood_Log", "Stone", "Iron_Ore","Copper_Ore", "Coal", "Wolframite"]) {
+            alt_ET_ratio.push(all[resource] / all["Earth_Token"]);
+        }
+        b_vars = SeedBoost(get_extractor_values(), alt_ET_ratio);
+    } else {
+        b_vars = SeedBoost(get_extractor_values());
+    }
+    let text_value = "";
+    for (const [str, i] of Object.entries({"Wood Log": R.wood, "Stone": R.stone, "Iron": R.iron,
+        "Copper": R.copper, "Wolframite": R.wolframite, "Coal": R.coal, "Uranium": R.uranium})) {
+        text_value += `${str}:\n     coal= ${roundN(b_vars.coal_boosts[i]*100,4)}%`;
+        text_value += `\n  nuclear= ${roundN(b_vars.nuc_boosts[i]*100,4)}%\n`;
+    }
+    output.textContent = text_value;
+}
+
+function show_result(item_dict) {
+    let text_value = "";
+    let keys = Object.keys(item_dict);
+    const first_keys = [
+        "Earth_Token", "Wood_Log", "Stone", "Iron_Ore", 
+        "Copper_Ore", "Coal", "Wolframite","Uranium_Ore"
+    ];
+    const last_keys = keys.filter(item => !first_keys.includes(item));
+    last_keys.sort();
+    keys = first_keys.concat(last_keys);
+    for (const key of keys) {
+        text_value += `${key.replace(/_/g,' ')}: ${roundN(item_dict[key],6)}\n`
+        if (key == "Earth_Token" || key == "Uranium_Ore") {
+            text_value += "\n";
+        }
+    }
+    output.textContent = text_value;
+}
+
+function get_extractor_values() {
+    let result = [];
+    for (const resource of ["wood","stone","iron","copper","coal","wolframite","uranium"]) {
+        const value = parseFloat(document.getElementById(resource).value);
+        result.push(isNaN(value)? 0:value);
+    }
     return result;
 }
 
