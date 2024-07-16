@@ -1,6 +1,9 @@
 h1 {color: #ffffff;}
 p {color: #ffffff;}
-pre {color: #ffffff;}
+pre {
+    color: #ffffff;
+    white-space: pre-wrap;
+}
 body {
     background-color: #1e1e1e;
     transform: scale(1.5);

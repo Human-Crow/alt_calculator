@@ -1,73 +1,17 @@
 import GLPK from './glpk.js';
 
 
+//#region Elements
 const alt_box = document.getElementById("alt_box");
 const boost_box = document.getElementById("boost_box");
 const boost_note = document.getElementById("boost_note");
 const alt_recipe_button = document.getElementById("alt_recipe_button");
 const res_boosts_button = document.getElementById("res_boosts_button");
 const output = document.getElementById("output");
-
-document.getElementById("wood").value = get_url_parameter("wd");
-document.getElementById("stone").value = get_url_parameter("st");
-document.getElementById("iron").value = get_url_parameter("ir");
-document.getElementById("copper").value = get_url_parameter("cp");
-document.getElementById("coal").value = get_url_parameter("cl");
-document.getElementById("wolframite").value = get_url_parameter("wr");
-document.getElementById("uranium").value = get_url_parameter("ur");
-
-alt_box.addEventListener('change', function() {
-    output.textContent = "";
-    if (alt_box.checked) {
-        alt_recipe_button.style.display = 'block';
-    } else {
-        alt_recipe_button.style.display = 'none';
-    }
-});
-boost_box.addEventListener('change', function() {
-    output.textContent = "";
-    if (boost_box.checked) {
-        res_boosts_button.style.display = 'block';
-        boost_note.textContent = "The calculations are\nbased on an approximation";
-    } else {
-        res_boosts_button.style.display = 'none';
-        boost_note.textContent = "";
-    }
-});
-
-document.addEventListener('DOMContentLoaded', () => {
-    const fields = document.querySelectorAll('.resource');
-    fields.forEach(field => {
-        field.addEventListener('paste', e => {
-            const data = e.clipboardData || window.clipboardData;
-            if (data) {
-                field.blur();
-                const str = data.getData('text/plain');
-                str.split(/\s/).forEach((value, i) => {
-                    fields[i] && (fields[i].value = value || '');
-                });
-            }
-        });
-    });
-});
+//#endregion
 
 
-alt_recipe_button.onclick = show_recipe_ratios;
-res_boosts_button.onclick = function() {show_resource_boosts(alt_box.checked)};
-
-document.getElementById("score_button").onclick = async function() {
-    if (alt_box.checked && boost_box.checked) {
-        show_result(await alt_boost_solver());
-    } else if (alt_box.checked) {
-        show_result(await alt_solver());
-    } else if (boost_box.checked) {
-        show_result(norm_boost_solver());
-    } else {
-        show_result(norm_solver());
-    }
-};
-
-
+//#region Constants
 const R = {
     wood: 0,
     stone: 1,
@@ -108,6 +52,22 @@ const ALT_RECIPES = [
     "Industrial_Frame","Iron_Gear","Logic_Circuit","Rotor","Steel",
     "Super_Computer","Tungsten_Carbide","Turbocharger"
 ];
+const RESOURCES = [
+    {key: "Wood_Log", i: R.wood, id: "wood", url: "wd"},
+    {key: "Stone", i: R.stone, id: "stone", url: "st"},
+    {key: "Iron_Ore", i: R.iron, id: "iron", url: "ir"},
+    {key: "Copper_Ore", i: R.copper, id: "copper", url: "cp"},
+    {key: "Coal", i: R.coal, id: "coal", url: "cl"},
+    {key: "Wolframite", i: R.wolframite, id: "wolframite", url: "wr"},
+    {key: "Uranium_Ore", i: R.uranium, id: "uranium", url: "ur"}
+];
+//#endregion
+
+
+//#region URL Parameters
+for (const res of RESOURCES) {
+    document.getElementById(res.id).value = get_url_parameter(res.url);
+}
 
 function get_url_parameter(target_key) {
     const url_vars = window.location.search.substring(1).split('&');
@@ -119,7 +79,70 @@ function get_url_parameter(target_key) {
     }
     return "";
 }
+//#endregion
 
+
+//#region Checkbox functions
+alt_box.addEventListener('change', function() {
+    output.textContent = "\n".repeat(output.textContent.split('\n').length);
+    if (alt_box.checked) {
+        alt_recipe_button.style.display = 'block';
+    } else {
+        alt_recipe_button.style.display = 'none';
+    }
+});
+
+boost_box.addEventListener('change', function() {
+    output.textContent = "\n".repeat(output.textContent.split('\n').length);
+    if (boost_box.checked) {
+        res_boosts_button.style.display = 'block';
+        boost_note.textContent = "The calculations are\nbased on an approximation";
+    } else {
+        res_boosts_button.style.display = 'none';
+        boost_note.textContent = "";
+    }
+});
+//#endregion
+
+
+//#region Paste feature
+document.addEventListener('DOMContentLoaded', () => {
+    const fields = document.querySelectorAll('.resource');
+    fields.forEach(field => {
+        field.addEventListener('paste', e => {
+            const data = e.clipboardData || window.clipboardData;
+            if (data) {
+                field.blur();
+                const str = data.getData('text/plain');
+                str.split(/\s/).forEach((value, i) => {
+                    fields[i] && (fields[i].value = value || '');
+                });
+            }
+        });
+    });
+});
+//#endregion
+
+
+//#region Button functions
+alt_recipe_button.onclick = show_recipe_ratios;
+res_boosts_button.onclick = function() {show_resource_boosts(alt_box.checked)};
+
+document.getElementById("score_button").onclick = async function() {
+    if (alt_box.checked && boost_box.checked) {
+        show_result(await alt_boost_solver());
+    } else if (alt_box.checked) {
+        show_result(await alt_solver());
+    } else if (boost_box.checked) {
+        show_result(norm_boost_solver());
+    } else {
+        show_result(norm_solver());
+    }
+};
+//#endregion
+
+
+//#region Solver functions
 async function alt_solver() {
     const [
         Wood_Extractors,
@@ -640,120 +663,123 @@ async function alt_solver() {
 }
 
 function norm_solver() {
-    const all_scores = [];
     const ex_values = get_extractor_values();
+    const all_scores = [];
     for (let i = 0; i < ET_RATIO.length; i++) {
-        all_scores.push(ex_values[i] * EX_RATE / ET_RATIO[i]);
+        all_scores[i] = ex_values[i] * EX_RATE / ET_RATIO[i];
     }
     const all = {};
-    const Earth_Token = Math.min(...all_scores); all["Earth_Token"] = Earth_Token;
-    const Matter_Duplicator = Earth_Token; all["Matter_Duplicator"] = Matter_Duplicator;
-    const Atomic_Locator = 4 * Matter_Duplicator; all["Atomic_Locator"] = Atomic_Locator;
-    const Energy_Cube = 5 * Matter_Duplicator; all["Energy_Cube"] = Energy_Cube;
-    const Particle_Glue = 100 * Matter_Duplicator; all["Particle_Glue"] = Particle_Glue;
-    const Quantum_Entangler = 2 * Matter_Duplicator; all["Quantum_Entangler"] = Quantum_Entangler;
-    const Electron_Microscope = 2 * Atomic_Locator; all["Electron_Microscope"] = Electron_Microscope;
-    const Super_Computer = 2 * Atomic_Locator; all["Super_Computer"] = Super_Computer;
-    const Matter_Compressor = 1/10 * Particle_Glue; all["Matter_Compressor"] = Matter_Compressor;
-    const Magnetic_Field_Generator = Quantum_Entangler; all["Magnetic_Field_Generator"] = Magnetic_Field_Generator;
-    const Condenser_Lens = 4 * Electron_Microscope; all["Condenser_Lens"] = Condenser_Lens;
-    const Tank = Matter_Compressor; all["Tank"] = Tank;
-    const Stabilizer = 2 * Quantum_Entangler + Magnetic_Field_Generator; all["Stabilizer"] = Stabilizer;
-    const Gyroscope = 2 * Stabilizer; all["Gyroscope"] = Gyroscope;
-    const Computer = Stabilizer + 2 * Super_Computer; all["Computer"] = Computer;
-    const Heat_Sink = 3 * Computer + 8 * Super_Computer; all["Heat_Sink"] = Heat_Sink;
-    const Industrial_Frame = Energy_Cube + Matter_Compressor + Magnetic_Field_Generator; all["Industrial_Frame"] = Industrial_Frame;
-    const Electric_Motor = Stabilizer + 2 * Matter_Compressor; all["Electric_Motor"] = Electric_Motor;
-    const Battery = 2 * Energy_Cube + Electric_Motor; all["Battery"] = Battery;
-    const Turbocharger = Super_Computer + 2 * Matter_Compressor; all["Turbocharger"] = Turbocharger;
-    const Nano_Wire = 2 * Electron_Microscope + 2 * Turbocharger + 10 * Magnetic_Field_Generator; all["Nano_Wire"] = Nano_Wire;
-    const Carbon_Fiber = 2 * Nano_Wire; all["Carbon_Fiber"] = Carbon_Fiber;
-    const Concrete = 6 * Industrial_Frame + 4 * Tank + 24 * Atomic_Locator; all["Concrete"] = Concrete;
-    const Electromagnet = 8 * Battery + 8 * Electron_Microscope + 10 * Magnetic_Field_Generator; all["Electromagnet"] = Electromagnet;
-    const Logic_Circuit = 3 * Computer + 4 * Turbocharger; all["Logic_Circuit"] = Logic_Circuit;
-    const Metal_Frame = Computer + 2 * Industrial_Frame + 2 * Electron_Microscope; all["Metal_Frame"] = Metal_Frame;
-    const Rotor = 2 * Gyroscope + 2 * Electric_Motor; all["Rotor"] = Rotor;
-    const Copper_Wire = 6 * Electromagnet + 3 * Logic_Circuit + 12 * Gyroscope + 50 * Atomic_Locator; all["Copper_Wire"] = Copper_Wire;
-    const Copper_Ingot = 3/2 * Copper_Wire + 5 * Heat_Sink; all["Copper_Ingot"] = Copper_Ingot;
-    const Coupler = 4 * Turbocharger + 8 * Super_Computer; all["Coupler"] = Coupler;
-    const Nuclear_Fuel_Cell = 0; all["Nuclear_Fuel_Cell"] = Nuclear_Fuel_Cell;
-    const Empty_Fuel_Cell = Nuclear_Fuel_Cell; all["Empty_Fuel_Cell"] = Empty_Fuel_Cell;
-    const Enriched_Uranium = Nuclear_Fuel_Cell; all["Enriched_Uranium"] = Enriched_Uranium;
-    const Steel_Rod = Rotor + Concrete; all["Steel_Rod"] = Steel_Rod;
-    const Steel = 3 * Steel_Rod; all["Steel"] = Steel;
-    const Glass = 3 * Condenser_Lens + 4 * Nano_Wire + 5 * Empty_Fuel_Cell + 2 * Tank; all["Glass"] = Glass;
-    const Tungsten_Carbide = Coupler + 3 * Empty_Fuel_Cell + 8 * Industrial_Frame + 4 * Tank; all["Tungsten_Carbide"] = Tungsten_Carbide;
-    const Tungsten_Ore = 2 * Tungsten_Carbide; all["Tungsten_Ore"] = Tungsten_Ore;
-    const Graphite = 4 * Carbon_Fiber + 8 * Battery + Steel + Tungsten_Carbide; all["Graphite"] = Graphite;
-    const Iron_Gear = 4 * Electric_Motor + 8 * Turbocharger; all["Iron_Gear"] = Iron_Gear;
-    const Iron_Plating = 4 * Metal_Frame + 2 * Rotor; all["Iron_Plating"] = Iron_Plating;
-    const Iron_Ingot = 2 * Iron_Gear + 2 * Iron_Plating + 2 * Electromagnet; all["Iron_Ingot"] = Iron_Ingot;
-    const Silicon = 2 * Logic_Circuit; all["Silicon"] = Silicon;
-    const Sand = 2 * Silicon + 4 * Glass + 10 * Concrete; all["Sand"] = Sand;
-    const Wood_Frame = Metal_Frame; all["Wood_Frame"] = Wood_Frame;
-    const Wood_Plank = 4 * Wood_Frame; all["Wood_Plank"] = Wood_Plank;
-    const Wood_Log = Wood_Plank + 3 * Graphite; all["Wood_Log"] = Wood_Log;
-    const Stone = Sand; all["Stone"] = Stone;
-    const Iron_Ore = Iron_Ingot + 6 * Steel; all["Iron_Ore"] = Iron_Ore;
-    const Copper_Ore = Copper_Ingot; all["Copper_Ore"] = Copper_Ore;
-    const Coal = 3 * Graphite; all["Coal"] = Coal;
-    const Wolframite = 5 * Tungsten_Ore; all["Wolframite"] = Wolframite;
-    const Uranium_Ore = 30 * Enriched_Uranium; all["Uranium_Ore"] = Uranium_Ore;
+    const Earth_Token = all.Earth_Token = Math.min(...all_scores);
+    const Matter_Duplicator = all.Matter_Duplicator = Earth_Token;
+    const Atomic_Locator = all.Atomic_Locator = 4 * Matter_Duplicator;
+    const Energy_Cube = all.Energy_Cube = 5 * Matter_Duplicator;
+    const Particle_Glue = all.Particle_Glue = 100 * Matter_Duplicator;
+    const Quantum_Entangler = all.Quantum_Entangler = 2 * Matter_Duplicator;
+    const Electron_Microscope = all.Electron_Microscope = 2 * Atomic_Locator;
+    const Super_Computer = all.Super_Computer = 2 * Atomic_Locator;
+    const Matter_Compressor = all.Matter_Compressor = 1/10 * Particle_Glue;
+    const Magnetic_Field_Generator = all.Magnetic_Field_Generator = Quantum_Entangler;
+    const Condenser_Lens = all.Condenser_Lens = 4 * Electron_Microscope;
+    const Tank = all.Tank = Matter_Compressor;
+    const Stabilizer = all.Stabilizer = 2 * Quantum_Entangler + Magnetic_Field_Generator;
+    const Gyroscope = all.Gyroscope = 2 * Stabilizer;
+    const Computer = all.Computer = Stabilizer + 2 * Super_Computer;
+    const Heat_Sink = all.Heat_Sink = 3 * Computer + 8 * Super_Computer;
+    const Industrial_Frame = all.Industrial_Frame = Energy_Cube + Matter_Compressor + Magnetic_Field_Generator;
+    const Electric_Motor = all.Electric_Motor = Stabilizer + 2 * Matter_Compressor;
+    const Battery = all.Battery = 2 * Energy_Cube + Electric_Motor;
+    const Turbocharger = all.Turbocharger = Super_Computer + 2 * Matter_Compressor;
+    const Nano_Wire = all.Nano_Wire = 2 * Electron_Microscope + 2 * Turbocharger + 10 * Magnetic_Field_Generator;
+    const Carbon_Fiber = all.Carbon_Fiber = 2 * Nano_Wire;
+    const Concrete = all.Concrete = 6 * Industrial_Frame + 4 * Tank + 24 * Atomic_Locator;
+    const Electromagnet = all.Electromagnet = 8 * Battery + 8 * Electron_Microscope + 10 * Magnetic_Field_Generator;
+    const Logic_Circuit = all.Logic_Circuit = 3 * Computer + 4 * Turbocharger;
+    const Metal_Frame = all.Metal_Frame = Computer + 2 * Industrial_Frame + 2 * Electron_Microscope;
+    const Rotor = all.Rotor = 2 * Gyroscope + 2 * Electric_Motor;
+    const Copper_Wire = all.Copper_Wire = 6 * Electromagnet + 3 * Logic_Circuit + 12 * Gyroscope + 50 * Atomic_Locator;
+    const Copper_Ingot = all.Copper_Ingot = 3/2 * Copper_Wire + 5 * Heat_Sink;
+    const Coupler = all.Coupler = 4 * Turbocharger + 8 * Super_Computer;
+    const Nuclear_Fuel_Cell = all.Nuclear_Fuel_Cell = 0;
+    const Empty_Fuel_Cell = all.Empty_Fuel_Cell = Nuclear_Fuel_Cell;
+    const Enriched_Uranium = all.Enriched_Uranium = Nuclear_Fuel_Cell;
+    const Steel_Rod = all.Steel_Rod = Rotor + Concrete;
+    const Steel = all.Steel = 3 * Steel_Rod;
+    const Glass = all.Glass = 3 * Condenser_Lens + 4 * Nano_Wire + 5 * Empty_Fuel_Cell + 2 * Tank;
+    const Tungsten_Carbide = all.Tungsten_Carbide = Coupler + 3 * Empty_Fuel_Cell + 8 * Industrial_Frame + 4 * Tank;
+    const Tungsten_Ore = all.Tungsten_Ore = 2 * Tungsten_Carbide;
+    const Graphite = all.Graphite = 4 * Carbon_Fiber + 8 * Battery + Steel + Tungsten_Carbide;
+    const Iron_Gear = all.Iron_Gear = 4 * Electric_Motor + 8 * Turbocharger;
+    const Iron_Plating = all.Iron_Plating = 4 * Metal_Frame + 2 * Rotor;
+    const Iron_Ingot = all.Iron_Ingot = 2 * Iron_Gear + 2 * Iron_Plating + 2 * Electromagnet;
+    const Silicon = all.Silicon = 2 * Logic_Circuit;
+    const Sand = all.Sand = 2 * Silicon + 4 * Glass + 10 * Concrete;
+    const Wood_Frame = all.Wood_Frame = Metal_Frame;
+    const Wood_Plank = all.Wood_Plank = 4 * Wood_Frame;
+    all.Wood_Log = Wood_Plank + 3 * Graphite;
+    all.Stone = Sand;
+    all.Iron_Ore = Iron_Ingot + 6 * Steel;
+    all.Copper_Ore = Copper_Ingot;
+    all.Coal = 3 * Graphite;
+    all.Wolframite = 5 * Tungsten_Ore;
+    all.Uranium_Ore = 30 * Enriched_Uranium;    
     return all;
 }
 
 function norm_boost_solver() {
-    let all = norm_solver();
-    const b_vars = SeedBoost(get_extractor_values());
-    for (let [key, value] of Object.entries(all)) {
-        all[key] = value * b_vars.boost;
+    const all = norm_solver();
+    const boost_vars = SeedBoost(get_extractor_values());
+    for (const [key, value] of Object.entries(all)) {
+        all[key] = value * boost_vars.boost;
     }
-    const Nuclear_Fuel_Cell = b_vars.plants; all["Nuclear_Fuel_Cell"] += Nuclear_Fuel_Cell;
-    const Empty_Fuel_Cell = Nuclear_Fuel_Cell; all["Empty_Fuel_Cell"] += Empty_Fuel_Cell;
-    const Steel_Rod = Nuclear_Fuel_Cell; all["Steel_Rod"] += Steel_Rod;
-    const Enriched_Uranium = Nuclear_Fuel_Cell; all["Enriched_Uranium"] += Enriched_Uranium;
-    const Glass = 5 * Empty_Fuel_Cell; all["Glass"] += Glass;
-    const Tungsten_Carbide = 3 * Empty_Fuel_Cell; all["Tungsten_Carbide"] += Tungsten_Carbide;
-    const Steel = 3 * Steel_Rod; all["Steel"] += Steel;
-    const Tungsten_Ore = 2 * Tungsten_Carbide; all["Tungsten_Ore"] += Tungsten_Ore;
-    const Sand = 4 * Glass; all["Sand"] += Sand;
-    const Graphite = Tungsten_Carbide + Steel; all["Graphite"] += Graphite;
-    const Uranium_Ore = 30 * Enriched_Uranium; all["Uranium_Ore"] += Uranium_Ore;
-    const Stone = Sand; all["Stone"] += Stone;
-    const Wolframite = 5 * Tungsten_Ore; all["Wolframite"] += Wolframite;
-    const Iron_Ore = 6 * Steel; all["Iron_Ore"] += Iron_Ore;
-    const Coal = 3 * Graphite + EX_RATE * b_vars.extra_coal; all["Coal"] += Coal;
-    const Wood_Log = 3 * Graphite; all["Wood_Log"] += Wood_Log;
+    const Nuclear_Fuel_Cell = boost_vars.plants; all.Nuclear_Fuel_Cell += Nuclear_Fuel_Cell;
+    const Empty_Fuel_Cell = Nuclear_Fuel_Cell; all.Empty_Fuel_Cell += Empty_Fuel_Cell;
+    const Steel_Rod = Nuclear_Fuel_Cell; all.Steel_Rod += Steel_Rod;
+    const Enriched_Uranium = Nuclear_Fuel_Cell; all.Enriched_Uranium += Enriched_Uranium;
+    const Glass = 5 * Empty_Fuel_Cell; all.Glass += Glass;
+    const Tungsten_Carbide = 3 * Empty_Fuel_Cell; all.Tungsten_Carbide += Tungsten_Carbide;
+    const Steel = 3 * Steel_Rod; all.Steel += Steel;
+    const Tungsten_Ore = 2 * Tungsten_Carbide; all.Tungsten_Ore += Tungsten_Ore;
+    const Sand = 4 * Glass; all.Sand += Sand;
+    const Graphite = Tungsten_Carbide + Steel; all.Graphite += Graphite;
+    all.Uranium_Ore += 30 * Enriched_Uranium;
+    all.Stone += Sand;
+    all.Wolframite += 5 * Tungsten_Ore;
+    all.Iron_Ore += 6 * Steel;
+    all.Coal += 3 * Graphite + EX_RATE * boost_vars.extra_coal;
+    all.Wood_Log += 3 * Graphite;
     return all;
 }
 
 async function alt_boost_solver() {
-    let all = await alt_solver();
-    let alt_ET_ratio = [];
-    for (const resource of ["Wood_Log", "Stone", "Iron_Ore","Copper_Ore", "Coal", "Wolframite"]) {
-        alt_ET_ratio.push(all[resource] / all["Earth_Token"]);
+    const all = await alt_solver();
+    const alt_ET_ratio = [];
+    for (const res of RESOURCES.slice(0, ET_RATIO.length)) {
+        alt_ET_ratio.push(all[res.key] / all.Earth_Token);
     }
-    const b_vars = SeedBoost(get_extractor_values(), alt_ET_ratio);
-    for (let [key, value] of Object.entries(all)) {
-        all[key] = value * b_vars.boost;
+    const boost_vars = SeedBoost(get_extractor_values(), alt_ET_ratio);
+    for (const [key, value] of Object.entries(all)) {
+        all[key] = value * boost_vars.boost;
     }
-    const Nuclear_Fuel_Cell = b_vars.plants; all["Nuclear_Fuel_Cell"] += Nuclear_Fuel_Cell;
-    const Empty_Fuel_Cell = Nuclear_Fuel_Cell; all["Empty_Fuel_Cell"] += Empty_Fuel_Cell;
-    const Steel_Rod = Nuclear_Fuel_Cell; all["Steel_Rod"] += Steel_Rod;
-    const Enriched_Uranium = Nuclear_Fuel_Cell; all["Enriched_Uranium"] += Enriched_Uranium;
-    const Glass = 5 * Empty_Fuel_Cell; all["Glass"] += Glass;
-    const Tungsten_Carbide_ALT = 3 * Empty_Fuel_Cell; all["Tungsten_Carbide_ALT"] += Tungsten_Carbide_ALT;
-    const Steel_ALT = 3 * Steel_Rod + 0.5 * Tungsten_Carbide_ALT; all["Steel_ALT"] += Steel_ALT;
-    const Tungsten_Ore = 0.5 * Tungsten_Carbide_ALT; all["Tungsten_Ore"] += Tungsten_Ore;
-    const Sand = 4 * Glass; all["Sand"] += Sand;
-    const Uranium_Ore = 30 * Enriched_Uranium; all["Uranium_Ore"] += Uranium_Ore;
-    const Stone = Sand; all["Stone"] += Stone;
-    const Wolframite = 5 * Tungsten_Ore; all["Wolframite"] += Wolframite;
-    const Iron_Ore = 4 * Steel_ALT; all["Iron_Ore"] += Iron_Ore;
-    const Coal = 4 * Steel_ALT + EX_RATE * b_vars.extra_coal; all["Coal"] += Coal;
+    const Nuclear_Fuel_Cell = boost_vars.plants; all.Nuclear_Fuel_Cell += Nuclear_Fuel_Cell;
+    const Empty_Fuel_Cell = Nuclear_Fuel_Cell; all.Empty_Fuel_Cell += Empty_Fuel_Cell;
+    const Steel_Rod = Nuclear_Fuel_Cell; all.Steel_Rod += Steel_Rod;
+    const Enriched_Uranium = Nuclear_Fuel_Cell; all.Enriched_Uranium += Enriched_Uranium;
+    const Glass = 5 * Empty_Fuel_Cell; all.Glass += Glass;
+    const Tungsten_Carbide_ALT = 3 * Empty_Fuel_Cell; all.Tungsten_Carbide_ALT += Tungsten_Carbide_ALT;
+    const Steel_ALT = 3 * Steel_Rod + 0.5 * Tungsten_Carbide_ALT; all.Steel_ALT += Steel_ALT;
+    const Tungsten_Ore = 0.5 * Tungsten_Carbide_ALT; all.Tungsten_Ore += Tungsten_Ore;
+    const Sand = 4 * Glass; all.Sand += Sand;
+    all.Uranium_Ore += 30 * Enriched_Uranium;
+    all.Stone += Sand;
+    all.Wolframite += 5 * Tungsten_Ore;
+    all.Iron_Ore += 4 * Steel_ALT;
+    all.Coal += 4 * Steel_ALT + EX_RATE * boost_vars.extra_coal;
     return all;
 }
+//#endregion
 
+
+//#region Boost function
 function SeedBoost(resources, alt_ET_ratio=[]) {
     const et_ratio = (alt_ET_ratio.length == 0)? ET_RATIO : alt_ET_ratio;
     const fuel_cost_ratio = (alt_ET_ratio.length == 0)? FUEL_COST_RATIO : ALT_FUEL_COST_RATIO;
@@ -763,8 +789,8 @@ function SeedBoost(resources, alt_ET_ratio=[]) {
         if (av_resource > max_num) {break;}
         resource_amount--;
     }
-    let npp_cost = [];
-    let score = {max: 1000000.0, min: 1000000.0};
+    const npp_cost = [];
+    const score = {max: 1000000.0, min: 1000000.0};
     const Plant = PLANT_CONS[resource_amount -1];
     const nuclear_plants = resources[R.uranium] * UR_EX_RATE / fuel_cost_ratio[R.uranium] * COAL_BOOST_UR;
     for (const res of R.list) {
@@ -781,9 +807,9 @@ function SeedBoost(resources, alt_ET_ratio=[]) {
     let extra_coal;
     let nuc_boost_coal;
     function is_possible(possible_score, nuc_boost_coal_par=0, final=false) {
-        let extra_needed = [0,0,0,0,0,0];
-        let min_nuc_ex = [0,0,0,0,0,0];
-        let still_needed = [0,0,0,0,0,0];
+        const extra_needed = [0,0,0,0,0,0];
+        const min_nuc_ex = [0,0,0,0,0,0];
+        const still_needed = [0,0,0,0,0,0];
         let total_needed_coal;
         let sum_still_needed = 0;
         let sum_min_nuc_ex = 0;
@@ -811,8 +837,8 @@ function SeedBoost(resources, alt_ET_ratio=[]) {
         const leftover_nuc_ex = Math.max(0.0, nuc_extractors - sum_min_nuc_ex);
         let sum_coal_ex = 0;
         let sum_total_nuc_ex = 0;
-        let nuc_boost_res = [];
-        let coal_boost_res = [];
+        const nuc_boost_res = [];
+        const coal_boost_res = [];
         for (const res of R.list) {
             const extra_ex = leftover_nuc_ex / sum_still_needed * still_needed[res];
             const extra_nuc_ex = Math.min(still_needed[res], extra_ex);
@@ -835,7 +861,7 @@ function SeedBoost(resources, alt_ET_ratio=[]) {
         return nuc_check >= double_ERROR && coal_check >= double_ERROR;
     }
 
-    let score_range = {...score};
+    const score_range = {...score};
     let estimate_score;
     for (let i = 0; i < 100; i++) {
         estimate_score = (score_range.max + score_range.min)/2;
@@ -856,63 +882,69 @@ function SeedBoost(resources, alt_ET_ratio=[]) {
     };
     return result;
 }
+//#endregion
 
+
+//#region Show functions
 async function show_recipe_ratios() {
     const all_items = await alt_solver();
-    let text_value = "";
+    let content = "";
     for (const key of ALT_RECIPES) {
         const alt = all_items[key +"_ALT"];
         const norm = all_items[key];
         const value = (alt + norm <= 0)? 0 : (alt / (alt + norm));
-        text_value += `${key.replace(/_/g,' ')} ALT: ${roundN(Math.max(0,Math.min(1,value))*100, 4)}%\n`;
+        content += `${key.replace(/_/g,' ')} ALT: ${roundN(Math.max(0,Math.min(1,value))*100, 4)}%\n`;
     }
-    output.textContent = text_value;
+    output.textContent = content;
 }
 
 async function show_resource_boosts(alt_bool) {
     let b_vars;
     if (alt_bool) {
-        let all = await alt_solver();
-        let alt_ET_ratio = [];
-        for (const resource of ["Wood_Log", "Stone", "Iron_Ore","Copper_Ore", "Coal", "Wolframite"]) {
-            alt_ET_ratio.push(all[resource] / all["Earth_Token"]);
+        const all = await alt_solver();
+        const alt_ET_ratio = [];
+        for (const res of RESOURCES.slice(0, ET_RATIO.length)) {
+            alt_ET_ratio.push(all[res.key] / all.Earth_Token);
         }
         b_vars = SeedBoost(get_extractor_values(), alt_ET_ratio);
     } else {
         b_vars = SeedBoost(get_extractor_values());
     }
-    let text_value = "";
-    for (const [str, i] of Object.entries({"Wood Log": R.wood, "Stone": R.stone, "Iron Ore": R.iron,
-        "Copper Ore": R.copper, "Wolframite": R.wolframite, "Coal": R.coal, "Uranium Ore": R.uranium})) {
-        text_value += `${str}:\n     coal= ${roundN(Math.max(0,Math.min(1,b_vars.coal_boosts[i]))*100,4)}%`;
-        text_value += `\n  nuclear= ${roundN(Math.max(0,Math.min(1,b_vars.nuc_boosts[i]))*100,4)}%\n\n`;
+    let content = "";
+    for (const res of RESOURCES) {
+        const coal_var = roundN(Math.max(0,Math.min(1,b_vars.coal_boosts[res.i]))*100,4);
+        const nuc_var  = roundN(Math.max(0,Math.min(1,b_vars. nuc_boosts[res.i]))*100,4);
+        content += `${res.key.replace(/_/g,' ')}:\n     coal= ${coal_var}%\n  nuclear= ${nuc_var}%\n\n`;
     }
-    output.textContent = text_value;
+    output.textContent = content;
 }
 
 function show_result(item_dict) {
-    let text_value = "";
     let keys = Object.keys(item_dict);
-    const first_keys = [
-        "Earth_Token", "Wood_Log", "Stone", "Iron_Ore", 
-        "Copper_Ore", "Coal", "Wolframite","Uranium_Ore"
-    ];
+    const first_keys = ["Earth_Token"];
+    for (const res of RESOURCES) {
+        first_keys.push(res.key);
+    }
     const last_keys = keys.filter(item => !first_keys.includes(item));
     last_keys.sort();
     keys = first_keys.concat(last_keys);
+    let content = "";
     for (const key of keys) {
-        text_value += `${key.replace(/_/g,' ')}: ${roundN(item_dict[key],6)}\n`
+        content += `${key.replace(/_/g,' ')}: ${roundN(item_dict[key],6)}\n`
         if (key == "Earth_Token" || key == "Uranium_Ore") {
-            text_value += "\n";
+            content += "\n";
         }
     }
-    output.textContent = text_value;
+    output.textContent = content;
 }
+//#endregion
 
+
+//#region Other functions
 function get_extractor_values() {
-    let result = [];
-    for (const resource of ["wood","stone","iron","copper","coal","wolframite","uranium"]) {
-        const value = parseFloat(document.getElementById(resource).value);
+    const result = [];
+    for (const res of RESOURCES) {
+        const value = parseFloat(document.getElementById(res.id).value);
         result.push(isNaN(value)? 0:value);
     }
     return result;
@@ -921,3 +953,4 @@ function get_extractor_values() {
 function roundN(value, decimals) {
     return Math.round(value * 10**decimals) / (10**decimals);
 }
+//#endregion
