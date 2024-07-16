@@ -13,53 +13,49 @@
 
     <div class="form-container">
         <div class="input-row">
-            <label for="wood">Wood:</label>
+            <label class="labelx" for="wood">Wood:</label>
             <input class="resource" name="resource[]"  type="number" id="wood" min="0">
         </div>
-    </div>
-    <div class="form-container">
         <div class="input-row">
-            <label for="stone">Stone:</label>
+            <label class="labelx" for="stone">Stone:</label>
             <input class="resource" name="resource[]"  type="number" id="stone" min="0">
         </div>
-    </div>
-    <div class="form-container">
         <div class="input-row">
-            <label for="iron">Iron:</label>
+            <label class="labelx" for="iron">Iron:</label>
             <input class="resource" name="resource[]"  type="number" id="iron" min="0">
         </div>
-    </div>
-    <div class="form-container">
         <div class="input-row">
-            <label for="copper">Copper:</label>
+            <label class="labelx" for="copper">Copper:</label>
             <input class="resource" name="resource[]"  type="number" id="copper" min="0">
         </div>
-    </div>
-    <div class="form-container">
         <div class="input-row">
-            <label for="coal">Coal:</label>
+            <label class="labelx" for="coal">Coal:</label>
             <input class="resource" name="resource[]"  type="number" id="coal" min="0">
         </div>
-    </div>
-    <div class="form-container">
         <div class="input-row">
-            <label for="wolframite">Wolframite:</label>
+            <label class="labelx" for="wolframite">Wolframite:</label>
             <input class="resource" name="resource[]"  type="number" id="wolframite" min="0">
         </div>
-    </div>
-    <div class="form-container">
         <div class="input-row">
-            <label for="uranium">Uranium:</label>
+            <label class="labelx" for="uranium">Uranium:</label>
             <input class="resource" name="resource[]"  type="number" id="uranium" min="0">
         </div>
     </div>
+
     <br>
     <p style="margin: 0">Calculate:</p>
-    <label for="boost_box">Boost:</label>
-    <input type="checkbox" id="boost_box" name="boost_box">
-    <label for="alt_box">Alt:</label>
-    <input type="checkbox" id="alt_box" name="alt_box">
-    <br>
+
+
+    <label class="container">Boost
+        <input type="checkbox" id="boost_box">
+        <span class="checkmark"></span>
+    </label>
+    <label class="container">Alt
+        <input type="checkbox" id="alt_box">
+        <span class="checkmark"></span>
+    </label>
+
+
     <button id="score_button">Score</button>
     <button style="display: none;" id="alt_recipe_button">Alt Recipes</button>
     <button style="display: none;" id="res_boosts_button">Resource Boosts</button>
