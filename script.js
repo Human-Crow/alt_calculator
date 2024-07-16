@@ -1,6 +1,6 @@
 import GLPK from './glpk.js';
 
-console.log(get_parameter("input"))
+
 const alt_box = document.getElementById("alt_box");
 const boost_box = document.getElementById("boost_box");
 const boost_note = document.getElementById("boost_note");
@@ -58,6 +58,11 @@ document.getElementById("score_button").onclick = async function() {
         show_result(norm_solver());
     }
 };
+
+const url_input = get_url_parameter("input");
+if (url_input != "") {
+    document.getElementById("wood").value = url_input.replace(/_/g,' ');
+}
 
 
 const R = {
@@ -904,13 +909,13 @@ function roundN(value, decimals) {
     return Math.round(value * 10**decimals) / (10**decimals);
 }
 
-function get_parameter(sParam) {
-    var sPageURL = window.location.search.substring(1);
-    var sURLVariables = sPageURL.split('&');
-    for (var i = 0; i < sURLVariables.length; i++) {
-        var sParameterName = sURLVariables[i].split('=');
-        if (sParameterName[0] == sParam) {
-            return sParameterName[1];
+function get_url_parameter(target_key) {
+    const url_vars = window.location.search.substring(1).split('&');
+    for (const url_var of url_vars) {
+        const [key, value] = url_var.split('=');
+        if (key == target_key) {
+            return value;
         }
     }
+    return "";
 }
