@@ -882,10 +882,10 @@ async function show_resource_boosts(alt_bool) {
         b_vars = SeedBoost(get_extractor_values());
     }
     let text_value = "";
-    for (const [str, i] of Object.entries({"Wood Log": R.wood, "Stone": R.stone, "Iron": R.iron,
-        "Copper": R.copper, "Wolframite": R.wolframite, "Coal": R.coal, "Uranium": R.uranium})) {
+    for (const [str, i] of Object.entries({"Wood Log": R.wood, "Stone": R.stone, "Iron Ore": R.iron,
+        "Copper Ore": R.copper, "Wolframite": R.wolframite, "Coal": R.coal, "Uranium Ore": R.uranium})) {
         text_value += `${str}:\n     coal= ${roundN(b_vars.coal_boosts[i]*100,4)}%`;
-        text_value += `\n  nuclear= ${roundN(b_vars.nuc_boosts[i]*100,4)}%\n`;
+        text_value += `\n  nuclear= ${roundN(b_vars.nuc_boosts[i]*100,4)}%\n\n`;
     }
     output.textContent = text_value;
 }
