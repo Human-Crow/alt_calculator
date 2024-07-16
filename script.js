@@ -8,6 +8,14 @@ const alt_recipe_button = document.getElementById("alt_recipe_button");
 const res_boosts_button = document.getElementById("res_boosts_button");
 const output = document.getElementById("output");
 
+document.getElementById("wood").value = get_url_parameter("wd");
+document.getElementById("stone").value = get_url_parameter("st");
+document.getElementById("iron").value = get_url_parameter("ir");
+document.getElementById("copper").value = get_url_parameter("cp");
+document.getElementById("coal").value = get_url_parameter("cl");
+document.getElementById("wolframite").value = get_url_parameter("wr");
+document.getElementById("uranium").value = get_url_parameter("ur");
+
 alt_box.addEventListener('change', function() {
     output.textContent = "\n\n\n\n\n\n\n\n\n";
     if (alt_box.checked) {
@@ -59,11 +67,6 @@ document.getElementById("score_button").onclick = async function() {
     }
 };
 
-const url_input = get_url_parameter("input");
-if (url_input != "") {
-    document.getElementById("wood").value = url_input.replace(/_/g,' ');
-}
-
 
 const R = {
     wood: 0,
@@ -106,6 +109,16 @@ const ALT_RECIPES = [
     "Super_Computer","Tungsten_Carbide","Turbocharger"
 ];
 
+function get_url_parameter(target_key) {
+    const url_vars = window.location.search.substring(1).split('&');
+    for (const url_var of url_vars) {
+        const [key, value] = url_var.split('=');
+        if (key == target_key) {
+            return value;
+        }
+    }
+    return "";
+}
 
 async function alt_solver() {
     const [
@@ -907,15 +920,4 @@ function get_extractor_values() {
 
 function roundN(value, decimals) {
     return Math.round(value * 10**decimals) / (10**decimals);
-}
-
-function get_url_parameter(target_key) {
-    const url_vars = window.location.search.substring(1).split('&');
-    for (const url_var of url_vars) {
-        const [key, value] = url_var.split('=');
-        if (key == target_key) {
-            return value;
-        }
-    }
-    return "";
 }
