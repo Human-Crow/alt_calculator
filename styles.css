@@ -47,15 +47,18 @@ input:hover {
 
 /* The container */
 .container {
-  display: block;
-  position: relative;
-  padding-left: 35px; /*label start point*/
-  margin-bottom: 12px;
-  -webkit-user-select: none;
-  -moz-user-select: none;
-  -ms-user-select: none;
-  user-select: none;
-  color: #ffffff;
+    display: block;
+    position: relative;
+    line-height: 20px;
+    padding-left: 25px; /*label start point*/
+    margin-bottom: 4px;
+    margin-right: 40px;
+    margin-top: 2px;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    color: #ffffff; /*label color*/
 }
 /* Create a custom checkbox */
 .checkmark {
@@ -65,7 +68,7 @@ input:hover {
     height: 20px;
     width: 20px;
     border-radius: 6px;
-    background-color: #282828;
+    background-color: #2e2e2e;
   }
 /* Style the checkmark symbol */
 .container .checkmark:after {
