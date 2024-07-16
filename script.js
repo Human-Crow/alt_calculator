@@ -17,7 +17,7 @@ document.getElementById("wolframite").value = get_url_parameter("wr");
 document.getElementById("uranium").value = get_url_parameter("ur");
 
 alt_box.addEventListener('change', function() {
-    output.textContent = "\n\n\n\n\n\n\n\n\n";
+    output.textContent = "\n\n\n\n\n\n\n\n\n\n\n\n\n\n";
     if (alt_box.checked) {
         alt_recipe_button.style.display = 'block';
     } else {
@@ -25,7 +25,7 @@ alt_box.addEventListener('change', function() {
     }
 });
 boost_box.addEventListener('change', function() {
-    output.textContent = "\n\n\n\n\n\n\n\n\n";
+    output.textContent = "\n\n\n\n\n\n\n\n\n\n\n\n\n\n";
     if (boost_box.checked) {
         res_boosts_button.style.display = 'block';
         boost_note.textContent = "The calculations are\nbased on an approximation";
