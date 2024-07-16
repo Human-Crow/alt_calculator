@@ -1,5 +1,6 @@
 import GLPK from './glpk.js';
 
+console.log(get_parameter("input"))
 const alt_box = document.getElementById("alt_box");
 const boost_box = document.getElementById("boost_box");
 const boost_note = document.getElementById("boost_note");
@@ -901,4 +902,15 @@ function get_extractor_values() {
 
 function roundN(value, decimals) {
     return Math.round(value * 10**decimals) / (10**decimals);
+}
+
+function get_parameter(sParam) {
+    var sPageURL = window.location.search.substring(1);
+    var sURLVariables = sPageURL.split('&');
+    for (var i = 0; i < sURLVariables.length; i++) {
+        var sParameterName = sURLVariables[i].split('=');
+        if (sParameterName[0] == sParam) {
+            return sParameterName[1];
+        }
+    }
 }
