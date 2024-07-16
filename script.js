@@ -772,8 +772,8 @@ function SeedBoost(resources, alt_ET_ratio=[]) {
         score.min = Math.min(score.min, resources[res] / et_ratio[res] * EX_RATE);
         score.max = Math.min(score.max, (resources[res] * NUCLEAR_BOOST - npp_cost[res]) / et_ratio[res] * EX_RATE * SCORE_ERROR);
     }
-    if (score.min == 0) {score.min = NaN;};
-    if (score.max == 0) {score.max = NaN;};
+    if (score.min <= 0 || score.min > score.max) {score.min = NaN;};
+    if (score.max <= 0) {score.max = NaN;};
     const nuc_extractors = nuclear_plants * Plant.nuclear * (NUCLEAR_BOOST -1);
     const factor = 1- COAL_PP_RATE / (COAL_BOOST -1) / Plant.coal / EX_RATE;
     const ur_boost_cost = (COAL_BOOST_UR != 1.2)? 0: ((Math.round(resources[R.uranium] / AV_UR) + UR_PATCH_ERROR) * COAL_PP_RATE / EX_RATE);
