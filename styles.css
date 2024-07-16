@@ -14,7 +14,7 @@ body {
     display: flex;
     align-items: center;
 }
-.labelx {
+.res_label {
     color: #ffffff;
     flex: 1;
     text-align: right;

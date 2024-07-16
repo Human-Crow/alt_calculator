@@ -8,7 +8,7 @@ const res_boosts_button = document.getElementById("res_boosts_button");
 const output = document.getElementById("output");
 
 alt_box.addEventListener('change', function() {
-    output.textContent = "";
+    output.textContent = "\n\n\n\n\n\n\n\n\n";
     if (alt_box.checked) {
         alt_recipe_button.style.display = 'block';
     } else {
@@ -16,7 +16,7 @@ alt_box.addEventListener('change', function() {
     }
 });
 boost_box.addEventListener('change', function() {
-    output.textContent = "";
+    output.textContent = "\n\n\n\n\n\n\n\n\n";
     if (boost_box.checked) {
         res_boosts_button.style.display = 'block';
         boost_note.textContent = "The calculations are\nbased on an approximation";
@@ -761,7 +761,7 @@ function SeedBoost(resources, alt_ET_ratio=[]) {
 
     let extra_coal;
     let nuc_boost_coal;
-    function is_possible(possible_score, nuc_boost_coal_par=0) {
+    function is_possible(possible_score, nuc_boost_coal_par=0, final=false) {
         let extra_needed = [0,0,0,0,0,0];
         let min_nuc_ex = [0,0,0,0,0,0];
         let still_needed = [0,0,0,0,0,0];
@@ -804,7 +804,7 @@ function SeedBoost(resources, alt_ET_ratio=[]) {
             sum_total_nuc_ex += total_nuc_ex;
             sum_coal_ex += coal_ex;
         }
-        if (nuc_boost_coal_par != 0) {
+        if (final) {
             coal_boost_res.push(1); nuc_boost_res.push(0);
             return [coal_boost_res, nuc_boost_res];
         }
@@ -827,7 +827,7 @@ function SeedBoost(resources, alt_ET_ratio=[]) {
             score_range.max = estimate_score;
         }
     }
-    const [coal_boosts, nuc_boosts] = is_possible(estimate_score, nuc_boost_coal);
+    const [coal_boosts, nuc_boosts] = is_possible(estimate_score, nuc_boost_coal, true);
     const result = {
         boost: estimate_score / score.min,
         plants: nuclear_plants,
