@@ -864,7 +864,7 @@ async function show_recipe_ratios() {
         const alt = all_items[key +"_ALT"];
         const norm = all_items[key];
         const value = (alt + norm <= 0)? 0 : (alt / (alt + norm));
-        text_value += `${key.replace(/_/g,' ')} ALT: ${roundN(value*100, 4)}%\n`;
+        text_value += `${key.replace(/_/g,' ')} ALT: ${roundN(Math.max(0,Math.min(1,value))*100, 4)}%\n`;
     }
     output.textContent = text_value;
 }
@@ -884,8 +884,8 @@ async function show_resource_boosts(alt_bool) {
     let text_value = "";
     for (const [str, i] of Object.entries({"Wood Log": R.wood, "Stone": R.stone, "Iron Ore": R.iron,
         "Copper Ore": R.copper, "Wolframite": R.wolframite, "Coal": R.coal, "Uranium Ore": R.uranium})) {
-        text_value += `${str}:\n     coal= ${roundN(b_vars.coal_boosts[i]*100,4)}%`;
-        text_value += `\n  nuclear= ${roundN(b_vars.nuc_boosts[i]*100,4)}%\n\n`;
+        text_value += `${str}:\n     coal= ${roundN(Math.max(0,Math.min(1,b_vars.coal_boosts[i]))*100,4)}%`;
+        text_value += `\n  nuclear= ${roundN(Math.max(0,Math.min(1,b_vars.nuc_boosts[i]))*100,4)}%\n\n`;
     }
     output.textContent = text_value;
 }
