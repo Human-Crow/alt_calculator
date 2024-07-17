@@ -939,6 +939,7 @@ function show_result(item_dict) {
             content += "\n";
         }
     }
+    output.style.fontSize = Math.min(13, window.innerWidth * 0.03) +"px";
     output.textContent = content + "\n";
 }
 //#endregion
