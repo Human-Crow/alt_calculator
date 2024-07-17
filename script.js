@@ -66,10 +66,12 @@ const RESOURCES = [
 
 //#region URL Parameters
 for (const res of RESOURCES) {
-    document.getElementById(res.id).value = get_url_parameter(res.url);
+    const elem = document.getElementById(res.id);
+    elem.value = get_url_param(res.url);
+    elem.addEventListener('change', function() {update_url_param(res.url, res.id);});
 }
 
-function get_url_parameter(target_key) {
+function get_url_param(target_key) {
     const url_vars = window.location.search.substring(1).split('&');
     for (const url_var of url_vars) {
         const [key, value] = url_var.split('=');
@@ -78,6 +80,18 @@ function get_url_parameter(target_key) {
         }
     }
     return "";
+}
+
+function update_url_param(param, id) {
+    const url = new URL(window.location.href);
+    const value = document.getElementById(id).value;
+    url.searchParams.set(param, value);
+    if (value) { 
+        window.history.pushState({}, '', url.href);
+    } else {
+        url.searchParams.delete(param);
+        window.history.replaceState(null, null, url);
+    }
 }
 //#endregion
 
@@ -93,6 +107,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const str = data.getData('text/plain');
                 str.split(/\s/).forEach((value, i) => {
                     fields[i] && (fields[i].value = value || '');
+                    update_url_param(RESOURCES[i].url, RESOURCES[i].id);
                 });
             }
         });
@@ -124,9 +139,9 @@ boost_box.addEventListener('change', function() {
 //#endregion
 
 
-//#region Button functions
-alt_recipe_button.onclick = function() {show_recipe_ratios(boost_box.checked)};
-res_boosts_button.onclick = function() {show_resource_boosts(alt_box.checked)};
+//#region Elem functions
+alt_recipe_button.onclick = function() {show_recipe_ratios(boost_box.checked);};
+res_boosts_button.onclick = function() {show_resource_boosts(alt_box.checked);};
 
 document.getElementById("score_button").onclick = async function() {
     if (alt_box.checked && boost_box.checked) {
