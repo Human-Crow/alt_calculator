@@ -930,13 +930,9 @@ function show_result(item_dict) {
     const last_keys = keys.filter(item => !first_keys.includes(item));
     last_keys.sort();
     keys = first_keys.concat(last_keys);
-    let max_key_len = 0;
-    for (const key of keys) {
-        max_key_len = Math.max(max_key_len, key.length);
-    }
     let content = "";
     for (const key of keys) {
-        content += `${key.replace(/_/g,' ').padEnd(max_key_len, " ")} ${roundN(item_dict[key],6)}\n`
+        content += `${key.replace(/_/g,' ').padEnd(24, " ")} ${roundN(item_dict[key],6)}\n`
         if (key == "Earth_Token" || key == "Uranium_Ore") {
             content += "\n";
         }
