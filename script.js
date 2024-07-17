@@ -8,7 +8,6 @@ const boost_note = document.getElementById("boost_note");
 const alt_recipe_button = document.getElementById("alt_recipe_button");
 const res_boosts_button = document.getElementById("res_boosts_button");
 const output = document.getElementById("output");
-const debug = document.getElementById("debug");
 //#endregion
 
 
