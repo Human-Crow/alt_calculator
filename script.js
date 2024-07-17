@@ -940,7 +940,7 @@ function show_result(item_dict) {
             content += "\n";
         }
     }
-    debug.textContent = window.innerWidth;
+    debug.textContent = window.innerWidth + ", " + window.screen.width;
     output.style.fontSize = Math.min(13, window.innerWidth * 0.03 -1) +"px";
     output.textContent = content + "\n";
 }
