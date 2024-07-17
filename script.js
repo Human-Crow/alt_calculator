@@ -103,7 +103,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 //#region Checkbox functions
 alt_box.addEventListener('change', function() {
-    output.textContent = "\n".repeat(output.textContent.split('\n').length);
+    output.textContent = "\n".repeat(40);
     if (alt_box.checked) {
         alt_recipe_button.style.display = 'block';
     } else {
@@ -112,7 +112,7 @@ alt_box.addEventListener('change', function() {
 });
 
 boost_box.addEventListener('change', function() {
-    output.textContent = "\n".repeat(output.textContent.split('\n').length);
+    output.textContent = "\n".repeat(40);
     if (boost_box.checked) {
         res_boosts_button.style.display = 'block';
         boost_note.textContent = "The calculations are\nbased on an approximation";
@@ -896,7 +896,7 @@ async function show_recipe_ratios(boost_bool) {
         content += `${key.replace(/_/g,' ').padEnd(16, " ")} ${roundN(Math.max(0,Math.min(1,value))*100, 4)}%\n`;
     }
     output.style.fontSize = Math.min(13, window.screen.width * 0.043 -0.5) +"px";
-    output.textContent = content + "\n";
+    output.textContent = content + "\n".repeat(25);
 }
 
 async function show_resource_boosts(alt_bool) {
@@ -918,7 +918,7 @@ async function show_resource_boosts(alt_bool) {
         content += `${res.key.replace(/_/g,' ').padEnd(11, " ")} ${coal_var.padEnd(8, " ")}  ${nuc_var.padEnd(8, " ")}\n`;
     }
     output.style.fontSize = Math.min(13, window.screen.width * 0.037 -0.5) +"px";
-    output.textContent = content + "\n";
+    output.textContent = content + "\n".repeat(30);
 }
 
 function show_result(item_dict) {
