@@ -82,6 +82,25 @@ function get_url_parameter(target_key) {
 //#endregion
 
 
+//#region Paste feature
+document.addEventListener('DOMContentLoaded', () => {
+    const fields = document.querySelectorAll('.resource');
+    fields.forEach(field => {
+        field.addEventListener('paste', e => {
+            const data = e.clipboardData || window.clipboardData;
+            if (data) {
+                field.blur();
+                const str = data.getData('text/plain');
+                str.split(/\s/).forEach((value, i) => {
+                    fields[i] && (fields[i].value = value || '');
+                });
+            }
+        });
+    });
+});
+//#endregion
+
+
 //#region Checkbox functions
 alt_box.addEventListener('change', function() {
     output.textContent = "\n".repeat(output.textContent.split('\n').length);
@@ -105,27 +124,8 @@ boost_box.addEventListener('change', function() {
 //#endregion
 
 
-//#region Paste feature
-document.addEventListener('DOMContentLoaded', () => {
-    const fields = document.querySelectorAll('.resource');
-    fields.forEach(field => {
-        field.addEventListener('paste', e => {
-            const data = e.clipboardData || window.clipboardData;
-            if (data) {
-                field.blur();
-                const str = data.getData('text/plain');
-                str.split(/\s/).forEach((value, i) => {
-                    fields[i] && (fields[i].value = value || '');
-                });
-            }
-        });
-    });
-});
-//#endregion
-
-
 //#region Button functions
-alt_recipe_button.onclick = show_recipe_ratios;
+alt_recipe_button.onclick = function() {show_recipe_ratios(boost_box.checked)};
 res_boosts_button.onclick = function() {show_resource_boosts(alt_box.checked)};
 
 document.getElementById("score_button").onclick = async function() {
@@ -886,37 +886,39 @@ function SeedBoost(resources, alt_ET_ratio=[]) {
 
 
 //#region Show functions
-async function show_recipe_ratios() {
-    const all_items = await alt_solver();
-    let content = "";
+async function show_recipe_ratios(boost_bool) {
+    const all_items = (boost_bool)? (await alt_boost_solver()) : (await alt_solver());
+    let content = "Used Alt recipes:\n\n";
     for (const key of ALT_RECIPES) {
         const alt = all_items[key +"_ALT"];
         const norm = all_items[key];
         const value = (alt + norm <= 0)? 0 : (alt / (alt + norm));
-        content += `${key.replace(/_/g,' ')} ALT: ${roundN(Math.max(0,Math.min(1,value))*100, 4)}%\n`;
+        content += `${key.replace(/_/g,' ').padEnd(16, " ")} ${roundN(Math.max(0,Math.min(1,value))*100, 4)}%\n`;
     }
+    output.style.fontSize = Math.min(13, window.screen.width * 0.043 -0.5) +"px";
     output.textContent = content + "\n";
 }
 
 async function show_resource_boosts(alt_bool) {
-    let b_vars;
+    let boost_vars;
     if (alt_bool) {
         const all = await alt_solver();
         const alt_ET_ratio = [];
         for (const res of RESOURCES.slice(0, ET_RATIO.length)) {
             alt_ET_ratio.push(all[res.key] / all.Earth_Token);
         }
-        b_vars = SeedBoost(get_extractor_values(), alt_ET_ratio);
+        boost_vars = SeedBoost(get_extractor_values(), alt_ET_ratio);
     } else {
-        b_vars = SeedBoost(get_extractor_values());
+        boost_vars = SeedBoost(get_extractor_values());
     }
-    let content = "";
+    let content = "Resource    Coal      Nuclear\n\n";
     for (const res of RESOURCES) {
-        const coal_var = roundN(Math.max(0,Math.min(1,b_vars.coal_boosts[res.i]))*100,4);
-        const nuc_var  = roundN(Math.max(0,Math.min(1,b_vars. nuc_boosts[res.i]))*100,4);
-        content += `${res.key.replace(/_/g,' ')}:\n     coal= ${coal_var}%\n  nuclear= ${nuc_var}%\n\n`;
+        const coal_var = roundN(Math.max(0,Math.min(1,boost_vars.coal_boosts[res.i]))*100,4).toString() +"%";
+        const nuc_var  = roundN(Math.max(0,Math.min(1,boost_vars. nuc_boosts[res.i]))*100,4).toString() +"%";
+        content += `${res.key.replace(/_/g,' ').padEnd(11, " ")} ${coal_var.padEnd(8, " ")}  ${nuc_var.padEnd(8, " ")}\n`;
     }
-    output.textContent = content;
+    output.style.fontSize = Math.min(13, window.screen.width * 0.037 -0.5) +"px";
+    output.textContent = content + "\n";
 }
 
 function show_result(item_dict) {
