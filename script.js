@@ -939,9 +939,8 @@ function show_result(item_dict) {
             content += "\n";
         }
     }
-    output.textContent = Math.min(13, window.screen.width * 0.03) +"px\n\n"
-    //output.style.fontSize = Math.min(13, window.screen.width * 0.03) +"px";
-    //output.textContent += content + "\n";
+    output.style.fontSize = Math.min(13, window.screen.width * 0.03) +"px";
+    output.textContent += content + "\n";
 }
 //#endregion
 
