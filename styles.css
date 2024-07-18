@@ -47,9 +47,10 @@ button {
     color: rgb(255, 110, 110);
     background-color: #1e1e1e;
     border: 1px solid #6b6b6b;
-    font-size: 10.5px;
+    font-size: 11px;
     border-radius: 8px;
-    width: 80px;
+    padding: 0;
+    width: 75px;
     height: 20px;
 }
 .small-button:hover,
