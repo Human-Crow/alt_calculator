@@ -11,7 +11,7 @@ body {
     background-color: #1e1e1e;
     transform: scale(1.5);
     transform-origin: top left;
-    width: 66.66%;
+    width: 65%;
 }
 .form-container {
     max-width: 150px;
