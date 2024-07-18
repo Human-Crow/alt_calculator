@@ -7,6 +7,7 @@ const boost_box = document.getElementById("boost_box");
 const boost_note = document.getElementById("boost_note");
 const alt_recipe_button = document.getElementById("alt_recipe_button");
 const res_boosts_button = document.getElementById("res_boosts_button");
+const clear_button = document.getElementById("clear_button");
 const output = document.getElementById("output");
 //#endregion
 
@@ -139,7 +140,7 @@ boost_box.addEventListener('change', function() {
 //#endregion
 
 
-//#region Elem functions
+//#region Button functions
 alt_recipe_button.onclick = function() {show_recipe_ratios(boost_box.checked);};
 res_boosts_button.onclick = function() {show_resource_boosts(alt_box.checked);};
 
@@ -154,6 +155,26 @@ document.getElementById("score_button").onclick = async function() {
         show_result(norm_solver());
     }
 };
+
+let clear_state = false;
+clear_button.onclick = function() {
+    if (clear_state) {
+        for (const res of RESOURCES) {
+            document.getElementById(res.id).value = "";
+            update_url_param(res.url, res.id);
+        }
+        clear_button.innerText = "Clear Fields";
+    } else {
+        clear_button.innerText = "Tap again";
+    }
+    clear_state = !clear_state;
+}
+document.addEventListener("click", function(event) {
+    if (event.target !== clear_button) {
+        clear_state = false;
+        clear_button.innerText = "Clear Fields";
+    }
+});
 //#endregion
 
 
