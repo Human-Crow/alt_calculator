@@ -912,8 +912,8 @@ async function show_recipe_ratios(boost_bool) {
     const all_items = (boost_bool)? (await alt_boost_solver()) : (await alt_solver());
     let content = "Used Alt recipes:\n\n";
     for (const key of ALT_RECIPES) {
-        const alt = all_items[key +"_ALT"] || 0;
-        const norm = all_items[key] || 0;
+        const alt = all_items[key +"_ALT"];
+        const norm = all_items[key];
         const value = (alt + norm <= 0)? 0 : (alt / (alt + norm));
         content += `${key.replace(/_/g,' ').padEnd(16, " ")} ${roundN(Math.max(0,Math.min(1,value))*100, 4)}%\n`;
     }
@@ -935,8 +935,8 @@ async function show_resource_boosts(alt_bool) {
     }
     let content = "Resource    Coal      Nuclear\n\n";
     for (const res of RESOURCES) {
-        const coal_var = roundN(Math.max(0,Math.min(1,boost_vars.coal_boosts[res.i] || 0))*100,4).toString() +"%";
-        const nuc_var  = roundN(Math.max(0,Math.min(1,boost_vars. nuc_boosts[res.i] || 0))*100,4).toString() +"%";
+        const coal_var = roundN(Math.max(0,Math.min(1,boost_vars.coal_boosts[res.i]))*100,4).toString() +"%";
+        const nuc_var  = roundN(Math.max(0,Math.min(1,boost_vars. nuc_boosts[res.i]))*100,4).toString() +"%";
         content += `${res.key.replace(/_/g,' ').padEnd(11, " ")} ${coal_var.padEnd(8, " ")}  ${nuc_var.padEnd(8, " ")}\n`;
     }
     output.style.fontSize = Math.min(13, window.screen.width * 0.037 -0.5) +"px";
@@ -954,7 +954,7 @@ function show_result(item_dict) {
     keys = first_keys.concat(last_keys);
     let content = "";
     for (const key of keys) {
-        content += `${key.replace(/_/g,' ').padEnd(24, " ")} ${roundN(item_dict[key] || 0, 6)}\n`
+        content += `${key.replace(/_/g,' ').padEnd(24, " ")} ${roundN(item_dict[key], 6)}\n`
         if (key == "Earth_Token" || key == "Uranium_Ore") {
             content += "\n";
         }
