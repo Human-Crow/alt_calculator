@@ -65,12 +65,12 @@ const RESOURCES = [
 //#endregion
 
 
-//#region Input functions
+//#region Field functions
 for (const res of RESOURCES) {
-    const elem = document.getElementById(res.id);
-    elem.value = get_url_param(res.url);
-    elem.onchange = function() {update_url_param(res.url, res.id);};
-    elem.onpaste = function(ev) {elem.blur(); paste_insert(ev);};
+    const field = document.getElementById(res.id);
+    field.value = get_url_param(res.url);
+    field.onchange = function() {update_url_param(res.url, res.id);};
+    field.onpaste = function(ev) {field.blur(); paste_insert(ev);};
 }
 
 function get_url_param(target_key) {
