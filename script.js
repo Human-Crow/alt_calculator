@@ -65,11 +65,12 @@ const RESOURCES = [
 //#endregion
 
 
-//#region URL Parameters
+//#region Input functions
 for (const res of RESOURCES) {
     const elem = document.getElementById(res.id);
     elem.value = get_url_param(res.url);
-    elem.addEventListener('change', function() {update_url_param(res.url, res.id);});
+    elem.onchange = function() {update_url_param(res.url, res.id);};
+    elem.onpaste = function(ev) {elem.blur(); paste_insert(ev);};
 }
 
 function get_url_param(target_key) {
@@ -86,48 +87,39 @@ function get_url_param(target_key) {
 function update_url_param(param, id) {
     const url = new URL(window.location.href);
     const value = document.getElementById(id).value;
-    url.searchParams.set(param, value);
     if (value) { 
+        url.searchParams.set(param, value);
         window.history.pushState({}, '', url.href);
     } else {
         url.searchParams.delete(param);
         window.history.replaceState(null, null, url);
     }
 }
-//#endregion
 
-
-//#region Paste feature
-document.addEventListener('DOMContentLoaded', () => {
-    const fields = document.querySelectorAll('.resource');
-    fields.forEach(field => {
-        field.addEventListener('paste', e => {
-            const data = e.clipboardData || window.clipboardData;
-            if (data) {
-                field.blur();
-                const str = data.getData('text/plain');
-                str.split(/\s/).forEach((value, i) => {
-                    fields[i] && (fields[i].value = value || '');
-                    update_url_param(RESOURCES[i].url, RESOURCES[i].id);
-                });
-            }
-        });
-    });
-});
+function paste_insert(event) {
+    const data = event.clipboardData || window.clipboardData;
+    if (data) {
+        const values = data.getData('text/plain').split(/\s/);
+        for (const res of RESOURCES) {
+            document.getElementById(res.id).value = values[res.i];
+            update_url_param(res.url, res.id);
+        }
+    }
+}
 //#endregion
 
 
 //#region Checkbox functions
-alt_box.addEventListener('change', function() {
+alt_box.onchange = function() {
     output.textContent = "\n".repeat(40);
     if (alt_box.checked) {
         alt_recipe_button.style.display = 'block';
     } else {
         alt_recipe_button.style.display = 'none';
     }
-});
+};
 
-boost_box.addEventListener('change', function() {
+boost_box.onchange = function() {
     output.textContent = "\n".repeat(40);
     if (boost_box.checked) {
         res_boosts_button.style.display = 'block';
@@ -136,7 +128,7 @@ boost_box.addEventListener('change', function() {
         res_boosts_button.style.display = 'none';
         boost_note.textContent = "";
     }
-});
+};
 //#endregion
 
 
@@ -157,24 +149,22 @@ document.getElementById("score_button").onclick = async function() {
 };
 
 let clear_state = false;
-clear_button.onclick = function() {
-    if (clear_state) {
-        for (const res of RESOURCES) {
-            document.getElementById(res.id).value = "";
-            update_url_param(res.url, res.id);
+document.onclick = function(event) {
+    clear_button.innerText = "Clear Fields";
+    if (event.target === clear_button) {
+        if (clear_state) {
+            for (const res of RESOURCES) {
+                document.getElementById(res.id).value = "";
+                update_url_param(res.url, res.id);
+            }
+        } else {
+            clear_button.innerText = "Tap again";
         }
-        clear_button.innerText = "Clear Fields";
+        clear_state = !clear_state;
     } else {
-        clear_button.innerText = "Tap again";
-    }
-    clear_state = !clear_state;
-}
-document.addEventListener("click", function(event) {
-    if (event.target !== clear_button) {
         clear_state = false;
-        clear_button.innerText = "Clear Fields";
     }
-});
+};
 //#endregion
 
 
