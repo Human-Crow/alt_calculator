@@ -97,11 +97,11 @@ function update_url_param(param, id) {
 }
 
 function paste_insert(event) {
-    const data = event.clipboardData || window.clipboardData;
+    const data = event.clipboardData || window.clipboardData; // other browsers || safari
     if (data) {
         const values = data.getData('text/plain').split(/\s/);
         for (const res of RESOURCES) {
-            document.getElementById(res.id).value = values[res.i];
+            document.getElementById(res.id).value = values[res.i] || "";
             update_url_param(res.url, res.id);
         }
     }
@@ -112,11 +112,7 @@ function paste_insert(event) {
 //#region Checkbox functions
 alt_box.onchange = function() {
     output.textContent = "\n".repeat(40);
-    if (alt_box.checked) {
-        alt_recipe_button.style.display = 'block';
-    } else {
-        alt_recipe_button.style.display = 'none';
-    }
+    alt_recipe_button.style.display = (alt_box.checked)? 'block':'none';
 };
 
 boost_box.onchange = function() {
@@ -916,8 +912,8 @@ async function show_recipe_ratios(boost_bool) {
     const all_items = (boost_bool)? (await alt_boost_solver()) : (await alt_solver());
     let content = "Used Alt recipes:\n\n";
     for (const key of ALT_RECIPES) {
-        const alt = all_items[key +"_ALT"];
-        const norm = all_items[key];
+        const alt = all_items[key +"_ALT"] || 0;
+        const norm = all_items[key] || 0;
         const value = (alt + norm <= 0)? 0 : (alt / (alt + norm));
         content += `${key.replace(/_/g,' ').padEnd(16, " ")} ${roundN(Math.max(0,Math.min(1,value))*100, 4)}%\n`;
     }
@@ -939,8 +935,8 @@ async function show_resource_boosts(alt_bool) {
     }
     let content = "Resource    Coal      Nuclear\n\n";
     for (const res of RESOURCES) {
-        const coal_var = roundN(Math.max(0,Math.min(1,boost_vars.coal_boosts[res.i]))*100,4).toString() +"%";
-        const nuc_var  = roundN(Math.max(0,Math.min(1,boost_vars. nuc_boosts[res.i]))*100,4).toString() +"%";
+        const coal_var = roundN(Math.max(0,Math.min(1,boost_vars.coal_boosts[res.i] || 0))*100,4).toString() +"%";
+        const nuc_var  = roundN(Math.max(0,Math.min(1,boost_vars. nuc_boosts[res.i] || 0))*100,4).toString() +"%";
         content += `${res.key.replace(/_/g,' ').padEnd(11, " ")} ${coal_var.padEnd(8, " ")}  ${nuc_var.padEnd(8, " ")}\n`;
     }
     output.style.fontSize = Math.min(13, window.screen.width * 0.037 -0.5) +"px";
@@ -958,7 +954,7 @@ function show_result(item_dict) {
     keys = first_keys.concat(last_keys);
     let content = "";
     for (const key of keys) {
-        content += `${key.replace(/_/g,' ').padEnd(24, " ")} ${roundN(item_dict[key],6)}\n`
+        content += `${key.replace(/_/g,' ').padEnd(24, " ")} ${roundN(item_dict[key] || 0, 6)}\n`
         if (key == "Earth_Token" || key == "Uranium_Ore") {
             content += "\n";
         }
@@ -973,8 +969,7 @@ function show_result(item_dict) {
 function get_extractor_values() {
     const result = [];
     for (const res of RESOURCES) {
-        const value = parseFloat(document.getElementById(res.id).value);
-        result.push(isNaN(value)? 0:value);
+        result.push(parseFloat(document.getElementById(res.id).value) || 0);
     }
     return result;
 }
