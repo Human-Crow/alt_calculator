@@ -917,7 +917,7 @@ async function show_recipe_ratios(boost_bool) {
         const value = (alt + norm <= 0)? 0 : (alt / (alt + norm));
         content += `${key.replace(/_/g,' ').padEnd(16, " ")} ${roundN(Math.max(0,Math.min(1,value))*100, 4)}%\n`;
     }
-    output.style.fontSize = Math.min(13, window.screen.width * 0.043 -0.5) +"px";
+    output.style.fontSize = Math.min(13, window.innerWidth * 0.043 -0.5) +"px";
     output.textContent = content + "\n".repeat(25);
 }
 
@@ -939,7 +939,7 @@ async function show_resource_boosts(alt_bool) {
         const nuc_var  = roundN(Math.max(0,Math.min(1,boost_vars. nuc_boosts[res.i]))*100,4).toString() +"%";
         content += `${res.key.replace(/_/g,' ').padEnd(11, " ")} ${coal_var.padEnd(8, " ")}  ${nuc_var.padEnd(8, " ")}\n`;
     }
-    output.style.fontSize = Math.min(13, window.screen.width * 0.037 -0.5) +"px";
+    output.style.fontSize = Math.min(13, window.innerWidth * 0.037 -0.5) +"px";
     output.textContent = content + "\n".repeat(30);
 }
 
@@ -952,14 +952,14 @@ function show_result(item_dict) {
     const last_keys = keys.filter(item => !first_keys.includes(item));
     last_keys.sort();
     keys = first_keys.concat(last_keys);
-    let content = `t:${window.screen.width} i:${window.innerWidth} o:${window.outerWidth}\n\n`;
+    let content = "";
     for (const key of keys) {
         content += `${key.replace(/_/g,' ').padEnd(24, " ")} ${roundN(item_dict[key], 6)}\n`
         if (key == "Earth_Token" || key == "Uranium_Ore") {
             content += "\n";
         }
     }
-    output.style.fontSize = Math.min(13, window.screen.width * 0.03 -0.5) +"px";
+    output.style.fontSize = Math.min(13, window.innerWidth * 0.03 -0.5) +"px";
     output.textContent = content + "\n";
 }
 //#endregion
