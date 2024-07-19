@@ -2,12 +2,23 @@ import GLPK from './glpk.js';
 
 
 //#region Elements
+const clear_button = document.getElementById("clear_button");
+const score_button = document.getElementById("score_button");
+const alt_recipe_button = document.getElementById("alt_recipe_button");
+const res_boosts_button = document.getElementById("res_boosts_button");
+
 const alt_box = document.getElementById("alt_box");
 const boost_box = document.getElementById("boost_box");
 const boost_note = document.getElementById("boost_note");
-const alt_recipe_button = document.getElementById("alt_recipe_button");
-const res_boosts_button = document.getElementById("res_boosts_button");
-const clear_button = document.getElementById("clear_button");
+
+const wood = document.getElementById("wood");
+const stone = document.getElementById("stone");
+const iron = document.getElementById("iron");
+const copper = document.getElementById("copper");
+const coal = document.getElementById("coal");
+const wolframite = document.getElementById("wolframite");
+const uranium = document.getElementById("uranium");
+
 const output = document.getElementById("output");
 //#endregion
 
@@ -54,23 +65,22 @@ const ALT_RECIPES = [
     "Super_Computer","Tungsten_Carbide","Turbocharger"
 ];
 const RESOURCES = [
-    {key: "Wood_Log", i: R.wood, id: "wood", url: "wd"},
-    {key: "Stone", i: R.stone, id: "stone", url: "st"},
-    {key: "Iron_Ore", i: R.iron, id: "iron", url: "ir"},
-    {key: "Copper_Ore", i: R.copper, id: "copper", url: "cp"},
-    {key: "Coal", i: R.coal, id: "coal", url: "cl"},
-    {key: "Wolframite", i: R.wolframite, id: "wolframite", url: "wr"},
-    {key: "Uranium_Ore", i: R.uranium, id: "uranium", url: "ur"}
+    {key: "Wood_Log", i: R.wood, field: wood, url: "wd"},
+    {key: "Stone", i: R.stone, field: stone, url: "st"},
+    {key: "Iron_Ore", i: R.iron, field: iron, url: "ir"},
+    {key: "Copper_Ore", i: R.copper, field: copper, url: "cp"},
+    {key: "Coal", i: R.coal, field: coal, url: "cl"},
+    {key: "Wolframite", i: R.wolframite, field: wolframite, url: "wr"},
+    {key: "Uranium_Ore", i: R.uranium, field: uranium, url: "ur"}
 ];
 //#endregion
 
 
 //#region Field functions
 for (const res of RESOURCES) {
-    const field = document.getElementById(res.id);
-    field.value = get_url_param(res.url);
-    field.onchange = function() {update_url_param(res.url, res.id);};
-    field.onpaste = function(ev) {field.blur(); paste_insert(ev);};
+    res.field.value = get_url_param(res.url);
+    res.field.onchange = function() {update_url_param(res.url, res.field.value);};
+    res.field.onpaste = function(ev) {res.field.blur(); paste_insert(ev);};
 }
 
 function get_url_param(target_key) {
@@ -84,9 +94,8 @@ function get_url_param(target_key) {
     return "";
 }
 
-function update_url_param(param, id) {
+function update_url_param(param, value) {
     const url = new URL(window.location.href);
-    const value = document.getElementById(id).value;
     if (value) { 
         url.searchParams.set(param, value);
         window.history.pushState({}, '', url.href);
@@ -101,8 +110,8 @@ function paste_insert(event) {
     if (data) {
         const values = data.getData('text/plain').split(/\s/);
         for (const res of RESOURCES) {
-            document.getElementById(res.id).value = values[res.i] || "";
-            update_url_param(res.url, res.id);
+            res.field.value = values[res.i] || "";
+            update_url_param(res.url, res.field.value);
         }
     }
 }
@@ -132,7 +141,7 @@ boost_box.onchange = function() {
 alt_recipe_button.onclick = function() {show_recipe_ratios(boost_box.checked);};
 res_boosts_button.onclick = function() {show_resource_boosts(alt_box.checked);};
 
-document.getElementById("score_button").onclick = async function() {
+score_button.onclick = async function() {
     if (alt_box.checked && boost_box.checked) {
         show_result(await alt_boost_solver());
     } else if (alt_box.checked) {
@@ -150,8 +159,8 @@ document.onclick = function(event) {
     if (event.target === clear_button) {
         if (clear_state) {
             for (const res of RESOURCES) {
-                document.getElementById(res.id).value = "";
-                update_url_param(res.url, res.id);
+                res.field.value = "";
+                update_url_param(res.url, res.field.value);
             }
         } else {
             clear_button.innerText = "Tap again";
@@ -174,7 +183,7 @@ async function alt_solver() {
         Coal_Extractors,
         Wolframite_Extractors,
         Uranium_Extractors
-    ] = get_extractor_values();
+    ] = extractor_values();
 
     try {
         const glpk = await GLPK();
@@ -677,15 +686,15 @@ async function alt_solver() {
             msglev: glpk.GLP_MSG_OFF
         };
     
-        const res = await glpk.solve(lp, opt);
-        return res.result.vars;
+        const lp_res = await glpk.solve(lp, opt);
+        return lp_res.result.vars;
     } catch (err) {
         console.error("Error:", err);
     }
 }
 
 function norm_solver() {
-    const ex_values = get_extractor_values();
+    const ex_values = extractor_values();
     const all_scores = [];
     for (let i = 0; i < ET_RATIO.length; i++) {
         all_scores[i] = ex_values[i] * EX_RATE / ET_RATIO[i];
@@ -749,7 +758,7 @@ function norm_solver() {
 
 function norm_boost_solver() {
     const all = norm_solver();
-    const boost_vars = SeedBoost(get_extractor_values());
+    const boost_vars = SeedBoost(extractor_values());
     for (const [key, value] of Object.entries(all)) {
         all[key] = value * boost_vars.boost;
     }
@@ -775,10 +784,10 @@ function norm_boost_solver() {
 async function alt_boost_solver() {
     const all = await alt_solver();
     const alt_ET_ratio = [];
-    for (const res of RESOURCES.slice(0, ET_RATIO.length)) {
-        alt_ET_ratio.push(all[res.key] / all.Earth_Token);
+    for (let i = 0; i < ET_RATIO.length; i++) {
+        alt_ET_ratio[i] = all[RESOURCES[i].key] / all.Earth_Token;
     }
-    const boost_vars = SeedBoost(get_extractor_values(), alt_ET_ratio);
+    const boost_vars = SeedBoost(extractor_values(), alt_ET_ratio);
     for (const [key, value] of Object.entries(all)) {
         all[key] = value * boost_vars.boost;
     }
@@ -926,12 +935,12 @@ async function show_resource_boosts(alt_bool) {
     if (alt_bool) {
         const all = await alt_solver();
         const alt_ET_ratio = [];
-        for (const res of RESOURCES.slice(0, ET_RATIO.length)) {
-            alt_ET_ratio.push(all[res.key] / all.Earth_Token);
+        for (let i = 0; i < ET_RATIO.length; i++) {
+            alt_ET_ratio[i] = all[RESOURCES[i].key] / all.Earth_Token;
         }
-        boost_vars = SeedBoost(get_extractor_values(), alt_ET_ratio);
+        boost_vars = SeedBoost(extractor_values(), alt_ET_ratio);
     } else {
-        boost_vars = SeedBoost(get_extractor_values());
+        boost_vars = SeedBoost(extractor_values());
     }
     let content = "Resource    Coal      Nuclear\n\n";
     for (const res of RESOURCES) {
@@ -966,10 +975,10 @@ function show_result(item_dict) {
 
 
 //#region Other functions
-function get_extractor_values() {
+function extractor_values() {
     const result = [];
     for (const res of RESOURCES) {
-        result.push(parseFloat(document.getElementById(res.id).value) || 0);
+        result.push(parseFloat(res.field.value) || 0);
     }
     return result;
 }
