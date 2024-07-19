@@ -952,7 +952,8 @@ function show_result(item_dict) {
     const last_keys = keys.filter(item => !first_keys.includes(item));
     last_keys.sort();
     keys = first_keys.concat(last_keys);
-    let content = `t:${window.screen.width} i:${window.innerWidth}\n\n`;
+    //let content = `t:${window.screen.width} i:${window.innerWidth}\n\n`;
+    let content = `pr: ${window.devicePixelRatio}\n\n`
     for (const key of keys) {
         content += `${key.replace(/_/g,' ').padEnd(24, " ")} ${roundN(item_dict[key], 6)}\n`
         if (key == "Earth_Token" || key == "Uranium_Ore") {
