@@ -959,7 +959,6 @@ function show_result(item_dict) {
             content += "\n";
         }
     }
-    console.log(window.screen.width, window.innerWidth)
     output.style.fontSize = Math.min(13, window.screen.width * 0.03 -0.5) +"px";
     output.textContent = content + "\n";
 }
