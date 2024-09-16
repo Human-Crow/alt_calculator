@@ -817,6 +817,7 @@ let Alt_Boost = {
     solve: async function() {
         if (this.result != null) {return this.result;}
         if (!this.pyodideReady) {
+            this.pyodideReady = true;
             output.style.fontSize = 13 + "px";
             output.textContent = "Loading..." + "\n".repeat(39);;
             this.pyodide = await loadPyodide();
@@ -922,8 +923,7 @@ def alt_boost_solver(resources):
     for key, value in all.items():
         all[key] = value * -result.fun
     return -result.fun
-            `);
-            this.pyodideReady = true; 
+            `); 
         }
         await this.pyodide.runPythonAsync(`
             alt_boost_solver(${JSON.stringify(extractor_values())})
