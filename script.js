@@ -830,7 +830,7 @@ from pyodide.ffi import to_js
 
 
 NL_values = (1, 1, 0.85, 0.99, 0.68, 1, 0, 1)
-NL_bounds = ((0,1),(0.2,1),(0,1),(0,1),(0,1),(0,1),(0,1),(0.2,1))
+NL_bounds = ((0,1),(0,1),(0,1),(0,1),(0,1),(0,1),(0,1),(0,1))
 all = {}
 result = None
 def objective(rec_ratios, resources):
