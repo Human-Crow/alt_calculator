@@ -823,105 +823,105 @@ let Alt_Boost = {
             this.pyodide.globals.set("SeedBoost", SeedBoost);
             await this.pyodide.loadPackage('micropip');
             await this.pyodide.runPythonAsync(`
-    import micropip
-    await micropip.install('scipy')
-    from scipy.optimize import minimize
-    from pyodide.ffi import to_js
-    
-    
-    NL_values = (1, 1, 0.85, 0.99, 0.68, 1, 0, 1)
-    NL_bounds = ((0,1),(0.2,1),(0,1),(0,1),(0,1),(0,1),(0,1),(0.2,1))
-    all = {}
-    result = None
-    def objective(rec_ratios, resources):
-        gear_,steel_,frame_,conc_,magnet_,motor_,rotor_,carbide_ = rec_ratios
-    
-        all["Atomic_Locator"] = Atomic_Locator = 4
-        all["Computer"] = Computer = 50
-        all["Condenser_Lens"] = Condenser_Lens = 32
-        all["Coupler"] = Coupler = 64
-        all["Earth_Token"] = 1
-        Electric_Motor = 26
-        all["Electric_Motor"] = Electric_Motor * (1-motor_)
-        all["Electric_Motor_ALT"] = Electric_Motor * motor_
-        all["Electron_Microscope"] = Electron_Microscope = 8
-        all["Energy_Cube"] = Energy_Cube = 5
-        all["Gyroscope"] = Gyroscope = 40
-        all["Heat_Sink"] = Heat_Sink = 476
-        Industrial_Frame = 17
-        all["Industrial_Frame"] = Industrial_Frame * (1-frame_)
-        all["Industrial_Frame_ALT"] = Industrial_Frame * frame_
-        all["Logic_Circuit"] = 0
-        all["Logic_Circuit_ALT"] = Logic_Circuit = 150
-        all["Magnetic_Field_Generator"] = Magnetic_Field_Generator = 2
-        all["Matter_Compressor"] = 10
-        all["Matter_Duplicator"] = 1
-        all["Particle_Glue"] = 100
-        all["Quantum_Entangler"] = 2
-        all["Silicon"] = 0
-        all["Stabilizer"] = 6
-        all["Super_Computer"] = 8
-        all["Super_Computer_ALT"] = 0
-        all["Tank"] = Tank = 10
-        all["Turbocharger"] = 0
-        all["Turbocharger_ALT"] = Turbocharger = 28
-        all["Uranium_Ore"] = 0
-        all["Enriched_Uranium"] = 0
-        all["Nuclear_Fuel_Cell"] = 0
-    
-        all["Battery"] = Battery = Energy_Cube *2 + Electric_Motor * (1-motor_)
-        Electromagnet = Battery *8 + Electron_Microscope *8 + Magnetic_Field_Generator *10 + Electric_Motor *6 * motor_
-        all["Electromagnet"] = Electromagnet * (1-magnet_)
-        all["Electromagnet_ALT"] = Electromagnet * magnet_
-        all["Nano_Wire"] = Nano_Wire = Electron_Microscope *2 + Magnetic_Field_Generator *10 + Electromagnet /12 * magnet_
-        all["Carbon_Fiber"] = Carbon_Fiber = Nano_Wire *2 + Industrial_Frame *4 * frame_
-        Concrete = Tank *4 + Atomic_Locator *24 + Industrial_Frame *6 * (1-frame_)
-        all["Concrete"] = Concrete * (1-conc_)
-        all["Concrete_ALT"] = Concrete * conc_
-        all["Copper_Wire"] = Copper_Wire = Atomic_Locator *50 + Gyroscope *12 + Electromagnet *6 * (1-magnet_)
-        all["Copper_Wire_ALT"] = 0
-        Rotor = Gyroscope *2 + Electric_Motor *2 * (1-motor_)
-        all["Rotor"] = Rotor * (1-rotor_)
-        all["Rotor_ALT"] = Rotor * rotor_
-        all["Copper_Ingot"] = Copper_Ingot = Heat_Sink *5 + Copper_Wire *3/2 + Rotor *18 * rotor_
-        all["Empty_Fuel_Cell"] = Empty_Fuel_Cell = Electric_Motor * motor_
-        all["Glass"] = Glass = Tank *2 + Nano_Wire *4 + Condenser_Lens *3 + Empty_Fuel_Cell *5
-        all["Steel_Rod"] = Steel_Rod = Concrete * (1-conc_) + Rotor * (1-rotor_) + Electromagnet /12 * magnet_
-        Iron_Gear = Electric_Motor *4 * (1-motor_)
-        all["Iron_Gear"] = Iron_Gear * (1-gear_)
-        all["Iron_Gear_ALT"] = Iron_Gear * gear_
-        Tungsten_Carbide = Tank *4 + Industrial_Frame *8 * (1-frame_) + Coupler + Empty_Fuel_Cell *3 + Turbocharger
-        all["Tungsten_Carbide"] = Tungsten_Carbide * (1-carbide_)
-        all["Tungsten_Carbide_ALT"] = Tungsten_Carbide * carbide_
-        Steel = Steel_Rod *3 + Iron_Gear /8 * gear_ + Electric_Motor *6 * motor_ + Industrial_Frame *18 * frame_ + Tungsten_Carbide /2 * carbide_
-        all["Steel"] = Steel * (1-steel_)
-        all["Steel_ALT"] = Steel * steel_
-        all["Graphite"] = Graphite = Battery *8 + Carbon_Fiber *4 + Steel * (1-steel_) + Tungsten_Carbide * (1-carbide_)
-        all["Metal_Frame"] = Metal_Frame = Electron_Microscope *2 + Industrial_Frame *2 * (1-frame_) + Computer
-        all["Iron_Plating"] = Iron_Plating = Rotor * (rotor_ *16 +2) + Metal_Frame *4 + Logic_Circuit + Industrial_Frame *10 * frame_
-        all["Iron_Ingot"] = Iron_Ingot = Electromagnet *2 * (1-magnet_) + Iron_Plating *2 + Iron_Gear *2 * (1-gear_)
-        all["Sand"] = Sand = Concrete *10 * (1-conc_) + Glass *4
-        all["Tungsten_Ore"] = Tungsten_Ore = Tungsten_Carbide * (2- 1.5* carbide_)
-        all["Wood_Frame"] = Wood_Frame = Metal_Frame + Concrete *4 * conc_
-        all["Wood_Plank"] = Wood_Plank = Wood_Frame *4
-    
-        all["Wood_Log"] = Wood_Log = Graphite *3 + Wood_Plank
-        all["Stone"] = Stone = Sand + Concrete *20 * conc_
-        all["Iron_Ore"] = Iron_Ore = Steel * (6- 2* steel_) + Iron_Ingot
-        all["Copper_Ore"] = Copper_Ore = Copper_Ingot
-        all["Coal"] = Coal = Graphite *3 + Steel *4 * steel_
-        all["Wolframite"] = Wolframite = Tungsten_Ore *5
-        alt_et_ratio = (Wood_Log, Stone, Iron_Ore, Copper_Ore, Coal, Wolframite)
-        global result
-        result = SeedBoost(to_js(resources), 3, to_js(alt_et_ratio))
-    
-        return -result.score
-    
-    def alt_boost_solver(resources):
-        result = minimize(objective, NL_values, (resources,), 'Nelder-Mead', bounds=NL_bounds)
-        for key, value in all.items():
-            all[key] = value * -result.fun
-        return -result.fun
+import micropip
+await micropip.install('scipy')
+from scipy.optimize import minimize
+from pyodide.ffi import to_js
+
+
+NL_values = (1, 1, 0.85, 0.99, 0.68, 1, 0, 1)
+NL_bounds = ((0,1),(0.2,1),(0,1),(0,1),(0,1),(0,1),(0,1),(0.2,1))
+all = {}
+result = None
+def objective(rec_ratios, resources):
+    gear_,steel_,frame_,conc_,magnet_,motor_,rotor_,carbide_ = rec_ratios
+
+    all["Atomic_Locator"] = Atomic_Locator = 4
+    all["Computer"] = Computer = 50
+    all["Condenser_Lens"] = Condenser_Lens = 32
+    all["Coupler"] = Coupler = 64
+    all["Earth_Token"] = 1
+    Electric_Motor = 26
+    all["Electric_Motor"] = Electric_Motor * (1-motor_)
+    all["Electric_Motor_ALT"] = Electric_Motor * motor_
+    all["Electron_Microscope"] = Electron_Microscope = 8
+    all["Energy_Cube"] = Energy_Cube = 5
+    all["Gyroscope"] = Gyroscope = 40
+    all["Heat_Sink"] = Heat_Sink = 476
+    Industrial_Frame = 17
+    all["Industrial_Frame"] = Industrial_Frame * (1-frame_)
+    all["Industrial_Frame_ALT"] = Industrial_Frame * frame_
+    all["Logic_Circuit"] = 0
+    all["Logic_Circuit_ALT"] = Logic_Circuit = 150
+    all["Magnetic_Field_Generator"] = Magnetic_Field_Generator = 2
+    all["Matter_Compressor"] = 10
+    all["Matter_Duplicator"] = 1
+    all["Particle_Glue"] = 100
+    all["Quantum_Entangler"] = 2
+    all["Silicon"] = 0
+    all["Stabilizer"] = 6
+    all["Super_Computer"] = 8
+    all["Super_Computer_ALT"] = 0
+    all["Tank"] = Tank = 10
+    all["Turbocharger"] = 0
+    all["Turbocharger_ALT"] = Turbocharger = 28
+    all["Uranium_Ore"] = 0
+    all["Enriched_Uranium"] = 0
+    all["Nuclear_Fuel_Cell"] = 0
+
+    all["Battery"] = Battery = Energy_Cube *2 + Electric_Motor * (1-motor_)
+    Electromagnet = Battery *8 + Electron_Microscope *8 + Magnetic_Field_Generator *10 + Electric_Motor *6 * motor_
+    all["Electromagnet"] = Electromagnet * (1-magnet_)
+    all["Electromagnet_ALT"] = Electromagnet * magnet_
+    all["Nano_Wire"] = Nano_Wire = Electron_Microscope *2 + Magnetic_Field_Generator *10 + Electromagnet /12 * magnet_
+    all["Carbon_Fiber"] = Carbon_Fiber = Nano_Wire *2 + Industrial_Frame *4 * frame_
+    Concrete = Tank *4 + Atomic_Locator *24 + Industrial_Frame *6 * (1-frame_)
+    all["Concrete"] = Concrete * (1-conc_)
+    all["Concrete_ALT"] = Concrete * conc_
+    all["Copper_Wire"] = Copper_Wire = Atomic_Locator *50 + Gyroscope *12 + Electromagnet *6 * (1-magnet_)
+    all["Copper_Wire_ALT"] = 0
+    Rotor = Gyroscope *2 + Electric_Motor *2 * (1-motor_)
+    all["Rotor"] = Rotor * (1-rotor_)
+    all["Rotor_ALT"] = Rotor * rotor_
+    all["Copper_Ingot"] = Copper_Ingot = Heat_Sink *5 + Copper_Wire *3/2 + Rotor *18 * rotor_
+    all["Empty_Fuel_Cell"] = Empty_Fuel_Cell = Electric_Motor * motor_
+    all["Glass"] = Glass = Tank *2 + Nano_Wire *4 + Condenser_Lens *3 + Empty_Fuel_Cell *5
+    all["Steel_Rod"] = Steel_Rod = Concrete * (1-conc_) + Rotor * (1-rotor_) + Electromagnet /12 * magnet_
+    Iron_Gear = Electric_Motor *4 * (1-motor_)
+    all["Iron_Gear"] = Iron_Gear * (1-gear_)
+    all["Iron_Gear_ALT"] = Iron_Gear * gear_
+    Tungsten_Carbide = Tank *4 + Industrial_Frame *8 * (1-frame_) + Coupler + Empty_Fuel_Cell *3 + Turbocharger
+    all["Tungsten_Carbide"] = Tungsten_Carbide * (1-carbide_)
+    all["Tungsten_Carbide_ALT"] = Tungsten_Carbide * carbide_
+    Steel = Steel_Rod *3 + Iron_Gear /8 * gear_ + Electric_Motor *6 * motor_ + Industrial_Frame *18 * frame_ + Tungsten_Carbide /2 * carbide_
+    all["Steel"] = Steel * (1-steel_)
+    all["Steel_ALT"] = Steel * steel_
+    all["Graphite"] = Graphite = Battery *8 + Carbon_Fiber *4 + Steel * (1-steel_) + Tungsten_Carbide * (1-carbide_)
+    all["Metal_Frame"] = Metal_Frame = Electron_Microscope *2 + Industrial_Frame *2 * (1-frame_) + Computer
+    all["Iron_Plating"] = Iron_Plating = Rotor * (rotor_ *16 +2) + Metal_Frame *4 + Logic_Circuit + Industrial_Frame *10 * frame_
+    all["Iron_Ingot"] = Iron_Ingot = Electromagnet *2 * (1-magnet_) + Iron_Plating *2 + Iron_Gear *2 * (1-gear_)
+    all["Sand"] = Sand = Concrete *10 * (1-conc_) + Glass *4
+    all["Tungsten_Ore"] = Tungsten_Ore = Tungsten_Carbide * (2- 1.5* carbide_)
+    all["Wood_Frame"] = Wood_Frame = Metal_Frame + Concrete *4 * conc_
+    all["Wood_Plank"] = Wood_Plank = Wood_Frame *4
+
+    all["Wood_Log"] = Wood_Log = Graphite *3 + Wood_Plank
+    all["Stone"] = Stone = Sand + Concrete *20 * conc_
+    all["Iron_Ore"] = Iron_Ore = Steel * (6- 2* steel_) + Iron_Ingot
+    all["Copper_Ore"] = Copper_Ore = Copper_Ingot
+    all["Coal"] = Coal = Graphite *3 + Steel *4 * steel_
+    all["Wolframite"] = Wolframite = Tungsten_Ore *5
+    alt_et_ratio = (Wood_Log, Stone, Iron_Ore, Copper_Ore, Coal, Wolframite)
+    global result
+    result = SeedBoost(to_js(resources), 3, to_js(alt_et_ratio))
+
+    return -result.score
+
+def alt_boost_solver(resources):
+    result = minimize(objective, NL_values, (resources,), 'Nelder-Mead', bounds=NL_bounds)
+    for key, value in all.items():
+        all[key] = value * -result.fun
+    return -result.fun
             `);
             this.pyodideReady = true; 
         }
