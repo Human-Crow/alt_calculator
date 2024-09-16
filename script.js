@@ -825,7 +825,8 @@ let Alt_Boost = {
             await this.pyodide.loadPackage('micropip');
             await this.pyodide.runPythonAsync(`
 import micropip
-await micropip.install('scipy')
+await micropip.install('https://github.com/Human-Crow/alt_calculator/blob/main/numpy-2.1.1-cp312-cp312-win_amd64.whl')
+await micropip.install('https://github.com/Human-Crow/alt_calculator/blob/main/scipy-1.14.1-cp312-cp312-win_amd64.whl')
 from scipy.optimize import minimize
 from pyodide.ffi import to_js
 
