@@ -697,6 +697,7 @@ let Alt = {
         
             const lp_res = await glpk.solve(lp, opt);
             this.result = {items: lp_res.result.vars};
+            console.log("Alt solver finished successfully!");
             return this.result;
         } catch (err) {
             console.error("Error:", err);
@@ -770,6 +771,7 @@ let Norm = {
         all.Uranium_Ore = 30 * Enriched_Uranium;
     
         this.result = {items: all};
+        console.log("Normal solver finished successfully!");
         return this.result;
     }
 }
@@ -802,6 +804,7 @@ let Boost = {
         all.Wood_Log += 3 * Graphite;
         
         this.result.items = all;
+        console.log("Boost solver finished successfully!");
         return this.result;
     }
 }
@@ -945,6 +948,7 @@ let Alt_Boost = {
         all.Coal += 4 * Steel_ALT + EX_RATE * this.result.extra_coal;
         
         this.result.items = all;
+        console.log("Alt Boost solver finished successfully!");
         return this.result;
     }
 }
