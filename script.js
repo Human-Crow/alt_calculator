@@ -159,7 +159,6 @@ score_button.onclick = async function() {
     } else if (boost_box.checked) {
         show_result(Boost.solve().items);
     } else {
-        console.log(Norm.result);
         show_result(Norm.solve().items);
     }
 };
