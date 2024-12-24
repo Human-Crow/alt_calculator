@@ -117,6 +117,10 @@ function paste_insert(event) {
         const values = data.getData('text/plain').split(/\s+/);
         for (const res of RESOURCES) {
             res.field.value = values[res.i] || "";
+            Norm.result = null;
+            Boost.result = null;
+            Alt.result = null;
+            Alt_Boost.result = null;
             update_url_param(res.url, res.field.value);
         }
     }
@@ -155,6 +159,7 @@ score_button.onclick = async function() {
     } else if (boost_box.checked) {
         show_result(Boost.solve().items);
     } else {
+        console.log(Norm.result);
         show_result(Norm.solve().items);
     }
 };
