@@ -114,7 +114,7 @@ function update_url_param(param, value) {
 function paste_insert(event) {
     const data = event.clipboardData || window.clipboardData; // other browsers || safari
     if (data) {
-        const values = data.getData('text/plain').split(/\s/);
+        const values = data.getData('text/plain').split(/\s+/);
         for (const res of RESOURCES) {
             res.field.value = values[res.i] || "";
             update_url_param(res.url, res.field.value);
