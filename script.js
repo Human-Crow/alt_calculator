@@ -1070,7 +1070,8 @@ async function show_recipe_ratios(boost_bool) {
         const alt = all_items[key +"_ALT"];
         const norm = all_items[key];
         const value = (alt + norm <= 0)? 0 : (alt / (alt + norm));
-        content += `${key.replace(/_/g,' ').padEnd(16, " ")} ${roundN(Math.max(0,Math.min(1,value))*100, 4)}%\n`;
+        const percent = Math.max(0,Math.min(1,value));
+        content += `${key.replace(/_/g,' ').padEnd(16, " ")} ${str_num(percent*100, 7, false)} %\n`;
     }
     output.style.fontSize = Math.min(13, window.innerWidth * 0.043 -0.5) +"px";
     output.textContent = content + "\n".repeat(25);
@@ -1078,11 +1079,16 @@ async function show_recipe_ratios(boost_bool) {
 
 async function show_resource_boosts(alt_bool) {
     const boost_vars = (alt_bool)? (await Alt_Boost.solve()) : (Boost.solve());
-    let content = "Resource    Coal      Nuclear\n\n";
+    let content = "Resource      Coal      Nuclear\n\n";
     for (const res of RESOURCES) {
-        const coal_var = roundN(Math.max(0,Math.min(1,boost_vars.coal_boosts[res.i]))*100,4).toString() +"%";
-        const nuc_var  = roundN(Math.max(0,Math.min(1,boost_vars. nuc_boosts[res.i]))*100,4).toString() +"%";
-        content += `${res.key.replace(/_/g,' ').padEnd(11, " ")} ${coal_var.padEnd(8, " ")}  ${nuc_var.padEnd(8, " ")}\n`;
+        const coal_per = Math.max(0,Math.min(1,boost_vars.coal_boosts[res.i]));
+        const nuc_per = Math.max(0,Math.min(1,boost_vars. nuc_boosts[res.i]));
+        const extractors = parseFloat(res.field.value) || 0;
+        const coal_ext = coal_per * extractors;
+        const nuc_ext = nuc_per * extractors;
+        content += `${res.key.replace(/_/g,' ')}\n`;
+        content += `${"  percentage"}: ${str_num(coal_per *100, 7)}   ${str_num(nuc_per *100, 7)}\n`
+        content += `${"  extractors"}: ${str_num(coal_ext, 7)}   ${str_num(nuc_ext, 7)}\n\n`
     }
     output.style.fontSize = Math.min(13, window.innerWidth * 0.037 -0.5) +"px";
     output.textContent = content + "\n".repeat(30);
@@ -1121,5 +1127,20 @@ function extractor_values() {
 
 function roundN(value, decimals) {
     return Math.round(value * 10**decimals) / (10**decimals);
+}
+
+function str_num(num, max_len, fill= true) {
+    let num_len = String(num).length;
+    let str = num.toPrecision(max_len -1);
+    if (num_len <= max_len) {
+        str = String(num);
+    } else if (str.length > max_len){
+        str = num.toFixed(max_len -2);
+    }
+    if (fill) {
+        return str.padEnd(max_len, ' ');
+    } else {
+        return str;
+    }
 }
 //#endregion
