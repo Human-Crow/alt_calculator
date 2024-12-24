@@ -39,22 +39,23 @@ const NUCLEAR_BOOST = 1.4;
 const COAL_BOOST = 1.2;
 const EX_RATE = 30;
 const UR_EX_RATE = 10;
-const COAL_PP_RATE = 20;
+const COAL_PP_RATE = 10;
+const NUC_PP_RATE = 0.5;
 const FUEL_COST_RATIO = [18,20,18,0,18,30,30];
 const ALT_FUEL_COST_RATIO = [0,20,18,0,18,7.5,30];
 const ET_RATIO = [7242,5028,7932,5315,6954,3520];
 const MAX_RES_NUMS = [610,410,310,210];
 
 const AV_UR = 7;
-const UR_PATCH_ERROR = 2;
-const SCORE_ERROR = 1;
+const UR_PATCH_ERROR = 1;
+const SCORE_ERROR = 0.99;
 const COAL_BOOST_UR = 1.2;
 const PLANT_CONS = [
-    {coal: 17.97, nuclear: 23.29},
-    {coal: 17.15, nuclear: 33.09},
-    {coal: 16.36, nuclear: 41.28},
-    {coal: 14.50, nuclear: 50.22},
-    {coal: 13.57, nuclear: 50.79}
+    {coal: 7.8, nuclear: 23.29},
+    {coal: 7.8, nuclear: 33.09},
+    {coal: 7.8, nuclear: 41.28},
+    {coal: 7.8, nuclear: 42.9},
+    {coal: 7.8, nuclear: 42.9}
 ];
 const double_ERROR = -1e-8;
 
@@ -967,9 +968,9 @@ function SeedBoost(resources, SIG= 6, et_ratio= ET_RATIO) {
     const npp_cost = [];
     const score = {max: 1000000.0, min: 1000000.0};
     const Plant = PLANT_CONS[resource_amount -1];
-    const nuclear_plants = resources[R.uranium] * UR_EX_RATE / fuel_cost_ratio[R.uranium] * COAL_BOOST_UR;
+    const nuclear_plants = resources[R.uranium] * UR_EX_RATE / fuel_cost_ratio[R.uranium] * COAL_BOOST_UR / NUC_PP_RATE;
     for (const res of R.list) {
-        npp_cost[res] = nuclear_plants * fuel_cost_ratio[res] / EX_RATE;
+        npp_cost[res] = nuclear_plants * fuel_cost_ratio[res] * NUC_PP_RATE / EX_RATE;
         score.min = Math.min(score.min, resources[res] / et_ratio[res] * EX_RATE);
         score.max = Math.min(score.max, (resources[res] * NUCLEAR_BOOST - npp_cost[res]) / et_ratio[res] * EX_RATE * SCORE_ERROR);
     }
