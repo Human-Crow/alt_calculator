@@ -136,7 +136,6 @@ const SeedSolver = {
     EX_CPP_UR: 6.5,
 
     solve: async function(resources, alt, boost) {
-        if (this.result != null) {return this.result;};
         const [
             Wood_Extractors,
             Stone_Extractors,
