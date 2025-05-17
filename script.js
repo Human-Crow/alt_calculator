@@ -1087,9 +1087,7 @@ function show_result(item_dict) {
     let last_keys = keys.filter(
         item => !first_keys.includes(item) && !item.endsWith('_Ex') && item != 'Coal_Power_Plant' && item != "Resource_Sum"
     );
-    if (alt_box.checked) {
-
-    } else {
+    if (!alt_box.checked) {
         last_keys = last_keys.filter(item => !item.endsWith('_ALT') && !item.endsWith('_STD'));
     }
     last_keys.sort();
