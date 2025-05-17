@@ -62,6 +62,37 @@ input:hover {
 }
 
 
+
+select {
+    background-color: #2e2e2e;
+    color: white;
+    padding: 4px;
+    border: none;
+    cursor: pointer;
+    border-radius: 6px;
+}
+select:hover {
+    background-color: #3e3e3e;
+}
+select::-webkit-scrollbar {
+    width: 12px;
+}
+select::-webkit-scrollbar-track {
+    background: #2e2e2e; /* Scrollbar track color */
+}
+select::-webkit-scrollbar-thumb {
+    background: white; /* Scrollbar thumb color */
+    border-radius: 6px;
+}
+
+option {
+    background-color: #1e1e1e;
+    color: white;
+    font-size: 16px;
+}
+
+
+
 /* The container */
 .container {
     display: block;

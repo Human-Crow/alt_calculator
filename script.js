@@ -7,6 +7,7 @@ const score_button = document.getElementById("score_button");
 const alt_recipe_button = document.getElementById("alt_recipe_button");
 const res_boosts_button = document.getElementById("res_boosts_button");
 
+const target_box = document.getElementById("target_box");
 const alt_box = document.getElementById("alt_box");
 const boost_box = document.getElementById("boost_box");
 const boost_note = document.getElementById("boost_note");
@@ -445,11 +446,24 @@ const SeedSolver = {
         const general_cons = [
             {
                 vars: [
+                    { name: 'Resource_Sum', coef: 1.0 },
+                    { name: 'Wood_Log', coef: -1.0 },
+                    { name: 'Stone', coef: -1.0 },
+                    { name: 'Iron_Ore', coef: -1.0 },
+                    { name: 'Copper_Ore', coef: -1.0 },
+                    { name: 'Coal', coef: -1.0 },
+                    { name: 'Wolframite', coef: -1.0 },
+                    { name: 'Uranium_Ore', coef: -1.0 },
+                ],
+                bnds: { type: glpk.GLP_FX, ub: 0.0, lb: 0.0},
+            },
+            {
+                vars: [
                     { name: 'Wood_Log', coef: 1.0 },
                     { name: 'Wood_Plank', coef: -1.0 },
                     { name: 'Graphite', coef: -3.0 },
                 ],
-                bnds: { type: glpk.GLP_FX, ub: 0.0, lb: 0.0},
+                bnds: { type: glpk.GLP_LO, lb: 0.0},
             },
             {
                 vars: [
@@ -457,7 +471,7 @@ const SeedSolver = {
                     { name: 'Sand', coef: -1.0 },
                     { name: 'Concrete_ALT', coef: -20.0 },
                 ],
-                bnds: { type: glpk.GLP_FX, ub: 0.0, lb: 0.0},
+                bnds: { type: glpk.GLP_LO, lb: 0.0},
             },
             {
                 vars: [
@@ -466,14 +480,14 @@ const SeedSolver = {
                     { name: 'Steel', coef: -6.0 },
                     { name: 'Steel_ALT', coef: -4.0 },
                 ],
-                bnds: { type: glpk.GLP_FX, ub: 0.0, lb: 0.0},
+                bnds: { type: glpk.GLP_LO, lb: 0.0},
             },
             {
                 vars: [
                     { name: 'Copper_Ore', coef: 1.0 },
                     { name: 'Copper_Ingot', coef: -1.0 },
                 ],
-                bnds: { type: glpk.GLP_FX, ub: 0.0, lb: 0.0},
+                bnds: { type: glpk.GLP_LO, lb: 0.0},
             },
             {
                 vars: [
@@ -481,28 +495,28 @@ const SeedSolver = {
                     { name: 'Graphite', coef: -3.0 },
                     { name: 'Steel_ALT', coef: -4.0 },
                 ],
-                bnds: { type: glpk.GLP_FX, ub: 0.0, lb: 0.0},
+                bnds: { type: glpk.GLP_LO, lb: 0.0},
             },
             {
                 vars: [
                     { name: 'Wolframite', coef: 1.0 },
                     { name: 'Tungsten_Ore', coef: -5.0 },
                 ],
-                bnds: { type: glpk.GLP_FX, ub: 0.0, lb: 0.0},
+                bnds: { type: glpk.GLP_LO, lb: 0.0},
             },
             {
                 vars: [
                     { name: 'Uranium_Ore', coef: 1.0 },
                     { name: 'Enriched_Uranium', coef: -30.0 },
                 ],
-                bnds: { type: glpk.GLP_FX, ub: 0.0, lb: 0.0},
+                bnds: { type: glpk.GLP_LO, lb: 0.0},
             },
             {
                 vars: [
                     { name: 'Atomic_Locator', coef: 1.0 },
                     { name: 'Matter_Duplicator', coef: -4.0 },
                 ],
-                bnds: { type: glpk.GLP_FX, ub: 0.0, lb: 0.0},
+                bnds: { type: glpk.GLP_LO, lb: 0.0},
             },
             {
                 vars: [
@@ -510,7 +524,7 @@ const SeedSolver = {
                     { name: 'Energy_Cube', coef: -2.0 },
                     { name: 'Electric_Motor', coef: -1.0 },
                 ],
-                bnds: { type: glpk.GLP_FX, ub: 0.0, lb: 0.0},
+                bnds: { type: glpk.GLP_LO, lb: 0.0},
             },
             {
                 vars: [
@@ -519,7 +533,7 @@ const SeedSolver = {
                     { name: 'Copper_Wire_ALT', coef: -0.125 },
                     { name: 'Industrial_Frame_ALT', coef: -4.0 },
                 ],
-                bnds: { type: glpk.GLP_FX, ub: 0.0, lb: 0.0},
+                bnds: { type: glpk.GLP_LO, lb: 0.0},
             },
             {
                 vars: [
@@ -529,7 +543,7 @@ const SeedSolver = {
                     { name: 'Super_Computer_ALT', coef: -1.0 },
                     { name: 'Turbocharger_ALT', coef: -1.0 },
                 ],
-                bnds: { type: glpk.GLP_FX, ub: 0.0, lb: 0.0},
+                bnds: { type: glpk.GLP_LO, lb: 0.0},
             },
             {
                 vars: [
@@ -539,14 +553,14 @@ const SeedSolver = {
                     { name: 'Tank', coef: -4.0 },
                     { name: 'Atomic_Locator', coef: -24.0 },
                 ],
-                bnds: { type: glpk.GLP_FX, ub: 0.0, lb: 0.0},
+                bnds: { type: glpk.GLP_LO, lb: 0.0},
             },
             {
                 vars: [
                     { name: 'Condenser_Lens', coef: 1.0 },
                     { name: 'Electron_Microscope', coef: -4.0 },
                 ],
-                bnds: { type: glpk.GLP_FX, ub: 0.0, lb: 0.0},
+                bnds: { type: glpk.GLP_LO, lb: 0.0},
             },
             {
                 vars: [
@@ -555,7 +569,7 @@ const SeedSolver = {
                     { name: 'Heat_Sink', coef: -5.0 },
                     { name: 'Rotor_ALT', coef: -18.0 },
                 ],
-                bnds: { type: glpk.GLP_FX, ub: 0.0, lb: 0.0},
+                bnds: { type: glpk.GLP_LO, lb: 0.0},
             },
             {
                 vars: [
@@ -566,7 +580,7 @@ const SeedSolver = {
                     { name: 'Gyroscope', coef: -12.0 },
                     { name: 'Atomic_Locator', coef: -50.0 },
                 ],
-                bnds: { type: glpk.GLP_FX, ub: 0.0, lb: 0.0},
+                bnds: { type: glpk.GLP_LO, lb: 0.0},
             },
             {
                 vars: [
@@ -574,7 +588,7 @@ const SeedSolver = {
                     { name: 'Turbocharger', coef: -4.0 },
                     { name: 'Super_Computer', coef: -8.0 },
                 ],
-                bnds: { type: glpk.GLP_FX, ub: 0.0, lb: 0.0},
+                bnds: { type: glpk.GLP_LO, lb: 0.0},
             },
             {
                 vars: [
@@ -583,7 +597,7 @@ const SeedSolver = {
                     { name: 'Stabilizer', coef: -1.0 },
                     { name: 'Matter_Compressor', coef: -2.0 },
                 ],
-                bnds: { type: glpk.GLP_FX, ub: 0.0, lb: 0.0},
+                bnds: { type: glpk.GLP_LO, lb: 0.0},
             },
             {
                 vars: [
@@ -594,14 +608,14 @@ const SeedSolver = {
                     { name: 'Magnetic_Field_Generator', coef: -10.0 },
                     { name: 'Electric_Motor_ALT', coef: -6.0 },
                 ],
-                bnds: { type: glpk.GLP_FX, ub: 0.0, lb: 0.0},
+                bnds: { type: glpk.GLP_LO, lb: 0.0},
             },
             {
                 vars: [
                     { name: 'Electron_Microscope', coef: 1.0 },
                     { name: 'Atomic_Locator', coef: -2.0 },
                 ],
-                bnds: { type: glpk.GLP_FX, ub: 0.0, lb: 0.0},
+                bnds: { type: glpk.GLP_LO, lb: 0.0},
             },
             {
                 vars: [
@@ -609,21 +623,21 @@ const SeedSolver = {
                     { name: 'Nuclear_Fuel_Cell', coef: -1.0 },
                     { name: 'Electric_Motor_ALT', coef: -1.0 },
                 ],
-                bnds: { type: glpk.GLP_FX, ub: 0.0, lb: 0.0},
+                bnds: { type: glpk.GLP_LO, lb: 0.0},
             },
             {
                 vars: [
                     { name: 'Energy_Cube', coef: 1.0 },
                     { name: 'Matter_Duplicator', coef: -5.0 },
                 ],
-                bnds: { type: glpk.GLP_FX, ub: 0.0, lb: 0.0},
+                bnds: { type: glpk.GLP_LO, lb: 0.0},
             },
             {
                 vars: [
                     { name: 'Enriched_Uranium', coef: 1.0 },
                     { name: 'Nuclear_Fuel_Cell', coef: -1.0 },
                 ],
-                bnds: { type: glpk.GLP_FX, ub: 0.0, lb: 0.0},
+                bnds: { type: glpk.GLP_LO, lb: 0.0},
             },
             {
                 vars: [
@@ -633,7 +647,7 @@ const SeedSolver = {
                     { name: 'Empty_Fuel_Cell', coef: -5.0 },
                     { name: 'Tank', coef: -2.0 },
                 ],
-                bnds: { type: glpk.GLP_FX, ub: 0.0, lb: 0.0},
+                bnds: { type: glpk.GLP_LO, lb: 0.0},
             },
             {
                 vars: [
@@ -643,7 +657,7 @@ const SeedSolver = {
                     { name: 'Steel', coef: -1.0 },
                     { name: 'Tungsten_Carbide', coef: -1.0 },
                 ],
-                bnds: { type: glpk.GLP_FX, ub: 0.0, lb: 0.0},
+                bnds: { type: glpk.GLP_LO, lb: 0.0},
             },
             {
                 vars: [
@@ -652,7 +666,7 @@ const SeedSolver = {
                     { name: 'Super_Computer_ALT', coef: -1.0 },
                     { name: 'Turbocharger_ALT', coef: -1.0 },
                 ],
-                bnds: { type: glpk.GLP_FX, ub: 0.0, lb: 0.0},
+                bnds: { type: glpk.GLP_LO, lb: 0.0},
             },
             {
                 vars: [
@@ -662,7 +676,7 @@ const SeedSolver = {
                     { name: 'Logic_Circuit_ALT', coef: -1.0 },
                     { name: 'Turbocharger_ALT', coef: -4.0 },
                 ],
-                bnds: { type: glpk.GLP_FX, ub: 0.0, lb: 0.0},
+                bnds: { type: glpk.GLP_LO, lb: 0.0},
             },
             {
                 vars: [
@@ -673,7 +687,7 @@ const SeedSolver = {
                     { name: 'Magnetic_Field_Generator', coef: -1.0 },
                     { name: 'Super_Computer_ALT', coef: -0.5 },
                 ],
-                bnds: { type: glpk.GLP_FX, ub: 0.0, lb: 0.0},
+                bnds: { type: glpk.GLP_LO, lb: 0.0},
             },
             {
                 vars: [
@@ -682,7 +696,7 @@ const SeedSolver = {
                     { name: 'Electric_Motor', coef: -4.0 },
                     { name: 'Turbocharger', coef: -8.0 },
                 ],
-                bnds: { type: glpk.GLP_FX, ub: 0.0, lb: 0.0},
+                bnds: { type: glpk.GLP_LO, lb: 0.0},
             },
             {
                 vars: [
@@ -691,7 +705,7 @@ const SeedSolver = {
                     { name: 'Iron_Plating', coef: -2.0 },
                     { name: 'Electromagnet', coef: -2.0 },
                 ],
-                bnds: { type: glpk.GLP_FX, ub: 0.0, lb: 0.0},
+                bnds: { type: glpk.GLP_LO, lb: 0.0},
             },
             {
                 vars: [
@@ -702,7 +716,7 @@ const SeedSolver = {
                     { name: 'Industrial_Frame_ALT', coef: -10.0 },
                     { name: 'Logic_Circuit_ALT', coef: -1.0 },
                 ],
-                bnds: { type: glpk.GLP_FX, ub: 0.0, lb: 0.0},
+                bnds: { type: glpk.GLP_LO, lb: 0.0},
             },
             {
                 vars: [
@@ -711,28 +725,28 @@ const SeedSolver = {
                     { name: 'Computer', coef: -3.0 },
                     { name: 'Turbocharger', coef: -4.0 },
                 ],
-                bnds: { type: glpk.GLP_FX, ub: 0.0, lb: 0.0},
+                bnds: { type: glpk.GLP_LO, lb: 0.0},
             },
             {
                 vars: [
                     { name: 'Magnetic_Field_Generator', coef: 1.0 },
                     { name: 'Quantum_Entangler', coef: -1.0 },
                 ],
-                bnds: { type: glpk.GLP_FX, ub: 0.0, lb: 0.0},
+                bnds: { type: glpk.GLP_LO, lb: 0.0},
             },
             {
                 vars: [
                     { name: 'Matter_Compressor', coef: 1.0 },
                     { name: 'Particle_Glue', coef: -0.1 },
                 ],
-                bnds: { type: glpk.GLP_FX, ub: 0.0, lb: 0.0},
+                bnds: { type: glpk.GLP_LO, lb: 0.0},
             },
             {
                 vars: [
                     { name: 'Matter_Duplicator', coef: 1.0 },
                     { name: 'Earth_Token', coef: -1.0 },
                 ],
-                bnds: { type: glpk.GLP_FX, ub: 0.0, lb: 0.0},
+                bnds: { type: glpk.GLP_LO, lb: 0.0},
             },
             {
                 vars: [
@@ -741,7 +755,7 @@ const SeedSolver = {
                     { name: 'Industrial_Frame', coef: -2.0 },
                     { name: 'Electron_Microscope', coef: -2.0 },
                 ],
-                bnds: { type: glpk.GLP_FX, ub: 0.0, lb: 0.0},
+                bnds: { type: glpk.GLP_LO, lb: 0.0},
             },
             {
                 vars: [
@@ -751,21 +765,21 @@ const SeedSolver = {
                     { name: 'Magnetic_Field_Generator', coef: -10.0 },
                     { name: 'Electromagnet_ALT', coef: -1.0/12.0 },
                 ],
-                bnds: { type: glpk.GLP_FX, ub: 0.0, lb: 0.0},
+                bnds: { type: glpk.GLP_LO, lb: 0.0},
             },
             {
                 vars: [
                     { name: 'Particle_Glue', coef: 1.0 },
                     { name: 'Matter_Duplicator', coef: -100.0 },
                 ],
-                bnds: { type: glpk.GLP_FX, ub: 0.0, lb: 0.0},
+                bnds: { type: glpk.GLP_LO, lb: 0.0},
             },
             {
                 vars: [
                     { name: 'Quantum_Entangler', coef: 1.0 },
                     { name: 'Matter_Duplicator', coef: -2.0 },
                 ],
-                bnds: { type: glpk.GLP_FX, ub: 0.0, lb: 0.0},
+                bnds: { type: glpk.GLP_LO, lb: 0.0},
             },
             {
                 vars: [
@@ -774,7 +788,7 @@ const SeedSolver = {
                     { name: 'Gyroscope', coef: -2.0 },
                     { name: 'Electric_Motor', coef: -2.0 },
                 ],
-                bnds: { type: glpk.GLP_FX, ub: 0.0, lb: 0.0},
+                bnds: { type: glpk.GLP_LO, lb: 0.0},
             },
             {
                 vars: [
@@ -783,7 +797,7 @@ const SeedSolver = {
                     { name: 'Glass', coef: -4.0 },
                     { name: 'Concrete', coef: -10.0 },
                 ],
-                bnds: { type: glpk.GLP_FX, ub: 0.0, lb: 0.0},
+                bnds: { type: glpk.GLP_LO, lb: 0.0},
             },
             {
                 vars: [
@@ -791,7 +805,7 @@ const SeedSolver = {
                     { name: 'Logic_Circuit', coef: -2.0 },
                     { name: 'Super_Computer_ALT', coef: -20.0 },
                 ],
-                bnds: { type: glpk.GLP_FX, ub: 0.0, lb: 0.0},
+                bnds: { type: glpk.GLP_LO, lb: 0.0},
             },
             {
                 vars: [
@@ -799,7 +813,7 @@ const SeedSolver = {
                     { name: 'Quantum_Entangler', coef: -2.0 },
                     { name: 'Magnetic_Field_Generator', coef: -1.0 },
                 ],
-                bnds: { type: glpk.GLP_FX, ub: 0.0, lb: 0.0},
+                bnds: { type: glpk.GLP_LO, lb: 0.0},
             },
             {
                 vars: [
@@ -811,7 +825,7 @@ const SeedSolver = {
                     { name: 'Tungsten_Carbide_ALT', coef: -0.5 },
                     { name: 'Industrial_Frame_ALT', coef: -18.0 },
                 ],
-                bnds: { type: glpk.GLP_FX, ub: 0.0, lb: 0.0},
+                bnds: { type: glpk.GLP_LO, lb: 0.0},
             },
             {
                 vars: [
@@ -821,7 +835,7 @@ const SeedSolver = {
                     { name: 'Nuclear_Fuel_Cell', coef: -1.0 },
                     { name: 'Electromagnet_ALT', coef: -1.0/12.0 },
                 ],
-                bnds: { type: glpk.GLP_FX, ub: 0.0, lb: 0.0},
+                bnds: { type: glpk.GLP_LO, lb: 0.0},
             },
             {
                 vars: [
@@ -829,14 +843,14 @@ const SeedSolver = {
                     { name: 'Super_Computer_ALT', coef: 1.0 },
                     { name: 'Atomic_Locator', coef: -2.0 },
                 ],
-                bnds: { type: glpk.GLP_FX, ub: 0.0, lb: 0.0},
+                bnds: { type: glpk.GLP_LO, lb: 0.0},
             },
             {
                 vars: [
                     { name: 'Tank', coef: 1.0 },
                     { name: 'Matter_Compressor', coef: -1.0 },
                 ],
-                bnds: { type: glpk.GLP_FX, ub: 0.0, lb: 0.0},
+                bnds: { type: glpk.GLP_LO, lb: 0.0},
             },
             {
                 vars: [
@@ -848,7 +862,7 @@ const SeedSolver = {
                     { name: 'Tank', coef: -4.0 },
                     { name: 'Turbocharger_ALT', coef: -1.0 },
                 ],
-                bnds: { type: glpk.GLP_FX, ub: 0.0, lb: 0.0},
+                bnds: { type: glpk.GLP_LO, lb: 0.0},
             },
             {
                 vars: [
@@ -856,7 +870,7 @@ const SeedSolver = {
                     { name: 'Tungsten_Carbide', coef: -2.0 },
                     { name: 'Tungsten_Carbide_ALT', coef: -0.5 },
                 ],
-                bnds: { type: glpk.GLP_FX, ub: 0.0, lb: 0.0},
+                bnds: { type: glpk.GLP_LO, lb: 0.0},
             },
             {
                 vars: [
@@ -865,7 +879,7 @@ const SeedSolver = {
                     { name: 'Super_Computer', coef: -1.0 },
                     { name: 'Matter_Compressor', coef: -2.0 },
                 ],
-                bnds: { type: glpk.GLP_FX, ub: 0.0, lb: 0.0},
+                bnds: { type: glpk.GLP_LO, lb: 0.0},
             },
             {
                 vars: [
@@ -873,14 +887,14 @@ const SeedSolver = {
                     { name: 'Metal_Frame', coef: -1.0 },
                     { name: 'Concrete_ALT', coef: -4.0 },
                 ],
-                bnds: { type: glpk.GLP_FX, ub: 0.0, lb: 0.0},
+                bnds: { type: glpk.GLP_LO, lb: 0.0},
             },
             {
                 vars: [
                     { name: 'Wood_Plank', coef: 1.0 },
                     { name: 'Wood_Frame', coef: -4.0 },
                 ],
-                bnds: { type: glpk.GLP_FX, ub: 0.0, lb: 0.0},
+                bnds: { type: glpk.GLP_LO, lb: 0.0},
             },
         ];
 
@@ -895,12 +909,13 @@ const SeedSolver = {
             all_constraints = general_cons.concat(non_boost_cons).concat(non_alt_cons);
         }
 
-        const lp = {
+        // Solve target
+        let lp = {
             name: 'LP',
             objective: {
                 direction: glpk.GLP_MAX,
                 vars: [
-                    { name: 'Earth_Token', coef: 1.0 },
+                    { name: target_box.value, coef: 1.0 },
                 ],
             },
             subjectTo: all_constraints,
@@ -908,7 +923,27 @@ const SeedSolver = {
         const opt = {
             msglev: glpk.GLP_MSG_OFF
         };
-        const lp_res = await glpk.solve(lp, opt);
+        let lp_res = await glpk.solve(lp, opt);
+
+        // Minimize Resources
+        all_constraints.push({
+            vars: [
+                { name: target_box.value, coef: 1.0 },
+            ],
+            bnds: { type: glpk.GLP_FX, ub: lp_res.result.z, lb: lp_res.result.z},
+        });
+        lp = {
+            name: 'LP',
+            objective: {
+                direction: glpk.GLP_MIN,
+                vars: [
+                    { name: "Resource_Sum", coef: 1.0 },
+                ],
+            },
+            subjectTo: all_constraints,
+        };
+        lp_res = await glpk.solve(lp, opt);
+
         console.log("Solver finished successfully!");
         return lp_res.result.vars;
     }
@@ -962,22 +997,21 @@ const resource_boosts = {
 
 function show_result(item_dict) {
     let keys = Object.keys(item_dict);
-    const first_keys = ["Earth_Token"];
+    const first_keys = [target_box.value];
     for (const res of RESOURCES) {
         first_keys.push(res.key);
     }
     const last_keys = keys.filter(item => !first_keys.includes(item) && !item.endsWith('_Ex') && item != 'Coal_Power_Plant');
     last_keys.sort();
     keys = first_keys.concat(last_keys);
-    let content = "";
+    let content = [];
     for (const key of keys) {
-        content += `${key.replace(/_/g,' ').padEnd(24, " ")} ${roundN(item_dict[key], 6)}\n`
-        if (key == "Earth_Token" || key == "Uranium_Ore") {
-            content += "\n";
-        }
+        content.push(`${key.replace(/_/g,' ').padEnd(24, " ")} ${roundN(item_dict[key], 6)}`)
     }
+    content.splice(1,0,"");
+    content.splice(9,0,"");
     output.style.fontSize = Math.min(13, window.innerWidth * 0.03 -0.5) +"px";
-    output.textContent = content + "\n";
+    output.textContent = content.join("\n") + "\n\n";
 }
 //#endregion
 
