@@ -66,7 +66,8 @@ input:hover {
 select {
     background-color: #2e2e2e;
     color: white;
-    padding: 4px;
+    padding: 6px;
+    font-size: 14px;
     border: none;
     cursor: pointer;
     border-radius: 6px;
