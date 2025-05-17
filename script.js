@@ -1001,7 +1001,9 @@ function show_result(item_dict) {
     for (const res of RESOURCES) {
         first_keys.push(res.key);
     }
-    const last_keys = keys.filter(item => !first_keys.includes(item) && !item.endsWith('_Ex') && item != 'Coal_Power_Plant');
+    const last_keys = keys.filter(
+        item => !first_keys.includes(item) && !item.endsWith('_Ex') && item != 'Coal_Power_Plant' && item != "Resource_Sum"
+    );
     last_keys.sort();
     keys = first_keys.concat(last_keys);
     let content = [];
