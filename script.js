@@ -31,6 +31,11 @@ const RESOURCES = [
     {key: "Wolframite", i: 5, field: wolframite, url: "wr"},
     {key: "Uranium_Ore", i: 6, field: uranium, url: "ur"}
 ];
+const ALT_RECIPES = [
+    "Concrete","Copper_Wire","Electric_Motor","Electromagnet",
+    "Industrial_Frame","Iron_Gear","Logic_Circuit","Rotor","Steel",
+    "Super_Computer","Tungsten_Carbide","Turbocharger"
+];
 //#endregion
 
 
@@ -477,7 +482,7 @@ const SeedSolver = {
                 vars: [
                     { name: 'Iron_Ore', coef: 1.0 },
                     { name: 'Iron_Ingot', coef: -1.0 },
-                    { name: 'Steel', coef: -6.0 },
+                    { name: 'Steel_STD', coef: -6.0 },
                     { name: 'Steel_ALT', coef: -4.0 },
                 ],
                 bnds: { type: glpk.GLP_LO, lb: 0.0},
@@ -522,7 +527,7 @@ const SeedSolver = {
                 vars: [
                     { name: 'Battery', coef: 1.0 },
                     { name: 'Energy_Cube', coef: -2.0 },
-                    { name: 'Electric_Motor', coef: -1.0 },
+                    { name: 'Electric_Motor_STD', coef: -1.0 },
                 ],
                 bnds: { type: glpk.GLP_LO, lb: 0.0},
             },
@@ -539,7 +544,7 @@ const SeedSolver = {
                 vars: [
                     { name: 'Computer', coef: 1.0 },
                     { name: 'Stabilizer', coef: -1.0 },
-                    { name: 'Super_Computer', coef: -2.0 },
+                    { name: 'Super_Computer_STD', coef: -2.0 },
                     { name: 'Super_Computer_ALT', coef: -1.0 },
                     { name: 'Turbocharger_ALT', coef: -1.0 },
                 ],
@@ -548,8 +553,15 @@ const SeedSolver = {
             {
                 vars: [
                     { name: 'Concrete', coef: 1.0 },
-                    { name: 'Concrete_ALT', coef: 1.0 },
-                    { name: 'Industrial_Frame', coef: -6.0 },
+                    { name: 'Concrete_STD', coef: -1.0 },
+                    { name: 'Concrete_ALT', coef: -1.0 },
+                ],
+                bnds: { type: glpk.GLP_FX, ub: 0.0, lb: 0.0},
+            },
+            {
+                vars: [
+                    { name: 'Concrete', coef: 1.0 },
+                    { name: 'Industrial_Frame_STD', coef: -6.0 },
                     { name: 'Tank', coef: -4.0 },
                     { name: 'Atomic_Locator', coef: -24.0 },
                 ],
@@ -565,7 +577,7 @@ const SeedSolver = {
             {
                 vars: [
                     { name: 'Copper_Ingot', coef: 1.0 },
-                    { name: 'Copper_Wire', coef: -1.5 },
+                    { name: 'Copper_Wire_STD', coef: -1.5 },
                     { name: 'Heat_Sink', coef: -5.0 },
                     { name: 'Rotor_ALT', coef: -18.0 },
                 ],
@@ -574,9 +586,16 @@ const SeedSolver = {
             {
                 vars: [
                     { name: 'Copper_Wire', coef: 1.0 },
-                    { name: 'Copper_Wire_ALT', coef: 1.0 },
-                    { name: 'Electromagnet', coef: -6.0 },
-                    { name: 'Logic_Circuit', coef: -3.0 },
+                    { name: 'Copper_Wire_STD', coef: -1.0 },
+                    { name: 'Copper_Wire_ALT', coef: -1.0 },
+                ],
+                bnds: { type: glpk.GLP_FX, ub: 0.0, lb: 0.0},
+            },
+            {
+                vars: [
+                    { name: 'Copper_Wire', coef: 1.0 },
+                    { name: 'Electromagnet_STD', coef: -6.0 },
+                    { name: 'Logic_Circuit_STD', coef: -3.0 },
                     { name: 'Gyroscope', coef: -12.0 },
                     { name: 'Atomic_Locator', coef: -50.0 },
                 ],
@@ -585,15 +604,22 @@ const SeedSolver = {
             {
                 vars: [
                     { name: 'Coupler', coef: 1.0 },
-                    { name: 'Turbocharger', coef: -4.0 },
-                    { name: 'Super_Computer', coef: -8.0 },
+                    { name: 'Turbocharger_STD', coef: -4.0 },
+                    { name: 'Super_Computer_STD', coef: -8.0 },
                 ],
                 bnds: { type: glpk.GLP_LO, lb: 0.0},
             },
             {
                 vars: [
                     { name: 'Electric_Motor', coef: 1.0 },
-                    { name: 'Electric_Motor_ALT', coef: 1.0 },
+                    { name: 'Electric_Motor_STD', coef: -1.0 },
+                    { name: 'Electric_Motor_ALT', coef: -1.0 },
+                ],
+                bnds: { type: glpk.GLP_FX, ub: 0.0, lb: 0.0},
+            },
+            {
+                vars: [
+                    { name: 'Electric_Motor', coef: 1.0 },
                     { name: 'Stabilizer', coef: -1.0 },
                     { name: 'Matter_Compressor', coef: -2.0 },
                 ],
@@ -602,7 +628,14 @@ const SeedSolver = {
             {
                 vars: [
                     { name: 'Electromagnet', coef: 1.0 },
-                    { name: 'Electromagnet_ALT', coef: 1.0 },
+                    { name: 'Electromagnet_STD', coef: -1.0 },
+                    { name: 'Electromagnet_ALT', coef: -1.0 },
+                ],
+                bnds: { type: glpk.GLP_FX, ub: 0.0, lb: 0.0},
+            },
+            {
+                vars: [
+                    { name: 'Electromagnet', coef: 1.0 },
                     { name: 'Battery', coef: -8.0 },
                     { name: 'Electron_Microscope', coef: -8.0 },
                     { name: 'Magnetic_Field_Generator', coef: -10.0 },
@@ -654,8 +687,8 @@ const SeedSolver = {
                     { name: 'Graphite', coef: 1.0 },
                     { name: 'Carbon_Fiber', coef: -4.0 },
                     { name: 'Battery', coef: -8.0 },
-                    { name: 'Steel', coef: -1.0 },
-                    { name: 'Tungsten_Carbide', coef: -1.0 },
+                    { name: 'Steel_STD', coef: -1.0 },
+                    { name: 'Tungsten_Carbide_STD', coef: -1.0 },
                 ],
                 bnds: { type: glpk.GLP_LO, lb: 0.0},
             },
@@ -672,7 +705,7 @@ const SeedSolver = {
                 vars: [
                     { name: 'Heat_Sink', coef: 1.0 },
                     { name: 'Computer', coef: -3.0 },
-                    { name: 'Super_Computer', coef: -8.0 },
+                    { name: 'Super_Computer_STD', coef: -8.0 },
                     { name: 'Logic_Circuit_ALT', coef: -1.0 },
                     { name: 'Turbocharger_ALT', coef: -4.0 },
                 ],
@@ -681,7 +714,14 @@ const SeedSolver = {
             {
                 vars: [
                     { name: 'Industrial_Frame', coef: 1.0 },
-                    { name: 'Industrial_Frame_ALT', coef: 1.0 },
+                    { name: 'Industrial_Frame_STD', coef: -1.0 },
+                    { name: 'Industrial_Frame_ALT', coef: -1.0 },
+                ],
+                bnds: { type: glpk.GLP_FX, ub: 0.0, lb: 0.0},
+            },
+            {
+                vars: [
+                    { name: 'Industrial_Frame', coef: 1.0 },
                     { name: 'Energy_Cube', coef: -1.0 },
                     { name: 'Matter_Compressor', coef: -1.0 },
                     { name: 'Magnetic_Field_Generator', coef: -1.0 },
@@ -692,18 +732,25 @@ const SeedSolver = {
             {
                 vars: [
                     { name: 'Iron_Gear', coef: 1.0 },
-                    { name: 'Iron_Gear_ALT', coef: 1.0 },
-                    { name: 'Electric_Motor', coef: -4.0 },
-                    { name: 'Turbocharger', coef: -8.0 },
+                    { name: 'Iron_Gear_STD', coef: -1.0 },
+                    { name: 'Iron_Gear_ALT', coef: -1.0 },
+                ],
+                bnds: { type: glpk.GLP_FX, ub: 0.0, lb: 0.0},
+            },
+            {
+                vars: [
+                    { name: 'Iron_Gear', coef: 1.0 },
+                    { name: 'Electric_Motor_STD', coef: -4.0 },
+                    { name: 'Turbocharger_STD', coef: -8.0 },
                 ],
                 bnds: { type: glpk.GLP_LO, lb: 0.0},
             },
             {
                 vars: [
                     { name: 'Iron_Ingot', coef: 1.0 },
-                    { name: 'Iron_Gear', coef: -2.0 },
+                    { name: 'Iron_Gear_STD', coef: -2.0 },
                     { name: 'Iron_Plating', coef: -2.0 },
-                    { name: 'Electromagnet', coef: -2.0 },
+                    { name: 'Electromagnet_STD', coef: -2.0 },
                 ],
                 bnds: { type: glpk.GLP_LO, lb: 0.0},
             },
@@ -711,7 +758,7 @@ const SeedSolver = {
                 vars: [
                     { name: 'Iron_Plating', coef: 1.0 },
                     { name: 'Metal_Frame', coef: -4.0 },
-                    { name: 'Rotor', coef: -2.0 },
+                    { name: 'Rotor_STD', coef: -2.0 },
                     { name: 'Rotor_ALT', coef: -18.0 },
                     { name: 'Industrial_Frame_ALT', coef: -10.0 },
                     { name: 'Logic_Circuit_ALT', coef: -1.0 },
@@ -721,9 +768,16 @@ const SeedSolver = {
             {
                 vars: [
                     { name: 'Logic_Circuit', coef: 1.0 },
-                    { name: 'Logic_Circuit_ALT', coef: 1.0 },
+                    { name: 'Logic_Circuit_STD', coef: -1.0 },
+                    { name: 'Logic_Circuit_ALT', coef: -1.0 },
+                ],
+                bnds: { type: glpk.GLP_FX, ub: 0.0, lb: 0.0},
+            },
+            {
+                vars: [
+                    { name: 'Logic_Circuit', coef: 1.0 },
                     { name: 'Computer', coef: -3.0 },
-                    { name: 'Turbocharger', coef: -4.0 },
+                    { name: 'Turbocharger_STD', coef: -4.0 },
                 ],
                 bnds: { type: glpk.GLP_LO, lb: 0.0},
             },
@@ -752,7 +806,7 @@ const SeedSolver = {
                 vars: [
                     { name: 'Metal_Frame', coef: 1.0 },
                     { name: 'Computer', coef: -1.0 },
-                    { name: 'Industrial_Frame', coef: -2.0 },
+                    { name: 'Industrial_Frame_STD', coef: -2.0 },
                     { name: 'Electron_Microscope', coef: -2.0 },
                 ],
                 bnds: { type: glpk.GLP_LO, lb: 0.0},
@@ -761,7 +815,7 @@ const SeedSolver = {
                 vars: [
                     { name: 'Nano_Wire', coef: 1.0 },
                     { name: 'Electron_Microscope', coef: -2.0 },
-                    { name: 'Turbocharger', coef: -2.0 },
+                    { name: 'Turbocharger_STD', coef: -2.0 },
                     { name: 'Magnetic_Field_Generator', coef: -10.0 },
                     { name: 'Electromagnet_ALT', coef: -1.0/12.0 },
                 ],
@@ -784,9 +838,16 @@ const SeedSolver = {
             {
                 vars: [
                     { name: 'Rotor', coef: 1.0 },
-                    { name: 'Rotor_ALT', coef: 1.0 },
+                    { name: 'Rotor_STD', coef: -1.0 },
+                    { name: 'Rotor_ALT', coef: -1.0 },
+                ],
+                bnds: { type: glpk.GLP_FX, ub: 0.0, lb: 0.0},
+            },
+            {
+                vars: [
+                    { name: 'Rotor', coef: 1.0 },
                     { name: 'Gyroscope', coef: -2.0 },
-                    { name: 'Electric_Motor', coef: -2.0 },
+                    { name: 'Electric_Motor_STD', coef: -2.0 },
                 ],
                 bnds: { type: glpk.GLP_LO, lb: 0.0},
             },
@@ -795,14 +856,14 @@ const SeedSolver = {
                     { name: 'Sand', coef: 1.0 },
                     { name: 'Silicon', coef: -2.0 },
                     { name: 'Glass', coef: -4.0 },
-                    { name: 'Concrete', coef: -10.0 },
+                    { name: 'Concrete_STD', coef: -10.0 },
                 ],
                 bnds: { type: glpk.GLP_LO, lb: 0.0},
             },
             {
                 vars: [
                     { name: 'Silicon', coef: 1.0 },
-                    { name: 'Logic_Circuit', coef: -2.0 },
+                    { name: 'Logic_Circuit_STD', coef: -2.0 },
                     { name: 'Super_Computer_ALT', coef: -20.0 },
                 ],
                 bnds: { type: glpk.GLP_LO, lb: 0.0},
@@ -818,7 +879,14 @@ const SeedSolver = {
             {
                 vars: [
                     { name: 'Steel', coef: 1.0 },
-                    { name: 'Steel_ALT', coef: 1.0 },
+                    { name: 'Steel_STD', coef: -1.0 },
+                    { name: 'Steel_ALT', coef: -1.0 },
+                ],
+                bnds: { type: glpk.GLP_FX, ub: 0.0, lb: 0.0},
+            },
+            {
+                vars: [
+                    { name: 'Steel', coef: 1.0 },
                     { name: 'Steel_Rod', coef: -3.0 },
                     { name: 'Iron_Gear_ALT', coef: -0.125 },
                     { name: 'Electric_Motor_ALT', coef: -6.0 },
@@ -830,8 +898,8 @@ const SeedSolver = {
             {
                 vars: [
                     { name: 'Steel_Rod', coef: 1.0 },
-                    { name: 'Rotor', coef: -1.0 },
-                    { name: 'Concrete', coef: -1.0 },
+                    { name: 'Rotor_STD', coef: -1.0 },
+                    { name: 'Concrete_STD', coef: -1.0 },
                     { name: 'Nuclear_Fuel_Cell', coef: -1.0 },
                     { name: 'Electromagnet_ALT', coef: -1.0/12.0 },
                 ],
@@ -840,7 +908,14 @@ const SeedSolver = {
             {
                 vars: [
                     { name: 'Super_Computer', coef: 1.0 },
-                    { name: 'Super_Computer_ALT', coef: 1.0 },
+                    { name: 'Super_Computer_STD', coef: -1.0 },
+                    { name: 'Super_Computer_ALT', coef: -1.0 },
+                ],
+                bnds: { type: glpk.GLP_FX, ub: 0.0, lb: 0.0},
+            },
+            {
+                vars: [
+                    { name: 'Super_Computer', coef: 1.0 },
                     { name: 'Atomic_Locator', coef: -2.0 },
                 ],
                 bnds: { type: glpk.GLP_LO, lb: 0.0},
@@ -855,10 +930,17 @@ const SeedSolver = {
             {
                 vars: [
                     { name: 'Tungsten_Carbide', coef: 1.0 },
-                    { name: 'Tungsten_Carbide_ALT', coef: 1.0 },
+                    { name: 'Tungsten_Carbide_STD', coef: -1.0 },
+                    { name: 'Tungsten_Carbide_ALT', coef: -1.0 },
+                ],
+                bnds: { type: glpk.GLP_FX, ub: 0.0, lb: 0.0},
+            },
+            {
+                vars: [
+                    { name: 'Tungsten_Carbide', coef: 1.0 },
                     { name: 'Coupler', coef: -1.0 },
                     { name: 'Empty_Fuel_Cell', coef: -3.0 },
-                    { name: 'Industrial_Frame', coef: -8.0 },
+                    { name: 'Industrial_Frame_STD', coef: -8.0 },
                     { name: 'Tank', coef: -4.0 },
                     { name: 'Turbocharger_ALT', coef: -1.0 },
                 ],
@@ -867,7 +949,7 @@ const SeedSolver = {
             {
                 vars: [
                     { name: 'Tungsten_Ore', coef: 1.0 },
-                    { name: 'Tungsten_Carbide', coef: -2.0 },
+                    { name: 'Tungsten_Carbide_STD', coef: -2.0 },
                     { name: 'Tungsten_Carbide_ALT', coef: -0.5 },
                 ],
                 bnds: { type: glpk.GLP_LO, lb: 0.0},
@@ -875,8 +957,15 @@ const SeedSolver = {
             {
                 vars: [
                     { name: 'Turbocharger', coef: 1.0 },
-                    { name: 'Turbocharger_ALT', coef: 1.0 },
-                    { name: 'Super_Computer', coef: -1.0 },
+                    { name: 'Turbocharger_STD', coef: -1.0 },
+                    { name: 'Turbocharger_ALT', coef: -1.0 },
+                ],
+                bnds: { type: glpk.GLP_FX, ub: 0.0, lb: 0.0},
+            },
+            {
+                vars: [
+                    { name: 'Turbocharger', coef: 1.0 },
+                    { name: 'Super_Computer_STD', coef: -1.0 },
                     { name: 'Matter_Compressor', coef: -2.0 },
                 ],
                 bnds: { type: glpk.GLP_LO, lb: 0.0},
@@ -953,19 +1042,13 @@ const SeedSolver = {
 
 //#region Show functions
 const recipe_ratios = {
-    ALT_RECIPES: [
-        "Concrete","Copper_Wire","Electric_Motor","Electromagnet",
-        "Industrial_Frame","Iron_Gear","Logic_Circuit","Rotor","Steel",
-        "Super_Computer","Tungsten_Carbide","Turbocharger"
-    ],
-
     show: async function() {
         const all_items = await SeedSolver.solve(extractor_values(), alt_box.checked, boost_box.checked);
         let content = "Used Alt recipes:\n\n";
-        for (const key of this.ALT_RECIPES) {
+        for (const key of ALT_RECIPES) {
             const alt = all_items[key +"_ALT"];
-            const norm = all_items[key];
-            const value = (alt + norm <= 0)? 0 : (alt / (alt + norm));
+            const std = all_items[key +"_STD"];
+            const value = (alt + std <= 0)? 0 : (alt / (alt + std));
             const percent = Math.max(0,Math.min(1,value));
             content += `${key.replace(/_/g,' ').padEnd(16, " ")} ${str_num(percent*100, 7, false)} %\n`;
         }
@@ -1001,9 +1084,14 @@ function show_result(item_dict) {
     for (const res of RESOURCES) {
         first_keys.push(res.key);
     }
-    const last_keys = keys.filter(
+    let last_keys = keys.filter(
         item => !first_keys.includes(item) && !item.endsWith('_Ex') && item != 'Coal_Power_Plant' && item != "Resource_Sum"
     );
+    if (alt_box.checked) {
+
+    } else {
+        last_keys = last_keys.filter(item => !item.endsWith('_ALT') && !item.endsWith('_STD'));
+    }
     last_keys.sort();
     keys = first_keys.concat(last_keys);
     let content = [];
