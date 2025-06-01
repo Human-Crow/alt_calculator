@@ -40,14 +40,6 @@ const ALT_RECIPES = [
 
 
 //#region Field functions
-for (const res of RESOURCES) {
-    res.field.value = get_url_param(res.url);
-    res.field.onchange = function() {
-        update_url_param(res.url, res.field.value);
-    };
-    res.field.onpaste = function(ev) {res.field.blur(); paste_insert(ev);};
-}
-
 function get_url_param(target_key) {
     const url_vars = window.location.search.substring(1).split('&');
     for (const url_var of url_vars) {
@@ -1105,6 +1097,57 @@ function show_result(item_dict) {
 
 
 //#region Other functions
+function show_warning(message) {
+    const warning = document.createElement("div");
+    warning.textContent = message;
+    warning.style.cssText = `
+        color: white; 
+        font-weight: bold; 
+        position: fixed; 
+        text-align: center;
+        top: 10px; 
+        left: 50%; 
+        transform: translateX(-50%); 
+        background:rgb(180, 0, 0); 
+        padding: 10px; 
+        border: 1px solid white;
+        border-radius: 12px;
+        box-shadow: 0px 0px 10px rgb(0, 0, 0);
+    `;
+
+    // Find the last warning element
+    const warnings = document.querySelectorAll(".warning-message");
+    if (warnings.length > 0) {
+        const lastWarning = warnings[warnings.length - 1]; // Get last warning
+        const lastWarningRect = lastWarning.getBoundingClientRect(); // Get position
+        warning.style.top = `${lastWarningRect.bottom/1.5-14.28454342 +5}px`; // Adjust position
+    }
+
+    // Add class for identification
+    warning.classList.add("warning-message");
+    document.body.appendChild(warning);
+
+    // Remove warning when user clicks anywhere on the page
+    document.addEventListener("click", () => warning.remove(), { once: true });
+}
+
+function proper(str, separator= '') {
+    if (!str) {
+        return str;
+    }
+    str = str.toLowerCase();
+    if (separator) {
+        let words = [];
+        for (let word of str.split(separator)) {
+            
+            words.push(word.charAt(0).toUpperCase() + word.slice(1));
+        }
+        return words.join(separator);
+    } else {
+        return str.charAt(0).toUpperCase() + str.slice(1);
+    }
+}
+
 function extractor_values() {
     const result = [];
     for (const res of RESOURCES) {
@@ -1130,5 +1173,40 @@ function str_num(num, max_len, fill= true) {
     } else {
         return str;
     }
+}
+//#endregion
+
+
+//#region Run when loaded
+for (const res of RESOURCES) {
+    res.field.value = get_url_param(res.url);
+    res.field.onchange = function() {
+        update_url_param(res.url, res.field.value);
+    };
+    res.field.onpaste = function(ev) {res.field.blur(); paste_insert(ev);};
+}
+
+let url_item = proper(get_url_param("item"), '_');
+if (url_item) {
+    if ([...target_box.options].some(option => option.value === url_item)) {
+        target_box.value = url_item;
+    } else {
+        show_warning(`"${url_item}" is not a valid item!`);
+    }
+}
+
+for (let setting of ["alt", "boost"]) {
+    let url_param = get_url_param(setting);
+    if (url_param != 0) {
+        if (url_param == 1) {
+            document.getElementById(`${setting}_box`).checked = true;
+        } else {
+            show_warning(`${setting} should be 0 or 1!`);
+        }
+    }
+}
+
+if ([...RESOURCES].every(res => res.field.value > 0)) {
+    show_result(await SeedSolver.solve(extractor_values(), alt_box.checked, boost_box.checked));
 }
 //#endregion
