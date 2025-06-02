@@ -12,6 +12,7 @@ body {
     transform: scale(1.5);
     transform-origin: top left;
     width: 65%;
+    touch-action: manipulation;
 }
 .form-container {
     max-width: 150px;
