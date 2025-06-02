@@ -2,6 +2,8 @@ import GLPK from './glpk.js';
 
 
 //#region Constants
+const glpk = await GLPK();
+
 const clear_button = document.getElementById("clear_button");
 const score_button = document.getElementById("score_button");
 const alt_recipe_button = document.getElementById("alt_recipe_button");
@@ -11,6 +13,8 @@ const target_box = document.getElementById("target_box");
 const alt_box = document.getElementById("alt_box");
 const boost_box = document.getElementById("boost_box");
 const boost_note = document.getElementById("boost_note");
+const zero_box = document.getElementById("zero_box");
+const ratio_box = document.getElementById("ratio_box");
 
 const wood = document.getElementById("wood");
 const stone = document.getElementById("stone");
@@ -39,60 +43,7 @@ const ALT_RECIPES = [
 //#endregion
 
 
-//#region Field functions
-function get_url_param(target_key) {
-    const url_vars = window.location.search.substring(1).split('&');
-    for (const url_var of url_vars) {
-        const [key, value] = url_var.split('=');
-        if (key == target_key) {
-            return value;
-        }
-    }
-    return "";
-}
-
-function update_url_param(param, value) {
-    const url = new URL(window.location.href);
-    const params = url.searchParams;
-    if (params.get(param) === value) {
-        return;
-    }
-    const order = ["alt", "boost", "item", "wd", "st", "ir", "cp", "cl", "wr", "ur"];
-    if (value) { 
-        params.set(param, value);
-    } else {
-        params.delete(param);
-    }
-    const ordered_params = new URLSearchParams();
-    for (let key of order) {
-        if (params.has(key)) {
-            ordered_params.set(key, params.get(key));
-        }
-    }
-    window.history.replaceState(
-        {}, '', `${url.origin}${url.pathname}?${ordered_params.toString()}`
-    );
-}
-
-function paste_insert(event) {
-    const data = event.clipboardData || window.clipboardData; // other browsers || safari
-    if (data) {
-        const values = data.getData('text/plain').split(/\s+/);
-        if (values.length > 1) {
-            for (const res of RESOURCES) {
-                res.field.value = values[res.i] || "";
-                res.field.dispatchEvent(new Event("change"));
-            }
-        } else {
-            wood.value = values[0];
-            wood.dispatchEvent(new Event("change"));
-        }
-    }
-}
-//#endregion
-
-
-//#region Button/Checkbox functions
+//#region Element functions
 for (const res of RESOURCES) {
     res.field.onchange = function() {
         output.textContent = "\n".repeat(40);
@@ -124,11 +75,15 @@ boost_box.onchange = function() {
     update_url_param("boost", boost_box.checked? 1:0);
 };
 
-alt_recipe_button.onclick = function() {recipe_ratios.show();};
-res_boosts_button.onclick = function() {resource_boosts.show();};
+alt_recipe_button.onclick = function() {show_recipe_ratios();};
+res_boosts_button.onclick = function() {show_resource_boosts();};
 
 score_button.onclick = async function() {
-    show_result(await SeedSolver.solve(extractor_values(), alt_box.checked, boost_box.checked));
+    show_result(
+        await SeedSolver.solve(extractor_values(), alt_box.checked, boost_box.checked),
+        ratio_box.checked,
+        zero_box.checked
+    );
 };
 
 let clear_state = false;
@@ -175,8 +130,6 @@ const SeedSolver = {
             Wolframite_Extractors,
             Uranium_Extractors
         ] = resources;
-    
-        const glpk = await GLPK();
 
         const boost_cons = [
             {
@@ -1065,44 +1018,39 @@ const SeedSolver = {
 
 
 //#region Show functions
-const recipe_ratios = {
-    show: async function() {
-        const all_items = await SeedSolver.solve(extractor_values(), alt_box.checked, boost_box.checked);
-        let content = "Used Alt recipes:\n\n";
-        for (const key of ALT_RECIPES) {
-            const alt = all_items[key +"_ALT"];
-            const std = all_items[key +"_STD"];
-            const value = (alt + std <= 0)? 0 : (alt / (alt + std));
-            const percent = Math.max(0,Math.min(1,value));
-            content += `${key.replace(/_/g,' ').padEnd(16, " ")} ${str_num(percent*100, 7, false)} %\n`;
-        }
-        output.style.fontSize = Math.min(13, window.innerWidth * 0.043 -0.5) +"px";
-        output.textContent = content + "\n".repeat(25);
+async function show_recipe_ratios () {
+    const all_items = await SeedSolver.solve(extractor_values(), alt_box.checked, boost_box.checked);
+    let content = "Used Alt recipes:\n\n";
+    for (const key of ALT_RECIPES) {
+        const alt = all_items[key +"_ALT"];
+        const std = all_items[key +"_STD"];
+        const value = (alt + std <= 0)? 0 : (alt / (alt + std));
+        const percent = Math.max(0,Math.min(1,value));
+        content += `${key.replace(/_/g,' ').padEnd(16, " ")} ${str_num(percent*100, 7, false)} %\n`;
     }
+    output.style.fontSize = Math.min(13, window.innerWidth * 0.043 -0.5) +"px";
+    output.textContent = content + "\n".repeat(25);
 }
 
-const resource_boosts = {
-    show: async function() {
-        const resources = extractor_values();
-        const all_items = await SeedSolver.solve(resources, alt_box.checked, boost_box.checked);
-        let content = "Resource      Coal      Nuclear\n\n";
-        for (const res of RESOURCES) {
-            const res_str = res.key.split('_')[0];
-            const coal_ext = all_items[res_str + '_Coal_Ex'];
-            const nuc_ext = all_items[res_str + '_Nuc_Ex'];
-            const coal_per = Math.max(0,Math.min(1,coal_ext / resources[res.i]));
-            const nuc_per = Math.max(0,Math.min(1,nuc_ext / resources[res.i]));
-            content += `${res.key.replace(/_/g,' ')}\n`;
-            content += `${"  percentage"}: ${str_num(coal_per *100, 7)}   ${str_num(nuc_per *100, 7)}\n`
-            content += `${"  extractors"}: ${str_num(coal_ext, 7)}   ${str_num(nuc_ext, 7)}\n\n`
-        }
-        output.style.fontSize = Math.min(13, window.innerWidth * 0.037 -0.5) +"px";
-        output.textContent = content + "\n".repeat(30);
+async function show_resource_boosts() {
+    const resources = extractor_values();
+    const all_items = await SeedSolver.solve(resources, alt_box.checked, boost_box.checked);
+    let content = "Resource      Coal      Nuclear\n\n";
+    for (const res of RESOURCES) {
+        const res_str = res.key.split('_')[0];
+        const coal_ext = all_items[res_str + '_Coal_Ex'];
+        const nuc_ext = all_items[res_str + '_Nuc_Ex'];
+        const coal_per = Math.max(0,Math.min(1,coal_ext / resources[res.i]));
+        const nuc_per = Math.max(0,Math.min(1,nuc_ext / resources[res.i]));
+        content += `${res.key.replace(/_/g,' ')}\n`;
+        content += `${"  percentage"}: ${str_num(coal_per *100, 7)}   ${str_num(nuc_per *100, 7)}\n`
+        content += `${"  extractors"}: ${str_num(coal_ext, 7)}   ${str_num(nuc_ext, 7)}\n\n`
     }
+    output.style.fontSize = Math.min(13, window.innerWidth * 0.037 -0.5) +"px";
+    output.textContent = content + "\n".repeat(30);
 }
 
-
-function show_result(item_dict) {
+function show_result(item_dict, divide, show_zero) {
     let keys = Object.keys(item_dict);
     const first_keys = [target_box.value];
     for (const res of RESOURCES) {
@@ -1117,11 +1065,21 @@ function show_result(item_dict) {
     last_keys.sort();
     keys = first_keys.concat(last_keys);
     let content = [];
-    for (const key of keys) {
-        content.push(`${key.replace(/_/g,' ').padEnd(24, " ")} ${roundN(item_dict[key], 6)}`)
+    for (const [index, key] of keys.entries()) {
+        let value = roundN(divide? item_dict[key] / item_dict[keys[0]] : item_dict[key], 6);
+        if (!show_zero && index > 7 && value <= 0) {
+            continue;
+        }
+        content.push(`${key.replace(/_/g,' ').padEnd(24, " ")} ${value}`)
     }
     content.splice(1,0,"");
     content.splice(9,0,"");
+    if (content.length < 40) {
+        let add_amount = 40 - content.length;
+        for (let i = 0; i < add_amount; i++) {
+            content.push("");
+        }
+    }
     output.style.fontSize = Math.min(13, window.innerWidth * 0.03 -0.5) +"px";
     output.textContent = content.join("\n") + "\n\n";
 }
@@ -1206,6 +1164,56 @@ function str_num(num, max_len, fill= true) {
         return str;
     }
 }
+
+function get_url_param(target_key) {
+    const url_vars = window.location.search.substring(1).split('&');
+    for (const url_var of url_vars) {
+        const [key, value] = url_var.split('=');
+        if (key == target_key) {
+            return value;
+        }
+    }
+    return "";
+}
+
+function update_url_param(param, value) {
+    const url = new URL(window.location.href);
+    const params = url.searchParams;
+    if (params.get(param) === value) {
+        return;
+    }
+    const order = ["alt", "boost", "item", "wd", "st", "ir", "cp", "cl", "wr", "ur"];
+    if (value) { 
+        params.set(param, value);
+    } else {
+        params.delete(param);
+    }
+    const ordered_params = new URLSearchParams();
+    for (let key of order) {
+        if (params.has(key)) {
+            ordered_params.set(key, params.get(key));
+        }
+    }
+    window.history.replaceState(
+        {}, '', `${url.origin}${url.pathname}?${ordered_params.toString()}`
+    );
+}
+
+function paste_insert(event) {
+    const data = event.clipboardData || window.clipboardData; // other browsers || safari
+    if (data) {
+        const values = data.getData('text/plain').split(/\s+/);
+        if (values.length > 1) {
+            for (const res of RESOURCES) {
+                res.field.value = values[res.i] || "";
+                res.field.dispatchEvent(new Event("change"));
+            }
+        } else {
+            wood.value = values[0];
+            wood.dispatchEvent(new Event("change"));
+        }
+    }
+}
 //#endregion
 
 
@@ -1237,6 +1245,10 @@ for (let setting of ["alt", "boost"]) {
 }
 
 if ([...RESOURCES].every(res => res.field.value > 0)) {
-    show_result(await SeedSolver.solve(extractor_values(), alt_box.checked, boost_box.checked));
+    show_result(
+        await SeedSolver.solve(extractor_values(), alt_box.checked, boost_box.checked),
+        ratio_box.checked,
+        zero_box.checked
+    );
 }
 //#endregion
