@@ -53,22 +53,39 @@ function get_url_param(target_key) {
 
 function update_url_param(param, value) {
     const url = new URL(window.location.href);
-    if (value) { 
-        url.searchParams.set(param, value);
-        window.history.pushState({}, '', url.href);
-    } else {
-        url.searchParams.delete(param);
-        window.history.replaceState(null, null, url);
+    const params = url.searchParams;
+    if (params.get(param) === value) {
+        return;
     }
+    const order = ["alt", "boost", "item", "wd", "st", "ir", "cp", "cl", "wr", "ur"];
+    if (value) { 
+        params.set(param, value);
+    } else {
+        params.delete(param);
+    }
+    const ordered_params = new URLSearchParams();
+    for (let key of order) {
+        if (params.has(key)) {
+            ordered_params.set(key, params.get(key));
+        }
+    }
+    window.history.replaceState(
+        {}, '', `${url.origin}${url.pathname}?${ordered_params.toString()}`
+    );
 }
 
 function paste_insert(event) {
     const data = event.clipboardData || window.clipboardData; // other browsers || safari
     if (data) {
         const values = data.getData('text/plain').split(/\s+/);
-        for (const res of RESOURCES) {
-            res.field.value = values[res.i] || "";
-            update_url_param(res.url, res.field.value);
+        if (values.length > 1) {
+            for (const res of RESOURCES) {
+                res.field.value = values[res.i] || "";
+                res.field.dispatchEvent(new Event("change"));
+            }
+        } else {
+            wood.value = values[0];
+            wood.dispatchEvent(new Event("change"));
         }
     }
 }
@@ -76,9 +93,23 @@ function paste_insert(event) {
 
 
 //#region Button/Checkbox functions
+for (const res of RESOURCES) {
+    res.field.onchange = function() {
+        output.textContent = "\n".repeat(40);
+        update_url_param(res.url, res.field.value);
+    };
+}
+wood.onpaste = function(ev) {wood.blur(); paste_insert(ev);};
+
+target_box.onchange = function() {
+    output.textContent = "\n".repeat(40);
+    update_url_param("item", target_box.value == "Earth_Token"? "":target_box.value);
+};
+
 alt_box.onchange = function() {
     output.textContent = "\n".repeat(40);
     alt_recipe_button.style.display = (alt_box.checked)? 'block':'none';
+    update_url_param("alt", alt_box.checked? 1:0);
 };
 
 boost_box.onchange = function() {
@@ -90,6 +121,7 @@ boost_box.onchange = function() {
         res_boosts_button.style.display = 'none';
         boost_note.textContent = "";
     }
+    update_url_param("boost", boost_box.checked? 1:0);
 };
 
 alt_recipe_button.onclick = function() {recipe_ratios.show();};
@@ -106,7 +138,7 @@ document.onclick = function(event) {
         if (clear_state) {
             for (const res of RESOURCES) {
                 res.field.value = "";
-                update_url_param(res.url, res.field.value);
+                res.field.dispatchEvent(new Event("change"));
             }
         } else {
             clear_button.innerText = "Tap again";
@@ -1180,10 +1212,6 @@ function str_num(num, max_len, fill= true) {
 //#region Run when loaded
 for (const res of RESOURCES) {
     res.field.value = get_url_param(res.url);
-    res.field.onchange = function() {
-        update_url_param(res.url, res.field.value);
-    };
-    res.field.onpaste = function(ev) {res.field.blur(); paste_insert(ev);};
 }
 
 let url_item = proper(get_url_param("item"), '_');
@@ -1199,7 +1227,9 @@ for (let setting of ["alt", "boost"]) {
     let url_param = get_url_param(setting);
     if (url_param != 0) {
         if (url_param == 1) {
-            document.getElementById(`${setting}_box`).checked = true;
+            let checkbox = document.getElementById(`${setting}_box`);
+            checkbox.checked = true;
+            checkbox.dispatchEvent(new Event("change"));
         } else {
             show_warning(`${setting} should be 0 or 1!`);
         }
