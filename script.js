@@ -4,11 +4,13 @@ import GLPK from './glpk.js';
 //#region Constants
 const glpk = await GLPK();
 
-const clear_button = document.getElementById("clear_button");
+const clear_button1 = document.getElementById("clear_button1");
+const clear_button2 = document.getElementById("clear_button2");
 const score_button = document.getElementById("score_button");
 const alt_recipe_button = document.getElementById("alt_recipe_button");
 const res_boosts_button = document.getElementById("res_boosts_button");
 
+const limit_box = document.getElementById("limit_box");
 const target_box = document.getElementById("target_box");
 const alt_box = document.getElementById("alt_box");
 const boost_box = document.getElementById("boost_box");
@@ -16,6 +18,11 @@ const boost_note = document.getElementById("boost_note");
 const zero_box = document.getElementById("zero_box");
 const ratio_box = document.getElementById("ratio_box");
 
+const resource_fields = document.getElementById("resource_fields");
+const goal_fields = document.getElementById("goal_fields");
+const boost_field = document.getElementById("boost_field");
+
+const goal = document.getElementById("goal");
 const wood = document.getElementById("wood");
 const stone = document.getElementById("stone");
 const iron = document.getElementById("iron");
@@ -48,13 +55,45 @@ for (const res of RESOURCES) {
     res.field.onchange = function() {
         output.textContent = "\n".repeat(40);
         update_url_param(res.url, res.field.value);
+        if (goal.value != "") {
+            goal.value = "";
+            update_url_param("goal", "");
+        }
     };
 }
 wood.onpaste = function(ev) {wood.blur(); paste_insert(ev);};
 
+goal.onchange = function() {
+    output.textContent = "\n".repeat(40);
+    update_url_param("goal", goal.value);
+    for (const res of RESOURCES) {
+        if (res.field.value != "") {
+            res.field.value = "";
+            update_url_param(res.url, "");
+        }
+    }
+}
+
+limit_box.onchange = function() {
+    output.textContent = "\n".repeat(40);
+    if (limit_box.value === "Goal") {
+        resource_fields.style.display = "none";
+        goal_fields.style.display = "block";
+        if (boost_box.checked) {
+            boost_box.checked = false;
+            boost_box.dispatchEvent(new Event('change'));
+        }
+        boost_field.style.display = "none";
+    } else {
+        goal_fields.style.display = "none";
+        resource_fields.style.display = "block";
+        boost_field.style.display = "block";
+    }
+};
+
 target_box.onchange = function() {
     output.textContent = "\n".repeat(40);
-    update_url_param("item", target_box.value == "Earth_Token"? "":target_box.value);
+    update_url_param("item", target_box.value === "Earth_Token"? "":target_box.value);
 };
 
 alt_box.onchange = function() {
@@ -79,8 +118,9 @@ alt_recipe_button.onclick = function() {show_recipe_ratios();};
 res_boosts_button.onclick = function() {show_resource_boosts();};
 
 score_button.onclick = async function() {
+    let limit = (limit_box.value === "Goal")? Number(goal.value) : extractor_values();
     show_result(
-        await SeedSolver.solve(extractor_values(), alt_box.checked, boost_box.checked),
+        await SeedSolver.solve(limit, alt_box.checked, boost_box.checked),
         ratio_box.checked,
         zero_box.checked
     );
@@ -88,6 +128,7 @@ score_button.onclick = async function() {
 
 let clear_state = false;
 document.onclick = function(event) {
+    let clear_button = (limit_box.value === "Goal")? clear_button2 : clear_button1;
     clear_button.innerText = "Clear Fields";
     if (event.target === clear_button) {
         if (clear_state) {
@@ -95,6 +136,8 @@ document.onclick = function(event) {
                 res.field.value = "";
                 res.field.dispatchEvent(new Event("change"));
             }
+            goal.value = "";
+            goal.dispatchEvent(new Event("change"));
         } else {
             clear_button.innerText = "Tap again";
         }
@@ -120,16 +163,28 @@ const SeedSolver = {
     EX_NPP_UR: 8.5,
     EX_CPP_UR: 6.5,
 
-    solve: async function(resources, alt, boost) {
-        const [
-            Wood_Extractors,
-            Stone_Extractors,
-            Iron_Extractors,
-            Copper_Extractors,
-            Coal_Extractors,
-            Wolframite_Extractors,
-            Uranium_Extractors
-        ] = resources;
+    solve: async function(limit, alt, boost) {
+        let mode;
+        if (typeof limit === "number") {
+            mode = "goal";
+        } else if (Array.isArray(limit)) {
+            mode = "max";
+        } else {
+            throw new TypeError("Invalid type for 'limit'");
+        }
+
+        let Wood_Extractors, Stone_Extractors, Iron_Extractors, Copper_Extractors;
+        let Coal_Extractors, Wolframite_Extractors, Uranium_Extractors;
+        if (mode === "max") {
+            Wood_Extractors = limit[0];
+            Stone_Extractors = limit[1];
+            Iron_Extractors = limit[2];
+            Copper_Extractors = limit[3];
+            Coal_Extractors = limit[4];
+            Wolframite_Extractors = limit[5];
+            Uranium_Extractors = limit[6];
+        }
+
 
         const boost_cons = [
             {
@@ -965,40 +1020,50 @@ const SeedSolver = {
         ];
 
         let all_constraints;
-        if (alt && boost) {
-            all_constraints = general_cons.concat(boost_cons);
-        } else if (alt) {
-            all_constraints = general_cons.concat(non_boost_cons);
-        } else if (boost) {
-            all_constraints = general_cons.concat(boost_cons).concat(non_alt_cons);
+        if (mode === "max") {
+            if (alt && boost) {
+                all_constraints = general_cons.concat(boost_cons);
+            } else if (alt) {
+                all_constraints = general_cons.concat(non_boost_cons);
+            } else if (boost) {
+                all_constraints = general_cons.concat(boost_cons).concat(non_alt_cons);
+            } else {
+                all_constraints = general_cons.concat(non_boost_cons).concat(non_alt_cons);
+            }
         } else {
-            all_constraints = general_cons.concat(non_boost_cons).concat(non_alt_cons);
+            all_constraints = (alt)? general_cons : general_cons.concat(non_alt_cons);
         }
 
+
         // Solve target
-        let lp = {
-            name: 'LP',
-            objective: {
-                direction: glpk.GLP_MAX,
-                vars: [
-                    { name: target_box.value, coef: 1.0 },
-                ],
-            },
-            subjectTo: all_constraints,
-        };
+        let lp_res;
         const opt = {
             msglev: glpk.GLP_MSG_OFF
         };
-        let lp_res = await glpk.solve(lp, opt);
+
+        if (mode === "max") {
+            let lp_max = {
+                name: 'LP',
+                objective: {
+                    direction: glpk.GLP_MAX,
+                    vars: [
+                        { name: target_box.value, coef: 1.0 },
+                    ],
+                },
+                subjectTo: all_constraints,
+            };
+            lp_res = await glpk.solve(lp_max, opt);
+        }
 
         // Minimize Resources
+        let bound = (mode === "max")? lp_res.result.z : limit;
         all_constraints.push({
             vars: [
                 { name: target_box.value, coef: 1.0 },
             ],
-            bnds: { type: glpk.GLP_FX, ub: lp_res.result.z, lb: lp_res.result.z},
+            bnds: { type: glpk.GLP_FX, ub: bound, lb: bound},
         });
-        lp = {
+        let lp_min = {
             name: 'LP',
             objective: {
                 direction: glpk.GLP_MIN,
@@ -1008,7 +1073,7 @@ const SeedSolver = {
             },
             subjectTo: all_constraints,
         };
-        lp_res = await glpk.solve(lp, opt);
+        lp_res = await glpk.solve(lp_min, opt);
 
         console.log("Solver finished successfully!");
         return lp_res.result.vars;
@@ -1019,7 +1084,8 @@ const SeedSolver = {
 
 //#region Show functions
 async function show_recipe_ratios () {
-    const all_items = await SeedSolver.solve(extractor_values(), alt_box.checked, boost_box.checked);
+    let limit = (limit_box.value === "Goal")? Number(goal.value) : extractor_values();
+    const all_items = await SeedSolver.solve(limit, alt_box.checked, boost_box.checked);
     let content = "Used Alt recipes:\n\n";
     for (const key of ALT_RECIPES) {
         const alt = all_items[key +"_ALT"];
@@ -1141,7 +1207,7 @@ function proper(str, separator= '') {
 function extractor_values() {
     const result = [];
     for (const res of RESOURCES) {
-        result.push(parseFloat(res.field.value) || 0);
+        result.push(Number(res.field.value) || 0);
     }
     return result;
 }
@@ -1169,7 +1235,7 @@ function get_url_param(target_key) {
     const url_vars = window.location.search.substring(1).split('&');
     for (const url_var of url_vars) {
         const [key, value] = url_var.split('=');
-        if (key == target_key) {
+        if (key === target_key) {
             return value;
         }
     }
@@ -1182,7 +1248,7 @@ function update_url_param(param, value) {
     if (params.get(param) === value) {
         return;
     }
-    const order = ["alt", "boost", "item", "wd", "st", "ir", "cp", "cl", "wr", "ur"];
+    const order = ["alt", "boost", "item", "goal", "wd", "st", "ir", "cp", "cl", "wr", "ur"];
     if (value) { 
         params.set(param, value);
     } else {
@@ -1218,9 +1284,19 @@ function paste_insert(event) {
 
 
 //#region Run when loaded
-for (const res of RESOURCES) {
-    res.field.value = get_url_param(res.url);
+goal.value = get_url_param("goal");
+if (goal.value === "") {
+    for (const res of RESOURCES) {
+        res.field.value = get_url_param(res.url);
+    }
+} else {
+    limit_box.value = "Goal"
+    limit_box.dispatchEvent(new Event("change"));
+    for (const res of RESOURCES) {
+        update_url_param(res.url, "");
+    }
 }
+
 
 let url_item = proper(get_url_param("item"), '_');
 if (url_item) {
@@ -1234,7 +1310,7 @@ if (url_item) {
 for (let setting of ["alt", "boost"]) {
     let url_param = get_url_param(setting);
     if (url_param != 0) {
-        if (url_param == 1) {
+        if (url_param === "1") {
             let checkbox = document.getElementById(`${setting}_box`);
             checkbox.checked = true;
             checkbox.dispatchEvent(new Event("change"));
@@ -1244,9 +1320,10 @@ for (let setting of ["alt", "boost"]) {
     }
 }
 
-if ([...RESOURCES].every(res => res.field.value > 0)) {
+if ([...RESOURCES].every(res => Number(res.field.value) > 0) || Number(goal.value) > 0) {
+    let limit = (limit_box.value === "Goal")? Number(goal.value) : extractor_values();
     show_result(
-        await SeedSolver.solve(extractor_values(), alt_box.checked, boost_box.checked),
+        await SeedSolver.solve(limit, alt_box.checked, boost_box.checked),
         ratio_box.checked,
         zero_box.checked
     );

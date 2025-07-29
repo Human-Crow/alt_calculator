@@ -17,42 +17,62 @@
 </head>
 <body>
     <h1>Builderment<br>Alt Calculator</h1>
-    <p>Available Extractors:</p>
+
+
+    <p style="margin: 0; display: none">Select Solver Mode:</p>
+
+    <select id="limit_box" style="display: none;">
+        <option value="Resource" selected>Resource Limited</option>
+        <option value="Goal">Goal Limited</option>
+    </select>
 
     
-    <div class="form-container">
+    <div class="form-container" id="resource_fields" style="display: block;">
+        <p>Available Extractors:</p>
         <div class="input-row">
-            <button class="small-button" id="clear_button">Clear Fields</button>
+            <button class="small-button" id="clear_button1">Clear Fields</button>
         </div>
         <div class="input-row">
             <label class="res_label" for="wood">Wood:</label>
-            <input class="resource" name="resource[]"  type="number" id="wood" min="0">
+            <input class="resource" type="number" id="wood" min="0">
         </div>
         <div class="input-row">
             <label class="res_label" for="stone">Stone:</label>
-            <input class="resource" name="resource[]"  type="number" id="stone" min="0">
+            <input class="resource" type="number" id="stone" min="0">
         </div>
         <div class="input-row">
             <label class="res_label" for="iron">Iron:</label>
-            <input class="resource" name="resource[]"  type="number" id="iron" min="0">
+            <input class="resource" type="number" id="iron" min="0">
         </div>
         <div class="input-row">
             <label class="res_label" for="copper">Copper:</label>
-            <input class="resource" name="resource[]"  type="number" id="copper" min="0">
+            <input class="resource" type="number" id="copper" min="0">
         </div>
         <div class="input-row">
             <label class="res_label" for="coal">Coal:</label>
-            <input class="resource" name="resource[]"  type="number" id="coal" min="0">
+            <input class="resource" type="number" id="coal" min="0">
         </div>
         <div class="input-row">
             <label class="res_label" for="wolframite">Wolframite:</label>
-            <input class="resource" name="resource[]"  type="number" id="wolframite" min="0">
+            <input class="resource" type="number" id="wolframite" min="0">
         </div>
         <div class="input-row">
             <label class="res_label" for="uranium">Uranium:</label>
-            <input class="resource" name="resource[]"  type="number" id="uranium" min="0">
+            <input class="resource" type="number" id="uranium" min="0">
         </div>
     </div>
+
+    <div class="form-container" id="goal_fields" style="display: none;">
+        <p>Item Amounts:</p>
+        <div class="input-row">
+            <button class="small-button" id="clear_button2">Clear Fields</button>
+        </div>
+        <div class="input-row">
+            <label class="res_label" for="goal">Amount:</label>
+            <input class="resource" type="number" id="goal" min="0">
+        </div>
+    </div>
+
 
     <br>
     <p style="margin: 0">Calculate:</p>
@@ -120,7 +140,7 @@
                 <input type="checkbox" id="alt_box">
                 <span class="checkmark"></span>
             </label>
-            <label class="container">
+            <label class="container" id="boost_field">
                 Boost
                 <input type="checkbox" id="boost_box">
                 <span class="checkmark"></span>
