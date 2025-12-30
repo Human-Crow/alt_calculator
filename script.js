@@ -14,6 +14,7 @@ const limit_box = document.getElementById("limit_box");
 const target_box = document.getElementById("target_box");
 const alt_box = document.getElementById("alt_box");
 const boost_box = document.getElementById("boost_box");
+const gen2_box = document.getElementById("gen2_box");
 const boost_note = document.getElementById("boost_note");
 const zero_box = document.getElementById("zero_box");
 const ratio_box = document.getElementById("ratio_box");
@@ -21,6 +22,7 @@ const ratio_box = document.getElementById("ratio_box");
 const resource_fields = document.getElementById("resource_fields");
 const goal_fields = document.getElementById("goal_fields");
 const boost_field = document.getElementById("boost_field");
+const gen2_field = document.getElementById("gen2_field");
 
 const goal = document.getElementById("goal");
 const wood = document.getElementById("wood");
@@ -83,11 +85,17 @@ limit_box.onchange = function() {
             boost_box.checked = false;
             boost_box.dispatchEvent(new Event('change'));
         }
+        if (gen2_box.checked) {
+            gen2_box.checked = false;
+            gen2_box.dispatchEvent(new Event('change'));
+        }
         boost_field.style.display = "none";
+        gen2_field.style.display = "none";
     } else {
         goal_fields.style.display = "none";
         resource_fields.style.display = "block";
         boost_field.style.display = "block";
+        gen2_field.style.display = "block";
     }
 };
 
@@ -114,13 +122,18 @@ boost_box.onchange = function() {
     update_url_param("boost", boost_box.checked? 1:0);
 };
 
+gen2_box.onchange = function() {
+    output.textContent = "\n".repeat(40);
+    update_url_param("gen2", gen2_box.checked? 1:0);
+};
+
 alt_recipe_button.onclick = function() {show_recipe_ratios();};
 res_boosts_button.onclick = function() {show_resource_boosts();};
 
 score_button.onclick = async function() {
     let limit = (limit_box.value === "Goal")? Number(goal.value) : extractor_values();
     show_result(
-        await SeedSolver.solve(limit, alt_box.checked, boost_box.checked),
+        await SeedSolver.solve(limit, alt_box.checked, boost_box.checked, gen2_box.checked),
         ratio_box.checked,
         zero_box.checked
     );
@@ -151,19 +164,19 @@ document.onclick = function(event) {
 
 //#region Solver function
 const SeedSolver = {
-    EX_RATE: 30,
-    EX_RATE_UR: 10,
+    EX_RATE: [30, 150],
+    EX_RATE_UR: [10, 50],
     NPP_RATE: 0.5,
     CPP_RATE: 10,
-    NUC_BOOST: 1.4,
+    NUC_BOOST: [1.4, 1.6],
     COAL_BOOST: 1.2,
 
-    EX_NPP: 44,
-    EX_CPP: 11,
-    EX_NPP_UR: 8.5,
-    EX_CPP_UR: 6.5,
+    EX_NPP: [44, 17],
+    EX_CPP: [11, 4],
+    EX_NPP_UR: [8.5, 3.9],
+    EX_CPP_UR: [6.5, 3.0],
 
-    solve: async function(limit, alt, boost) {
+    solve: async function(limit, alt, boost, gen_2) {
         let mode;
         if (typeof limit === "number") {
             mode = "goal";
@@ -185,57 +198,8 @@ const SeedSolver = {
             Uranium_Extractors = limit[6];
         }
 
-
-        const boost_cons = [
-            {
-                vars: [
-                    { name: 'Wood_Coal_Ex', coef: 1.0 },
-                    { name: 'Wood_Nuc_Ex', coef: 1.0 },
-                ],
-                bnds: { type: glpk.GLP_UP, ub: Wood_Extractors * 0.95, lb: 0.0},
-            },
-            {
-                vars: [
-                    { name: 'Stone_Coal_Ex', coef: 1.0 },
-                    { name: 'Stone_Nuc_Ex', coef: 1.0 },
-                ],
-                bnds: { type: glpk.GLP_UP, ub: Stone_Extractors * 0.95, lb: 0.0},
-            },
-            {
-                vars: [
-                    { name: 'Iron_Coal_Ex', coef: 1.0 },
-                    { name: 'Iron_Nuc_Ex', coef: 1.0 },
-                ],
-                bnds: { type: glpk.GLP_UP, ub: Iron_Extractors * 0.95, lb: 0.0},
-            },
-            {
-                vars: [
-                    { name: 'Copper_Coal_Ex', coef: 1.0 },
-                    { name: 'Copper_Nuc_Ex', coef: 1.0 },
-                ],
-                bnds: { type: glpk.GLP_UP, ub: Copper_Extractors * 0.95, lb: 0.0},
-            },
-            {
-                vars: [
-                    { name: 'Coal_Coal_Ex', coef: 1.0 },
-                    { name: 'Coal_Nuc_Ex', coef: 1.0 },
-                ],
-                bnds: { type: glpk.GLP_UP, ub: Coal_Extractors * 0.95, lb: 0.0},
-            },
-            {
-                vars: [
-                    { name: 'Wolframite_Coal_Ex', coef: 1.0 },
-                    { name: 'Wolframite_Nuc_Ex', coef: 1.0 },
-                ],
-                bnds: { type: glpk.GLP_UP, ub: Wolframite_Extractors * 0.95, lb: 0.0},
-            },
-            {
-                vars: [
-                    { name: 'Uranium_Coal_Ex', coef: 1.0 },
-                    { name: 'Uranium_Nuc_Ex', coef: 1.0 },
-                ],
-                bnds: { type: glpk.GLP_UP, ub: Uranium_Extractors * 0.95, lb: 0.0},
-            },
+        let max_frac = gen_2 ? 0.99 : 0.95;
+        const boost_cons_gen_1 = [
             {
                 vars: [
                     { name: 'Wood_Nuc_Ex', coef: 1.0 },
@@ -278,132 +242,186 @@ const SeedSolver = {
                 ],
                 bnds: { type: glpk.GLP_UP, ub: Uranium_Extractors * 0.2, lb: 0.0},
             },
+        ];
+        let boost_cons = [
+            {
+                vars: [
+                    { name: 'Wood_Coal_Ex', coef: 1.0 },
+                    { name: 'Wood_Nuc_Ex', coef: 1.0 },
+                ],
+                bnds: { type: glpk.GLP_UP, ub: Wood_Extractors * max_frac, lb: 0.0},
+            },
+            {
+                vars: [
+                    { name: 'Stone_Coal_Ex', coef: 1.0 },
+                    { name: 'Stone_Nuc_Ex', coef: 1.0 },
+                ],
+                bnds: { type: glpk.GLP_UP, ub: Stone_Extractors * max_frac, lb: 0.0},
+            },
+            {
+                vars: [
+                    { name: 'Iron_Coal_Ex', coef: 1.0 },
+                    { name: 'Iron_Nuc_Ex', coef: 1.0 },
+                ],
+                bnds: { type: glpk.GLP_UP, ub: Iron_Extractors * max_frac, lb: 0.0},
+            },
+            {
+                vars: [
+                    { name: 'Copper_Coal_Ex', coef: 1.0 },
+                    { name: 'Copper_Nuc_Ex', coef: 1.0 },
+                ],
+                bnds: { type: glpk.GLP_UP, ub: Copper_Extractors * max_frac, lb: 0.0},
+            },
+            {
+                vars: [
+                    { name: 'Coal_Coal_Ex', coef: 1.0 },
+                    { name: 'Coal_Nuc_Ex', coef: 1.0 },
+                ],
+                bnds: { type: glpk.GLP_UP, ub: Coal_Extractors * max_frac, lb: 0.0},
+            },
+            {
+                vars: [
+                    { name: 'Wolframite_Coal_Ex', coef: 1.0 },
+                    { name: 'Wolframite_Nuc_Ex', coef: 1.0 },
+                ],
+                bnds: { type: glpk.GLP_UP, ub: Wolframite_Extractors * max_frac, lb: 0.0},
+            },
+            {
+                vars: [
+                    { name: 'Uranium_Coal_Ex', coef: 1.0 },
+                    { name: 'Uranium_Nuc_Ex', coef: 1.0 },
+                ],
+                bnds: { type: glpk.GLP_UP, ub: Uranium_Extractors * max_frac, lb: 0.0},
+            },
             {
                 vars: [
                     { name: 'Coal_Power_Plant', coef: 1.0 },
-                    { name: 'Wood_Coal_Ex', coef: -1.0 / this.EX_CPP },
-                    { name: 'Stone_Coal_Ex', coef: -1.0 / this.EX_CPP },
-                    { name: 'Iron_Coal_Ex', coef: -1.0 / this.EX_CPP },
-                    { name: 'Copper_Coal_Ex', coef: -1.0 / this.EX_CPP },
-                    { name: 'Coal_Coal_Ex', coef: -1.0 / this.EX_CPP },
-                    { name: 'Wolframite_Coal_Ex', coef: -1.0 / this.EX_CPP },
-                    { name: 'Uranium_Coal_Ex', coef: -1.0 / this.EX_CPP_UR },
+                    { name: 'Wood_Coal_Ex', coef: -1.0 / this.EX_CPP[+gen_2] },
+                    { name: 'Stone_Coal_Ex', coef: -1.0 / this.EX_CPP[+gen_2] },
+                    { name: 'Iron_Coal_Ex', coef: -1.0 / this.EX_CPP[+gen_2] },
+                    { name: 'Copper_Coal_Ex', coef: -1.0 / this.EX_CPP[+gen_2] },
+                    { name: 'Coal_Coal_Ex', coef: -1.0 / this.EX_CPP[+gen_2] },
+                    { name: 'Wolframite_Coal_Ex', coef: -1.0 / this.EX_CPP[+gen_2] },
+                    { name: 'Uranium_Coal_Ex', coef: -1.0 / this.EX_CPP_UR[+gen_2] },
                 ],
                 bnds: { type: glpk.GLP_FX, ub: 0.0, lb: 0.0},
             },
             {
                 vars: [
                     { name: 'Nuclear_Fuel_Cell', coef: 1.0 },
-                    { name: 'Wood_Nuc_Ex', coef: -this.NPP_RATE / this.EX_NPP },
-                    { name: 'Stone_Nuc_Ex', coef: -this.NPP_RATE / this.EX_NPP },
-                    { name: 'Iron_Nuc_Ex', coef: -this.NPP_RATE / this.EX_NPP },
-                    { name: 'Copper_Nuc_Ex', coef: -this.NPP_RATE / this.EX_NPP },
-                    { name: 'Coal_Nuc_Ex', coef: -this.NPP_RATE / this.EX_NPP },
-                    { name: 'Wolframite_Nuc_Ex', coef: -this.NPP_RATE / this.EX_NPP },
-                    { name: 'Uranium_Nuc_Ex', coef: -this.NPP_RATE / this.EX_NPP_UR },
+                    { name: 'Wood_Nuc_Ex', coef: -this.NPP_RATE / this.EX_NPP[+gen_2] },
+                    { name: 'Stone_Nuc_Ex', coef: -this.NPP_RATE / this.EX_NPP[+gen_2] },
+                    { name: 'Iron_Nuc_Ex', coef: -this.NPP_RATE / this.EX_NPP[+gen_2] },
+                    { name: 'Copper_Nuc_Ex', coef: -this.NPP_RATE / this.EX_NPP[+gen_2] },
+                    { name: 'Coal_Nuc_Ex', coef: -this.NPP_RATE / this.EX_NPP[+gen_2] },
+                    { name: 'Wolframite_Nuc_Ex', coef: -this.NPP_RATE / this.EX_NPP[+gen_2] },
+                    { name: 'Uranium_Nuc_Ex', coef: -this.NPP_RATE / this.EX_NPP_UR[+gen_2] },
                 ],
                 bnds: { type: glpk.GLP_FX, ub: 0.0, lb: 0.0},
             },
             {
                 vars: [
                     { name: 'Wood_Log', coef: 1.0 },
-                    { name: 'Wood_Coal_Ex', coef: (1 - this.COAL_BOOST) * this.EX_RATE },
-                    { name: 'Wood_Nuc_Ex', coef: (1 - this.NUC_BOOST) * this.EX_RATE },
+                    { name: 'Wood_Coal_Ex', coef: (1 - this.COAL_BOOST) * this.EX_RATE[+gen_2] },
+                    { name: 'Wood_Nuc_Ex', coef: (1 - this.NUC_BOOST[+gen_2]) * this.EX_RATE[+gen_2] },
                 ],
-                bnds: { type: glpk.GLP_UP, ub: Wood_Extractors * this.EX_RATE, lb: 0.0},
+                bnds: { type: glpk.GLP_UP, ub: Wood_Extractors * this.EX_RATE[+gen_2], lb: 0.0},
             },
             {
                 vars: [
                     { name: 'Stone', coef: 1.0 },
-                    { name: 'Stone_Coal_Ex', coef: (1 - this.COAL_BOOST) * this.EX_RATE },
-                    { name: 'Stone_Nuc_Ex', coef: (1 - this.NUC_BOOST) * this.EX_RATE },
+                    { name: 'Stone_Coal_Ex', coef: (1 - this.COAL_BOOST) * this.EX_RATE[+gen_2] },
+                    { name: 'Stone_Nuc_Ex', coef: (1 - this.NUC_BOOST[+gen_2]) * this.EX_RATE[+gen_2] },
                 ],
-                bnds: { type: glpk.GLP_UP, ub: Stone_Extractors * this.EX_RATE, lb: 0.0},
+                bnds: { type: glpk.GLP_UP, ub: Stone_Extractors * this.EX_RATE[+gen_2], lb: 0.0},
             },
             {
                 vars: [
                     { name: 'Iron_Ore', coef: 1.0 },
-                    { name: 'Iron_Coal_Ex', coef: (1 - this.COAL_BOOST) * this.EX_RATE },
-                    { name: 'Iron_Nuc_Ex', coef: (1 - this.NUC_BOOST) * this.EX_RATE },
+                    { name: 'Iron_Coal_Ex', coef: (1 - this.COAL_BOOST) * this.EX_RATE[+gen_2] },
+                    { name: 'Iron_Nuc_Ex', coef: (1 - this.NUC_BOOST[+gen_2]) * this.EX_RATE[+gen_2] },
                 ],
-                bnds: { type: glpk.GLP_UP, ub: Iron_Extractors * this.EX_RATE, lb: 0.0},
+                bnds: { type: glpk.GLP_UP, ub: Iron_Extractors * this.EX_RATE[+gen_2], lb: 0.0},
             },
             {
                 vars: [
                     { name: 'Copper_Ore', coef: 1.0 },
-                    { name: 'Copper_Coal_Ex', coef: (1 - this.COAL_BOOST) * this.EX_RATE },
-                    { name: 'Copper_Nuc_Ex', coef: (1 - this.NUC_BOOST) * this.EX_RATE },
+                    { name: 'Copper_Coal_Ex', coef: (1 - this.COAL_BOOST) * this.EX_RATE[+gen_2] },
+                    { name: 'Copper_Nuc_Ex', coef: (1 - this.NUC_BOOST[+gen_2]) * this.EX_RATE[+gen_2] },
                 ],
-                bnds: { type: glpk.GLP_UP, ub: Copper_Extractors * this.EX_RATE, lb: 0.0},
+                bnds: { type: glpk.GLP_UP, ub: Copper_Extractors * this.EX_RATE[+gen_2], lb: 0.0},
             },
             {
                 vars: [
                     { name: 'Coal', coef: 1.0 },
                     { name: 'Coal_Power_Plant', coef: this.CPP_RATE },
-                    { name: 'Coal_Coal_Ex', coef: (1 - this.COAL_BOOST) * this.EX_RATE },
-                    { name: 'Coal_Nuc_Ex', coef: (1 - this.NUC_BOOST) * this.EX_RATE },
+                    { name: 'Coal_Coal_Ex', coef: (1 - this.COAL_BOOST) * this.EX_RATE[+gen_2] },
+                    { name: 'Coal_Nuc_Ex', coef: (1 - this.NUC_BOOST[+gen_2]) * this.EX_RATE[+gen_2] },
                 ],
-                bnds: { type: glpk.GLP_UP, ub: Coal_Extractors * this.EX_RATE, lb: 0.0},
+                bnds: { type: glpk.GLP_UP, ub: Coal_Extractors * this.EX_RATE[+gen_2], lb: 0.0},
             },
             {
                 vars: [
                     { name: 'Wolframite', coef: 1.0 },
-                    { name: 'Wolframite_Coal_Ex', coef: (1 - this.COAL_BOOST) * this.EX_RATE },
-                    { name: 'Wolframite_Nuc_Ex', coef: (1 - this.NUC_BOOST) * this.EX_RATE },
+                    { name: 'Wolframite_Coal_Ex', coef: (1 - this.COAL_BOOST) * this.EX_RATE[+gen_2] },
+                    { name: 'Wolframite_Nuc_Ex', coef: (1 - this.NUC_BOOST[+gen_2]) * this.EX_RATE[+gen_2] },
                 ],
-                bnds: { type: glpk.GLP_UP, ub: Wolframite_Extractors * this.EX_RATE, lb: 0.0},
+                bnds: { type: glpk.GLP_UP, ub: Wolframite_Extractors * this.EX_RATE[+gen_2], lb: 0.0},
             },
             {
                 vars: [
                     { name: 'Uranium_Ore', coef: 1.0 },
-                    { name: 'Uranium_Coal_Ex', coef: (1 - this.COAL_BOOST) * this.EX_RATE_UR },
-                    { name: 'Uranium_Nuc_Ex', coef: (1 - this.NUC_BOOST) * this.EX_RATE_UR },
+                    { name: 'Uranium_Coal_Ex', coef: (1 - this.COAL_BOOST) * this.EX_RATE_UR[+gen_2] },
+                    { name: 'Uranium_Nuc_Ex', coef: (1 - this.NUC_BOOST[+gen_2]) * this.EX_RATE_UR[+gen_2] },
                 ],
-                bnds: { type: glpk.GLP_UP, ub: Uranium_Extractors * this.EX_RATE_UR, lb: 0.0},
+                bnds: { type: glpk.GLP_UP, ub: Uranium_Extractors * this.EX_RATE_UR[+gen_2], lb: 0.0},
             }
         ];
+        if (!gen_2) {
+            boost_cons = boost_cons.concat(boost_cons_gen_1);
+        }
         const non_boost_cons = [
             {
                 vars: [
                     { name: 'Wood_Log', coef: 1.0 },
                 ],
-                bnds: { type: glpk.GLP_UP, ub: Wood_Extractors * this.EX_RATE, lb: 0.0},
+                bnds: { type: glpk.GLP_UP, ub: Wood_Extractors * this.EX_RATE[+gen_2], lb: 0.0},
             },
             {
                 vars: [
                     { name: 'Stone', coef: 1.0 },
                 ],
-                bnds: { type: glpk.GLP_UP, ub: Stone_Extractors * this.EX_RATE, lb: 0.0},
+                bnds: { type: glpk.GLP_UP, ub: Stone_Extractors * this.EX_RATE[+gen_2], lb: 0.0},
             },
             {
                 vars: [
                     { name: 'Iron_Ore', coef: 1.0 },
                 ],
-                bnds: { type: glpk.GLP_UP, ub: Iron_Extractors * this.EX_RATE, lb: 0.0},
+                bnds: { type: glpk.GLP_UP, ub: Iron_Extractors * this.EX_RATE[+gen_2], lb: 0.0},
             },
             {
                 vars: [
                     { name: 'Copper_Ore', coef: 1.0 },
                 ],
-                bnds: { type: glpk.GLP_UP, ub: Copper_Extractors * this.EX_RATE, lb: 0.0},
+                bnds: { type: glpk.GLP_UP, ub: Copper_Extractors * this.EX_RATE[+gen_2], lb: 0.0},
             },
             {
                 vars: [
                     { name: 'Coal', coef: 1.0 },
                 ],
-                bnds: { type: glpk.GLP_UP, ub: Coal_Extractors * this.EX_RATE, lb: 0.0},
+                bnds: { type: glpk.GLP_UP, ub: Coal_Extractors * this.EX_RATE[+gen_2], lb: 0.0},
             },
             {
                 vars: [
                     { name: 'Wolframite', coef: 1.0 },
                 ],
-                bnds: { type: glpk.GLP_UP, ub: Wolframite_Extractors * this.EX_RATE, lb: 0.0},
+                bnds: { type: glpk.GLP_UP, ub: Wolframite_Extractors * this.EX_RATE[+gen_2], lb: 0.0},
             },
             {
                 vars: [
                     { name: 'Uranium_Ore', coef: 1.0 },
                 ],
-                bnds: { type: glpk.GLP_UP, ub: Uranium_Extractors * this.EX_RATE_UR, lb: 0.0},
+                bnds: { type: glpk.GLP_UP, ub: Uranium_Extractors * this.EX_RATE_UR[+gen_2], lb: 0.0},
             }
         ];
         const non_alt_cons = [
@@ -483,7 +501,7 @@ const SeedSolver = {
         const general_cons = [
             {
                 vars: [
-                    { name: 'Resource_Sum', coef: 1.0 },
+                    { name: 'Everything', coef: 1.0 },
                     { name: 'Wood_Log', coef: -1.0 },
                     { name: 'Stone', coef: -1.0 },
                     { name: 'Iron_Ore', coef: -1.0 },
@@ -491,6 +509,52 @@ const SeedSolver = {
                     { name: 'Coal', coef: -1.0 },
                     { name: 'Wolframite', coef: -1.0 },
                     { name: 'Uranium_Ore', coef: -1.0 },
+                    { name: 'Atomic_Locator', coef: -1.0 },
+                    { name: 'Battery', coef: -1.0 },
+                    { name: 'Carbon_Fiber', coef: -1.0 },
+                    { name: 'Computer', coef: -1.0 },
+                    { name: 'Concrete', coef: -1.0 },
+                    { name: 'Condenser_Lens', coef: -1.0 },
+                    { name: 'Copper_Ingot', coef: -1.0 },
+                    { name: 'Copper_Wire', coef: -1.0 },
+                    { name: 'Coupler', coef: -1.0 },
+                    { name: 'Earth_Token', coef: -1.0 },
+                    { name: 'Electric_Motor', coef: -1.0 },
+                    { name: 'Electromagnet', coef: -1.0 },
+                    { name: 'Electron_Microscope', coef: -1.0 },
+                    { name: 'Empty_Fuel_Cell', coef: -1.0 },
+                    { name: 'Energy_Cube', coef: -1.0 },
+                    { name: 'Enriched_Uranium', coef: -1.0 },
+                    { name: 'Glass', coef: -1.0 },
+                    { name: 'Graphite', coef: -1.0 },
+                    { name: 'Gyroscope', coef: -1.0 },
+                    { name: 'Heat_Sink', coef: -1.0 },
+                    { name: 'Industrial_Frame', coef: -1.0 },
+                    { name: 'Iron_Gear', coef: -1.0 },
+                    { name: 'Iron_Ingot', coef: -1.0 },
+                    { name: 'Iron_Plating', coef: -1.0 },
+                    { name: 'Logic_Circuit', coef: -1.0 },
+                    { name: 'Magnetic_Field_Generator', coef: -1.0 },
+                    { name: 'Matter_Compressor', coef: -1.0 },
+                    { name: 'Matter_Duplicator', coef: -1.0 },
+                    { name: 'Metal_Frame', coef: -1.0 },
+                    { name: 'Nano_Wire', coef: -1.0 },
+                    { name: 'Nuclear_Fuel_Cell', coef: -1.0 },
+                    { name: 'Particle_Glue', coef: -1.0 },
+                    { name: 'Quantum_Entangler', coef: -1.0 },
+                    { name: 'Rotor', coef: -1.0 },
+                    { name: 'Sand', coef: -1.0 },
+                    { name: 'Silicon', coef: -1.0 },
+                    { name: 'Stabilizer', coef: -1.0 },
+                    { name: 'Steel', coef: -1.0 },
+                    { name: 'Steel_Rod', coef: -1.0 },
+                    { name: 'Super_Computer', coef: -1.0 },
+                    { name: 'Tank', coef: -1.0 },
+                    { name: 'Tungsten_Carbide', coef: -1.0 },
+                    { name: 'Tungsten_Ore', coef: -1.0 },
+                    { name: 'Turbocharger', coef: -1.0 },
+                    { name: 'Wood_Frame', coef: -1.0 },
+                    { name: 'Wood_Plank', coef: -1.0 },
                 ],
                 bnds: { type: glpk.GLP_FX, ub: 0.0, lb: 0.0},
             },
@@ -1068,7 +1132,7 @@ const SeedSolver = {
             objective: {
                 direction: glpk.GLP_MIN,
                 vars: [
-                    { name: "Resource_Sum", coef: 1.0 },
+                    { name: "Everything", coef: 1.0 },
                 ],
             },
             subjectTo: all_constraints,
@@ -1085,7 +1149,7 @@ const SeedSolver = {
 //#region Show functions
 async function show_recipe_ratios () {
     let limit = (limit_box.value === "Goal")? Number(goal.value) : extractor_values();
-    const all_items = await SeedSolver.solve(limit, alt_box.checked, boost_box.checked);
+    const all_items = await SeedSolver.solve(limit, alt_box.checked, boost_box.checked, gen2_box.checked);
     let content = "Used Alt recipes:\n\n";
     for (const key of ALT_RECIPES) {
         const alt = all_items[key +"_ALT"];
@@ -1100,7 +1164,7 @@ async function show_recipe_ratios () {
 
 async function show_resource_boosts() {
     const resources = extractor_values();
-    const all_items = await SeedSolver.solve(resources, alt_box.checked, boost_box.checked);
+    const all_items = await SeedSolver.solve(resources, alt_box.checked, boost_box.checked, gen2_box.checked);
     let content = "Resource      Coal      Nuclear\n\n";
     for (const res of RESOURCES) {
         const res_str = res.key.split('_')[0];
@@ -1123,7 +1187,7 @@ function show_result(item_dict, divide, show_zero) {
         first_keys.push(res.key);
     }
     let last_keys = keys.filter(
-        item => !first_keys.includes(item) && !item.endsWith('_Ex') && item != 'Coal_Power_Plant' && item != "Resource_Sum"
+        item => !first_keys.includes(item) && !item.endsWith('_Ex') && item != 'Coal_Power_Plant' && item != "Everything"
     );
     if (!alt_box.checked) {
         last_keys = last_keys.filter(item => !item.endsWith('_ALT') && !item.endsWith('_STD'));
@@ -1248,7 +1312,7 @@ function update_url_param(param, value) {
     if (params.get(param) === value) {
         return;
     }
-    const order = ["alt", "boost", "item", "goal", "wd", "st", "ir", "cp", "cl", "wr", "ur"];
+    const order = ["alt", "boost", "gen2", "item", "goal", "wd", "st", "ir", "cp", "cl", "wr", "ur"];
     if (value) { 
         params.set(param, value);
     } else {
@@ -1307,7 +1371,7 @@ if (url_item) {
     }
 }
 
-for (let setting of ["alt", "boost"]) {
+for (let setting of ["alt", "boost", "gen2"]) {
     let url_param = get_url_param(setting);
     if (url_param != 0) {
         if (url_param === "1") {
@@ -1323,7 +1387,7 @@ for (let setting of ["alt", "boost"]) {
 if ([...RESOURCES].every(res => Number(res.field.value) > 0) || Number(goal.value) > 0) {
     let limit = (limit_box.value === "Goal")? Number(goal.value) : extractor_values();
     show_result(
-        await SeedSolver.solve(limit, alt_box.checked, boost_box.checked),
+        await SeedSolver.solve(limit, alt_box.checked, boost_box.checked, gen2_box.checked),
         ratio_box.checked,
         zero_box.checked
     );
