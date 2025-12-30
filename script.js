@@ -501,7 +501,7 @@ const SeedSolver = {
         const general_cons = [
             {
                 vars: [
-                    { name: 'Everything', coef: 1.0 },
+                    { name: 'Resource_Sum', coef: 1.0 },
                     { name: 'Wood_Log', coef: -1.0 },
                     { name: 'Stone', coef: -1.0 },
                     { name: 'Iron_Ore', coef: -1.0 },
@@ -509,52 +509,6 @@ const SeedSolver = {
                     { name: 'Coal', coef: -1.0 },
                     { name: 'Wolframite', coef: -1.0 },
                     { name: 'Uranium_Ore', coef: -1.0 },
-                    { name: 'Atomic_Locator', coef: -1.0 },
-                    { name: 'Battery', coef: -1.0 },
-                    { name: 'Carbon_Fiber', coef: -1.0 },
-                    { name: 'Computer', coef: -1.0 },
-                    { name: 'Concrete', coef: -1.0 },
-                    { name: 'Condenser_Lens', coef: -1.0 },
-                    { name: 'Copper_Ingot', coef: -1.0 },
-                    { name: 'Copper_Wire', coef: -1.0 },
-                    { name: 'Coupler', coef: -1.0 },
-                    { name: 'Earth_Token', coef: -1.0 },
-                    { name: 'Electric_Motor', coef: -1.0 },
-                    { name: 'Electromagnet', coef: -1.0 },
-                    { name: 'Electron_Microscope', coef: -1.0 },
-                    { name: 'Empty_Fuel_Cell', coef: -1.0 },
-                    { name: 'Energy_Cube', coef: -1.0 },
-                    { name: 'Enriched_Uranium', coef: -1.0 },
-                    { name: 'Glass', coef: -1.0 },
-                    { name: 'Graphite', coef: -1.0 },
-                    { name: 'Gyroscope', coef: -1.0 },
-                    { name: 'Heat_Sink', coef: -1.0 },
-                    { name: 'Industrial_Frame', coef: -1.0 },
-                    { name: 'Iron_Gear', coef: -1.0 },
-                    { name: 'Iron_Ingot', coef: -1.0 },
-                    { name: 'Iron_Plating', coef: -1.0 },
-                    { name: 'Logic_Circuit', coef: -1.0 },
-                    { name: 'Magnetic_Field_Generator', coef: -1.0 },
-                    { name: 'Matter_Compressor', coef: -1.0 },
-                    { name: 'Matter_Duplicator', coef: -1.0 },
-                    { name: 'Metal_Frame', coef: -1.0 },
-                    { name: 'Nano_Wire', coef: -1.0 },
-                    { name: 'Nuclear_Fuel_Cell', coef: -1.0 },
-                    { name: 'Particle_Glue', coef: -1.0 },
-                    { name: 'Quantum_Entangler', coef: -1.0 },
-                    { name: 'Rotor', coef: -1.0 },
-                    { name: 'Sand', coef: -1.0 },
-                    { name: 'Silicon', coef: -1.0 },
-                    { name: 'Stabilizer', coef: -1.0 },
-                    { name: 'Steel', coef: -1.0 },
-                    { name: 'Steel_Rod', coef: -1.0 },
-                    { name: 'Super_Computer', coef: -1.0 },
-                    { name: 'Tank', coef: -1.0 },
-                    { name: 'Tungsten_Carbide', coef: -1.0 },
-                    { name: 'Tungsten_Ore', coef: -1.0 },
-                    { name: 'Turbocharger', coef: -1.0 },
-                    { name: 'Wood_Frame', coef: -1.0 },
-                    { name: 'Wood_Plank', coef: -1.0 },
                 ],
                 bnds: { type: glpk.GLP_FX, ub: 0.0, lb: 0.0},
             },
@@ -1132,7 +1086,7 @@ const SeedSolver = {
             objective: {
                 direction: glpk.GLP_MIN,
                 vars: [
-                    { name: "Everything", coef: 1.0 },
+                    { name: "Resource_Sum", coef: 1.0 },
                 ],
             },
             subjectTo: all_constraints,
@@ -1187,7 +1141,7 @@ function show_result(item_dict, divide, show_zero) {
         first_keys.push(res.key);
     }
     let last_keys = keys.filter(
-        item => !first_keys.includes(item) && !item.endsWith('_Ex') && item != 'Coal_Power_Plant' && item != "Everything"
+        item => !first_keys.includes(item) && !item.endsWith('_Ex') && item != 'Coal_Power_Plant' && item != "Resource_Sum"
     );
     if (!alt_box.checked) {
         last_keys = last_keys.filter(item => !item.endsWith('_ALT') && !item.endsWith('_STD'));
