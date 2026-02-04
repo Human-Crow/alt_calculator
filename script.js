@@ -171,7 +171,7 @@ const SeedSolver = {
     NUC_BOOST: [1.4, 1.6],
     COAL_BOOST: 1.2,
 
-    EX_NPP: [44, 17],
+    EX_NPP: [44, 15.7],
     EX_CPP: [11, 4],
     EX_NPP_UR: [8.5, 3.9],
     EX_CPP_UR: [6.5, 3.0],
@@ -198,7 +198,7 @@ const SeedSolver = {
             Uranium_Extractors = limit[6];
         }
 
-        let max_frac = gen_2 ? 0.99 : 0.95;
+        let max_frac = gen_2 ? 1.00 : 0.95;
         const boost_cons_gen_1 = [
             {
                 vars: [
