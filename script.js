@@ -59,7 +59,7 @@ const selectedBtn = fakeSelect.querySelector(".selected");
 const optionsDiv = fakeSelect.querySelector(".options");
 
 function itemToImg(value) {
-    return "/items/" + value.toLowerCase() + ".png";
+    return "items/" + value.toLowerCase() + ".png";
 }
 
 function renderSelected(option) {
@@ -1183,10 +1183,10 @@ async function show_recipe_ratios() {
         // icon cell
         const tdImg = document.createElement("td");
         const img = document.createElement("img");
-        img.src = "/items/" + key + ".png";
+        img.src = "items/" + key + ".png";
         img.alt = key.replace(/_/g, " ");
         img.loading = "lazy";
-        img.onerror = () => { img.src = "/items/unknown.png"; };
+        img.onerror = () => { img.src = "items/unknown.png"; };
         tdImg.appendChild(img);
 
         // name cell
@@ -1255,10 +1255,10 @@ async function show_resource_boosts() {
         wrap.className = "res-head";
 
         const img = document.createElement("img");
-        img.src = "/items/" + key + ".png";     // adjust if filenames differ
+        img.src = "items/" + key + ".png";     // adjust if filenames differ
         img.alt = name;
         img.loading = "lazy";
-        img.onerror = () => { img.src = "/items/unknown.png"; };
+        img.onerror = () => { img.src = "items/unknown.png"; };
 
         const span = document.createElement("span");
         span.textContent = name;
@@ -1368,11 +1368,11 @@ function show_result(raw_item_dict, divide, show_zero) {
         const tdImg = document.createElement("td");
         const img = document.createElement("img");
         img.className = "item-img";
-        img.src = "/items/" + name.replace(/_(ALT|STD)$/, "") + ".png";
+        img.src = "items/" + name.replace(/_(ALT|STD)$/, "") + ".png";
         img.alt = name;
         img.loading = "lazy";
         img.onerror = () => {
-            img.src = "/items/unknown.png";
+            img.src = "items/unknown.png";
         };
         tdImg.appendChild(img);
 
