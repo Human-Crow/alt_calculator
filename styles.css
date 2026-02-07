@@ -1,126 +1,230 @@
-h1 {color: #ffffff;}
-p {
-    color: #ffffff;
-    margin-bottom: 5px;
+/* =========================
+   Theme + Base
+========================= */
+
+:root {
+  --bg: #1e1e1e;
+  --panel: #2e2e2e;
+  --panel-hover: #3e3e3e;
+  --border: #6b6b6b;
+  --text: #ffffff;
+  --warn: rgb(255, 110, 110);
+
+  --radius: 8px;
+  --radius-sm: 6px;
+
+  --btn-h: 25px;
+  --btn-w: 200px;
+
+  --small-btn-h: 20px;
+  --small-btn-w: 75px;
+
+  --select-w: 200px;
+  --input-max-w: 50px;
 }
-pre {
-    color: #ffffff;
-    white-space: pre-wrap;
-}
+
 body {
-    background-color: #1e1e1e;
-    transform: scale(1.5);
-    transform-origin: top left;
-    width: 65%;
-    touch-action: manipulation;
+  background-color: var(--bg);
+  color: var(--text);
+  font-family: sans-serif;
+  touch-action: manipulation;
+
+  /* your “zoom” layout */
+  transform: scale(1.5);
+  transform-origin: top left;
+  width: 65%;
 }
+
+h1 { color: var(--text); }
+
+p {
+  color: var(--text);
+  margin: 0 0 5px 0;
+}
+
+pre {
+  color: var(--text);
+  white-space: pre-wrap;
+  margin: 0;
+}
+
+.label {
+  margin: 0;
+}
+
+/* Utility helpers */
+.hidden { display: none !important; }
+.spacer { height: 10px; }
+
+/* Hide element but keep it in DOM for JS.
+   This is better than the "hidden" attribute for your use case,
+   because some browsers treat hidden form elements differently. */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* =========================
+   Form Layout
+========================= */
+
 .form-container {
-    max-width: 150px;
+  max-width: 170px;
 }
+
 .input-row {
-    display: flex;
-    align-items: center;
+  display: flex;
+  align-items: center;
 }
+
 .res_label {
-    color: #ffffff;
-    flex: 1;
-    text-align: right;
-    padding-right: 10px;
+  flex: 1;
+  text-align: right;
+  padding-right: 5px;
 }
+
 .resource {
-    color: #ffffff;
-    background-color: #1e1e1e;
-    border: 1px solid #6b6b6b;
-    border-radius: 8px;
-    flex: 2;
-    max-width: 50px;
+  flex: 2;
+  max-width: var(--input-max-w);
+  color: var(--text);
+  background-color: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
 }
+
+.res-icon {
+  width: 20px;
+  height: 20px;
+  margin-right: 5px;
+  flex-shrink: 0; /* prevents flex from stretching it */
+}
+
+/* =========================
+   Buttons
+========================= */
+
 button {
-    color: #ffffff;
-    background-color: #1e1e1e;
-    border: 1px solid #6b6b6b;
-    border-radius: 8px;
-    width: 150px;
-    height: 25px;
-    margin-bottom: 5px;
+display: block;
+  color: var(--text);
+  background-color: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  width: var(--btn-w);
+  height: var(--btn-h);
+  margin-bottom: 5px;
+  cursor: pointer; /* always, not only on hover */
 }
-.small-button {
-    color: rgb(255, 110, 110);
-    background-color: #1e1e1e;
-    border: 1px solid #6b6b6b;
-    font-size: 11px;
-    border-radius: 8px;
-    padding: 0;
-    width: 75px;
-    height: 20px;
-}
-.small-button:hover,
+
 button:hover {
-    background-color: #3e3e3e;
+  background-color: var(--panel-hover);
 }
+
+.small-button {
+  color: var(--warn);
+  width: var(--small-btn-w);
+  height: var(--small-btn-h);
+  font-size: 11px;
+  padding: 0;
+}
+
+/* =========================
+   Inputs
+========================= */
+
 input:hover {
-    background-color: #3e3e3e;
+  background-color: var(--panel-hover);
 }
 
-
+/* =========================
+   Native Select (only used for limit_box)
+========================= */
 
 select {
-    background-color: #2e2e2e;
-    color: white;
-    padding: 6px;
-    font-size: 14px;
-    border: none;
-    cursor: pointer;
-    border-radius: 6px;
+  background-color: var(--panel);
+  color: var(--text);
+  padding: 6px;
+  font-size: 14px;
+  border: none;
+  cursor: pointer;
+  border-radius: var(--radius-sm);
 }
+
 select:hover {
-    background-color: #3e3e3e;
+  background-color: var(--panel-hover);
 }
-select::-webkit-scrollbar {
-    width: 12px;
-}
-select::-webkit-scrollbar-track {
-    background: #2e2e2e; /* Scrollbar track color */
-}
+
+/* Keep your old scrollbar styling for native selects */
+select::-webkit-scrollbar { width: 12px; }
+select::-webkit-scrollbar-track { background: var(--panel); }
 select::-webkit-scrollbar-thumb {
-    background: white; /* Scrollbar thumb color */
-    border-radius: 6px;
+  background: var(--text);
+  border-radius: var(--radius-sm);
 }
 
 option {
-    background-color: #1e1e1e;
-    color: white;
-    font-size: 16px;
+  background-color: var(--bg);
+  color: var(--text);
+  font-size: 16px;
 }
 
+/* =========================
+   Custom Checkboxes
+========================= */
 
-
-/* The container */
 .container {
-    display: block;
-    position: relative;
-    line-height: 20px;
-    padding-left: 25px; /*label start point*/
-    margin-bottom: 4px;
-    margin-right: 40px;
-    margin-top: 2px;
-    -webkit-user-select: none;
-    -moz-user-select: none;
-    -ms-user-select: none;
-    user-select: none;
-    color: #ffffff; /*label color*/
+  display: block;
+  position: relative;
+  line-height: 20px;
+  padding-left: 25px;
+  margin: 2px 40px 4px 0;
+  user-select: none;
+  color: var(--text);
+  cursor: pointer; /* important: label is what you hover */
 }
-/* Create a custom checkbox */
+
+.container input {
+  position: absolute;
+  opacity: 0;
+  height: 0;
+  width: 0;
+}
+
 .checkmark {
-    position: absolute;
-    top: 0;
-    left: 0;
-    height: 20px;
-    width: 20px;
-    border-radius: 6px;
-    background-color: #2e2e2e;
-  }
-/* Style the checkmark symbol */
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 20px;
+  width: 20px;
+  border-radius: var(--radius-sm);
+  background-color: var(--panel);
+}
+
+.container:hover input ~ .checkmark {
+  background-color: var(--panel-hover);
+}
+
+.container input:checked ~ .checkmark {
+  background-color: #2196f3;
+}
+
+.checkmark:after {
+  content: "";
+  position: absolute;
+  display: none;
+}
+
+.container input:checked ~ .checkmark:after {
+  display: block;
+}
+
+/* the “tick” */
 .container .checkmark:after {
   left: 7px;
   top: 3px;
@@ -128,34 +232,141 @@ option {
   height: 9px;
   border: solid white;
   border-width: 0 3px 3px 0;
-  -webkit-transform: rotate(45deg);
-  -ms-transform: rotate(45deg);
   transform: rotate(45deg);
 }
-/* On mouse-over, add a grey background color */
-.container:hover input ~ .checkmark {
-    background-color: #3e3e3e;
-}
-  /* When the checkbox is checked, add a blue background */
-  .container input:checked ~ .checkmark {
-    background-color: #2196F3;
+
+/* =========================
+   Output Table / Items
+========================= */
+
+#table-container {
+  min-height: 400px; /* prevents page collapsing when empty */
 }
 
-/* Hide the browser's default checkbox */
-.container input {
-  position: absolute;
-  opacity: 0;
-  cursor: pointer;
-  height: 0;
-  width: 0;
+.items {
+    color: var(--text);
+    font-size: 14px;
 }
-/* Create the checkmark/indicator (hidden when not checked) */
-.checkmark:after {
-  content: "";
-  position: absolute;
-  display: none;
+
+.items img {
+    width: 18px;
+    height: 18px;
 }
-/* Show the checkmark when checked */
-.container input:checked ~ .checkmark:after {
-  display: block;
+
+.note {
+    color: var(--warn);
+}
+
+
+.items.boosts3 {
+    border-collapse: collapse;
+}
+
+.items.boosts3 th,
+.items.boosts3 td {
+    padding: 2px 6px;
+    vertical-align: middle;
+}
+
+.items.boosts3 th.num,
+.items.boosts3 td.num {
+    text-align: right;
+    white-space: nowrap;
+}
+
+.items.boosts3 .res-head {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.items.boosts3 .sub-label {
+    opacity: 0.8;
+    font-size: 0.95em;
+}
+
+.items.boosts3 .res-gap td {
+    padding: 6px 0;
+}
+
+/* =========================
+   Fake Select (with images)
+========================= */
+
+.fake-select {
+    position: relative;
+    width: var(--select-w);
+    margin-bottom: 5px;
+}
+
+/* Make the fake “selected” control look like your other buttons,
+   but without forcing button width/height. */
+.fake-select .selected {
+    width: 100%;
+    height: var(--btn-h);
+    margin-bottom: 0;              /* avoids double spacing inside container */
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+}
+
+/* icons inside dropdown + selected */
+.fake-select img {
+    width: 18px;
+    height: 18px;
+}
+
+/* dropdown panel */
+.fake-select .options {
+    display: none;
+    position: absolute;
+    width: 100%;
+    margin-top: 4px;
+
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+
+    max-height: 300px;
+    overflow-y: auto;
+    z-index: 10;
+
+    color: var(--text);
+    font-size: 14px;
+}
+
+.fake-select.open .options {
+    display: block;
+}
+
+.fake-select .option {
+    padding: 6px 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+}
+
+.fake-select .option:hover {
+    background: var(--panel-hover);
+}
+
+/* scrollbar for the custom dropdown */
+.fake-select .options::-webkit-scrollbar { width: 8px; }
+.fake-select .options::-webkit-scrollbar-track {
+    background: var(--panel);
+    border-radius: var(--radius-sm);
+}
+.fake-select .options::-webkit-scrollbar-thumb {
+    background: var(--text);
+    border-radius: var(--radius-sm);
+}
+
+/* Firefox only */
+@supports (-moz-appearance: none) {
+    .fake-select .options {
+        scrollbar-width: thin;
+        scrollbar-color: var(--text) var(--panel);
+    }
 }

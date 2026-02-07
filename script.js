@@ -52,10 +52,67 @@ const ALT_RECIPES = [
 //#endregion
 
 
+//#region Target Box
+const realSelect = document.getElementById("target_box");
+const fakeSelect = document.getElementById("fake_target_box");
+const selectedBtn = fakeSelect.querySelector(".selected");
+const optionsDiv = fakeSelect.querySelector(".options");
+
+function itemToImg(value) {
+    return "/items/" + value.toLowerCase() + ".png";
+}
+
+function renderSelected(option) {
+    selectedBtn.innerHTML = `
+        <img src="${itemToImg(option.value)}" alt="">
+        <span>${option.textContent}</span>
+    `;
+}
+
+for (const option of realSelect.options) {
+    const div = document.createElement("div");
+    div.className = "option";
+
+    div.innerHTML = `
+        <img src="${itemToImg(option.value)}" alt="">
+        <span>${option.textContent}</span>
+    `;
+
+    div.addEventListener("click", () => {
+        realSelect.value = option.value;
+        renderSelected(option);
+        fakeSelect.classList.remove("open");
+
+        // fire normal change event
+        realSelect.dispatchEvent(new Event("change"));
+    });
+
+    optionsDiv.appendChild(div);
+
+    if (option.selected) {
+        renderSelected(option);
+    }
+}
+
+// toggle dropdown
+selectedBtn.addEventListener("click", () => {
+    fakeSelect.classList.toggle("open");
+});
+
+// close when clicking outside
+document.addEventListener("click", e => {
+    if (!fakeSelect.contains(e.target)) {
+        fakeSelect.classList.remove("open");
+    }
+});
+//#endregion
+
+
+
 //#region Element functions
 for (const res of RESOURCES) {
     res.field.onchange = function() {
-        output.textContent = "\n".repeat(40);
+        output.replaceChildren();
         update_url_param(res.url, res.field.value);
         if (goal.value != "") {
             goal.value = "";
@@ -66,7 +123,7 @@ for (const res of RESOURCES) {
 wood.onpaste = function(ev) {wood.blur(); paste_insert(ev);};
 
 goal.onchange = function() {
-    output.textContent = "\n".repeat(40);
+    output.replaceChildren();
     update_url_param("goal", goal.value);
     for (const res of RESOURCES) {
         if (res.field.value != "") {
@@ -76,54 +133,54 @@ goal.onchange = function() {
     }
 }
 
-limit_box.onchange = function() {
-    output.textContent = "\n".repeat(40);
-    if (limit_box.value === "Goal") {
-        resource_fields.style.display = "none";
-        goal_fields.style.display = "block";
+limit_box.onchange = function () {
+    output.replaceChildren();
+
+    const isGoal = (limit_box.value === "Goal");
+
+    // Show one section, hide the other
+    resource_fields.classList.toggle("hidden", isGoal);
+    goal_fields.classList.toggle("hidden", !isGoal);
+
+    // Boost/Gen2 controls only exist in Resource mode
+    boost_field.classList.toggle("hidden", isGoal);
+    gen2_field.classList.toggle("hidden", isGoal);
+
+    // If switching to Goal mode, force-disable Boost + Gen2
+    if (isGoal) {
         if (boost_box.checked) {
             boost_box.checked = false;
-            boost_box.dispatchEvent(new Event('change'));
+            boost_box.dispatchEvent(new Event("change"));
         }
         if (gen2_box.checked) {
             gen2_box.checked = false;
-            gen2_box.dispatchEvent(new Event('change'));
+            gen2_box.dispatchEvent(new Event("change"));
         }
-        boost_field.style.display = "none";
-        gen2_field.style.display = "none";
-    } else {
-        goal_fields.style.display = "none";
-        resource_fields.style.display = "block";
-        boost_field.style.display = "block";
-        gen2_field.style.display = "block";
     }
 };
 
 target_box.onchange = function() {
-    output.textContent = "\n".repeat(40);
+    output.replaceChildren();
     update_url_param("item", target_box.value === "Earth_Token"? "":target_box.value);
 };
 
 alt_box.onchange = function() {
-    output.textContent = "\n".repeat(40);
-    alt_recipe_button.style.display = (alt_box.checked)? 'block':'none';
+    output.replaceChildren();
+    alt_recipe_button.classList.toggle("hidden", !alt_box.checked);
     update_url_param("alt", alt_box.checked? 1:0);
 };
 
 boost_box.onchange = function() {
-    output.textContent = "\n".repeat(40);
-    if (boost_box.checked) {
-        res_boosts_button.style.display = 'block';
-        boost_note.textContent = "The calculations are\nbased on an approximation";
-    } else {
-        res_boosts_button.style.display = 'none';
-        boost_note.textContent = "";
-    }
+    output.replaceChildren();
+    res_boosts_button.classList.toggle("hidden", !boost_box.checked);
+    boost_note.textContent = boost_box.checked
+        ? "The calculations are\nbased on an approximation"
+        : "";
     update_url_param("boost", boost_box.checked? 1:0);
 };
 
 gen2_box.onchange = function() {
-    output.textContent = "\n".repeat(40);
+    output.replaceChildren();
     update_url_param("gen2", gen2_box.checked? 1:0);
 };
 
@@ -1101,40 +1158,178 @@ const SeedSolver = {
 
 
 //#region Show functions
-async function show_recipe_ratios () {
-    let limit = (limit_box.value === "Goal")? Number(goal.value) : extractor_values();
+async function show_recipe_ratios() {
+    const limit = (limit_box.value === "Goal")? Number(goal.value) : extractor_values();
     const all_items = await SeedSolver.solve(limit, alt_box.checked, boost_box.checked, gen2_box.checked);
-    let content = "Used Alt recipes:\n\n";
+    output.replaceChildren();
+
+    const title = document.createElement("p");
+    title.textContent = "Used Alt recipes:";
+    title.style.margin = "0 0 6px 0";
+    output.appendChild(title);
+
+    const table = document.createElement("table");
+    table.className = "items ratios";
     for (const key of ALT_RECIPES) {
-        const alt = all_items[key +"_ALT"];
-        const std = all_items[key +"_STD"];
-        const value = (alt + std <= 0)? 0 : (alt / (alt + std));
-        const percent = Math.max(0,Math.min(1,value));
-        content += `${key.replace(/_/g,' ').padEnd(16, " ")} ${str_num(percent*100, 7, false)} %\n`;
+        const alt = all_items[key + "_ALT"] ?? 0;
+        const std = all_items[key + "_STD"] ?? 0;
+
+        const total = alt + std;
+        const value = (total <= 0) ? 0 : (alt / total);
+        const percent = Math.max(0, Math.min(1, value));
+
+        const tr = document.createElement("tr");
+
+        // icon cell
+        const tdImg = document.createElement("td");
+        const img = document.createElement("img");
+        img.src = "/items/" + key + ".png";
+        img.alt = key.replace(/_/g, " ");
+        img.loading = "lazy";
+        img.onerror = () => { img.src = "/items/unknown.png"; };
+        tdImg.appendChild(img);
+
+        // name cell
+        const tdName = document.createElement("td");
+        tdName.textContent = key.replace(/_/g, " ");
+
+        // percent cell
+        const tdValue = document.createElement("td");
+        tdValue.className = "pct-value";
+        tdValue.textContent = round_sig(percent * 100, 6);
+
+        // percent sign cell
+        const tdSymbol = document.createElement("td");
+        tdSymbol.className = "pct-symbol";
+        tdSymbol.textContent = "%";
+
+        tr.append(tdImg, tdName, tdValue, tdSymbol);
+        table.appendChild(tr);
     }
-    output.style.fontSize = Math.min(13, window.innerWidth * 0.043 -0.5) +"px";
-    output.textContent = content + "\n".repeat(25);
+    output.appendChild(table);
 }
 
 async function show_resource_boosts() {
     const resources = extractor_values();
     const all_items = await SeedSolver.solve(resources, alt_box.checked, boost_box.checked, gen2_box.checked);
-    let content = "Resource      Coal      Nuclear\n\n";
+    output.replaceChildren();
+
+    const title = document.createElement("p");
+    title.textContent = "Resource Boosts:";
+    title.style.margin = "0 0 6px 0";
+    output.appendChild(title);
+
+    const table = document.createElement("table");
+    table.className = "items boosts3";
+
+    // Optional: small header for the two columns
+    const thead = document.createElement("thead");
+    const headRow = document.createElement("tr");
+    headRow.innerHTML = `<th></th><th class="num">Coal</th><th class="num">Nuclear</th>`;
+    thead.appendChild(headRow);
+    table.appendChild(thead);
+
+    const tbody = document.createElement("tbody");
+
     for (const res of RESOURCES) {
-        const res_str = res.key.split('_')[0];
-        const coal_ext = all_items[res_str + '_Coal_Ex'];
-        const nuc_ext = all_items[res_str + '_Nuc_Ex'];
-        const coal_per = Math.max(0,Math.min(1,coal_ext / resources[res.i]));
-        const nuc_per = Math.max(0,Math.min(1,nuc_ext / resources[res.i]));
-        content += `${res.key.replace(/_/g,' ')}\n`;
-        content += `${"  percentage"}: ${str_num(coal_per *100, 7)}   ${str_num(nuc_per *100, 7)}\n`
-        content += `${"  extractors"}: ${str_num(coal_ext, 7)}   ${str_num(nuc_ext, 7)}\n\n`
+        const key = res.key;                  // e.g. "Wood_Log" etc.
+        const name = key.replace(/_/g, " ");
+        const base = key.split("_")[0];       // keep your original mapping
+
+        const total = resources[res.i] ?? 0;
+
+        const coalExt = all_items[base + "_Coal_Ex"] ?? 0;
+        const nucExt  = all_items[base + "_Nuc_Ex"] ?? 0;
+
+        const coalPer = (total <= 0) ? 0 : Math.max(0, Math.min(1, coalExt / total));
+        const nucPer  = (total <= 0) ? 0 : Math.max(0, Math.min(1, nucExt / total));
+
+        // Row 1: icon + name (spans all columns)
+        const r1 = document.createElement("tr");
+        r1.className = "res-title";
+
+        const tdTitle = document.createElement("td");
+        tdTitle.colSpan = 3;
+
+        const wrap = document.createElement("div");
+        wrap.className = "res-head";
+
+        const img = document.createElement("img");
+        img.src = "/items/" + key + ".png";     // adjust if filenames differ
+        img.alt = name;
+        img.loading = "lazy";
+        img.onerror = () => { img.src = "/items/unknown.png"; };
+
+        const span = document.createElement("span");
+        span.textContent = name;
+
+        wrap.append(img, span);
+        tdTitle.appendChild(wrap);
+        r1.appendChild(tdTitle);
+
+        // Row 2: percentages
+        const r2 = document.createElement("tr");
+        r2.className = "res-sub";
+
+        const tdLabelPct = document.createElement("td");
+        tdLabelPct.className = "sub-label";
+        tdLabelPct.textContent = "percent";
+
+        const tdCoalPct = document.createElement("td");
+        tdCoalPct.className = "num";
+        tdCoalPct.textContent = round_sig(coalPer * 100, 6);
+
+        const tdNucPct = document.createElement("td");
+        tdNucPct.className = "num";
+        tdNucPct.textContent = round_sig(nucPer * 100, 6);
+
+        r2.append(tdLabelPct, tdCoalPct, tdNucPct);
+
+        // Row 3: extractors
+        const r3 = document.createElement("tr");
+        r3.className = "res-sub";
+
+        const tdLabelEx = document.createElement("td");
+        tdLabelEx.className = "sub-label";
+        tdLabelEx.textContent = "extractors";
+
+        const tdCoalEx = document.createElement("td");
+        tdCoalEx.className = "num";
+        tdCoalEx.textContent = round_sig(coalExt, 6);
+
+        const tdNucEx = document.createElement("td");
+        tdNucEx.className = "num";
+        tdNucEx.textContent = round_sig(nucExt, 6);
+
+        r3.append(tdLabelEx, tdCoalEx, tdNucEx);
+
+        // Optional spacer row between resources
+        const spacer = document.createElement("tr");
+        spacer.className = "res-gap";
+        const spacerTd = document.createElement("td");
+        spacerTd.colSpan = 3;
+        spacer.appendChild(spacerTd);
+
+        tbody.append(r1, r2, r3, spacer);
     }
-    output.style.fontSize = Math.min(13, window.innerWidth * 0.037 -0.5) +"px";
-    output.textContent = content + "\n".repeat(30);
+
+    table.appendChild(tbody);
+    output.appendChild(table);
 }
 
-function show_result(item_dict, divide, show_zero) {
+function createSpacerRow(colSpan) {
+    const tr = document.createElement("tr");
+    tr.className = "spacer";
+
+    const td = document.createElement("td");
+    td.colSpan = colSpan;
+    td.innerHTML = "&nbsp;";
+
+    tr.appendChild(td);
+    return tr;
+}
+
+function adjust_item_dict(item_dict, divide, show_zero) {
     let keys = Object.keys(item_dict);
     const first_keys = [target_box.value];
     for (const res of RESOURCES) {
@@ -1148,24 +1343,53 @@ function show_result(item_dict, divide, show_zero) {
     }
     last_keys.sort();
     keys = first_keys.concat(last_keys);
-    let content = [];
+    let new_dict = {};
     for (const [index, key] of keys.entries()) {
-        let value = roundN(divide? item_dict[key] / item_dict[keys[0]] : item_dict[key], 6);
+        let value = divide? item_dict[key] / item_dict[keys[0]] : item_dict[key];
         if (!show_zero && index > 7 && value <= 0) {
             continue;
         }
-        content.push(`${key.replace(/_/g,' ').padEnd(24, " ")} ${value}`)
+        new_dict[key] = value;
     }
-    content.splice(1,0,"");
-    content.splice(9,0,"");
-    if (content.length < 40) {
-        let add_amount = 40 - content.length;
-        for (let i = 0; i < add_amount; i++) {
-            content.push("");
-        }
+    return new_dict;
+}
+
+function show_result(raw_item_dict, divide, show_zero) {
+    const item_dict = adjust_item_dict(raw_item_dict, divide, show_zero)
+
+    output.replaceChildren();
+
+    const table = document.createElement("table");
+    table.className = "items";
+
+    for (const [name, amount] of Object.entries(item_dict)) {
+        const tr = document.createElement("tr");
+
+        const tdImg = document.createElement("td");
+        const img = document.createElement("img");
+        img.className = "item-img";
+        img.src = "/items/" + name.replace(/_(ALT|STD)$/, "") + ".png";
+        img.alt = name;
+        img.loading = "lazy";
+        img.onerror = () => {
+            img.src = "/items/unknown.png";
+        };
+        tdImg.appendChild(img);
+
+        const tdName = document.createElement("td");
+        tdName.textContent = name.replace(/_/g,' ');
+
+        const tdAmount = document.createElement("td");
+        tdAmount.textContent = round_sig(amount, 6);
+
+        tr.append(tdImg, tdName, tdAmount);
+        table.appendChild(tr);
     }
-    output.style.fontSize = Math.min(13, window.innerWidth * 0.03 -0.5) +"px";
-    output.textContent = content.join("\n") + "\n\n";
+
+    table.insertBefore(createSpacerRow(3), table.rows[1]);
+    table.insertBefore(createSpacerRow(3), table.rows[9]);
+
+    output.appendChild(table);
 }
 //#endregion
 
@@ -1234,16 +1458,40 @@ function roundN(value, decimals) {
     return Math.round(value * 10**decimals) / (10**decimals);
 }
 
-function str_num(num, max_len, fill= true) {
+
+function round_sig(num, sig, preRound = 6) {
+    num = roundN(num, preRound);
+
+    const abs = Math.abs(num);
+
+    // Always return a string (formatter function)
+    if (abs === 0) return "0";
+    if (Number.isInteger(num)) return String(num);
+
+    const intDigits = Math.floor(Math.log10(abs)) + 1;
+
+    let decimals = sig - intDigits;
+    if (decimals < 1) decimals = 1;
+
+    let s = num.toFixed(decimals);
+
+    // Trim trailing zeros but keep at least one digit after the dot
+    s = s.replace(/(\.\d*?[1-9])0+$/, "$1"); // 12.3400 -> 12.34
+    s = s.replace(/\.(0+)$/, ".0");          // 12.000 -> 12.0
+
+    return s;
+}
+
+function str_num2(num, max_len, fill= true) {
     let num_len = String(num).length;
     let str = num.toPrecision(max_len -1);
     if (num_len <= max_len) {
-        str = String(num);
-    } else if (str.length > max_len){
+        str = String(num); }
+    else if (str.length > max_len){
         str = num.toFixed(max_len -2);
     }
     if (fill) {
-        return str.padEnd(max_len, ' ');
+        return str.padEnd(max_len, ' '); 
     } else {
         return str;
     }
