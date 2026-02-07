@@ -3,72 +3,77 @@
 ========================= */
 
 :root {
-  --bg: #1e1e1e;
-  --panel: #2e2e2e;
-  --panel-hover: #3e3e3e;
-  --border: #6b6b6b;
-  --text: #ffffff;
-  --warn: rgb(255, 110, 110);
+    --bg: #1e1e1e;
+    --panel: #2e2e2e;
+    --panel-hover: #3e3e3e;
+    --border: #6b6b6b;
+    --text: #ffffff;
+    --warn: rgb(255, 110, 110);
 
-  --radius: 8px;
-  --radius-sm: 6px;
+    --radius: 8px;
+    --radius-sm: 6px;
 
-  --btn-h: 25px;
-  --btn-w: 200px;
+    --btn-h: 25px;
+    --btn-w: 200px;
 
-  --small-btn-h: 20px;
-  --small-btn-w: 75px;
+    --small-btn-h: 20px;
+    --small-btn-w: 75px;
 
-  --select-w: 200px;
-  --input-max-w: 50px;
+    --input-max-w: 50px;
 }
 
 body {
-  background-color: var(--bg);
-  color: var(--text);
-  font-family: sans-serif;
-  touch-action: manipulation;
+    background-color: var(--bg);
+    color: var(--text);
+    font-family: sans-serif;
+    touch-action: manipulation;
 
-  /* your “zoom” layout */
-  transform: scale(1.5);
-  transform-origin: top left;
-  width: 65%;
+    /* your “zoom” layout */
+    transform: scale(1.5);
+    transform-origin: top left;
+    width: 65%;
 }
 
-h1 { color: var(--text); }
+h1 {
+    color: var(--text);
+}
 
 p {
-  color: var(--text);
-  margin: 0 0 5px 0;
+    color: var(--text);
+    margin: 0 0 5px 0;
 }
 
 pre {
-  color: var(--text);
-  white-space: pre-wrap;
-  margin: 0;
+    color: var(--text);
+    white-space: pre-wrap;
+    margin: 0;
 }
 
 .label {
-  margin: 0;
+    margin: 0;
 }
 
 /* Utility helpers */
-.hidden { display: none !important; }
-.spacer { height: 10px; }
+.hidden {
+    display: none !important;
+}
+.spacer {
+    height: 10px;
+}
 
 /* Hide element but keep it in DOM for JS.
    This is better than the "hidden" attribute for your use case,
    because some browsers treat hidden form elements differently. */
 .sr-only {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  margin: -1px;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-  white-space: nowrap;
-  border: 0;
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
 }
 
 /* =========================
@@ -76,34 +81,34 @@ pre {
 ========================= */
 
 .form-container {
-  max-width: 170px;
+    max-width: 170px;
 }
 
 .input-row {
-  display: flex;
-  align-items: center;
+    display: flex;
+    align-items: center;
 }
 
 .res_label {
-  flex: 1;
-  text-align: right;
-  padding-right: 5px;
+    flex: 1;
+    text-align: right;
+    padding-right: 5px;
 }
 
 .resource {
-  flex: 2;
-  max-width: var(--input-max-w);
-  color: var(--text);
-  background-color: var(--bg);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
+    flex: 2;
+    max-width: var(--input-max-w);
+    color: var(--text);
+    background-color: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
 }
 
 .res-icon {
-  width: 20px;
-  height: 20px;
-  margin-right: 5px;
-  flex-shrink: 0; /* prevents flex from stretching it */
+    width: 20px;
+    height: 20px;
+    margin-right: 5px;
+    flex-shrink: 0; /* prevents flex from stretching it */
 }
 
 /* =========================
@@ -111,28 +116,28 @@ pre {
 ========================= */
 
 button {
-display: block;
-  color: var(--text);
-  background-color: var(--bg);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  width: var(--btn-w);
-  height: var(--btn-h);
-  margin-bottom: 5px;
-  cursor: pointer; /* always, not only on hover */
-  font-size: 14px;
+    display: block;
+    color: var(--text);
+    background-color: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    width: var(--btn-w);
+    height: var(--btn-h);
+    margin-bottom: 5px;
+    cursor: pointer; /* always, not only on hover */
+    font-size: 14px;
 }
 
 button:hover {
-  background-color: var(--panel-hover);
+    background-color: var(--panel-hover);
 }
 
 .small-button {
-  color: var(--warn);
-  width: var(--small-btn-w);
-  height: var(--small-btn-h);
-  font-size: 11px;
-  padding: 0;
+    color: var(--warn);
+    width: var(--small-btn-w);
+    height: var(--small-btn-h);
+    font-size: 11px;
+    padding: 0;
 }
 
 /* =========================
@@ -140,7 +145,7 @@ button:hover {
 ========================= */
 
 input:hover {
-  background-color: var(--panel-hover);
+    background-color: var(--panel-hover);
 }
 
 /* =========================
@@ -148,31 +153,35 @@ input:hover {
 ========================= */
 
 select {
-  background-color: var(--panel);
-  color: var(--text);
-  padding: 6px;
-  font-size: 14px;
-  border: none;
-  cursor: pointer;
-  border-radius: var(--radius-sm);
+    background-color: var(--panel);
+    color: var(--text);
+    padding: 6px;
+    font-size: 14px;
+    border: none;
+    cursor: pointer;
+    border-radius: var(--radius-sm);
 }
 
 select:hover {
-  background-color: var(--panel-hover);
+    background-color: var(--panel-hover);
 }
 
 /* Keep your old scrollbar styling for native selects */
-select::-webkit-scrollbar { width: 12px; }
-select::-webkit-scrollbar-track { background: var(--panel); }
+select::-webkit-scrollbar {
+    width: 12px;
+}
+select::-webkit-scrollbar-track {
+    background: var(--panel);
+}
 select::-webkit-scrollbar-thumb {
-  background: var(--text);
-  border-radius: var(--radius-sm);
+    background: var(--text);
+    border-radius: var(--radius-sm);
 }
 
 option {
-  background-color: var(--bg);
-  color: var(--text);
-  font-size: 14px;
+    background-color: var(--bg);
+    color: var(--text);
+    font-size: 14px;
 }
 
 /* =========================
@@ -180,60 +189,60 @@ option {
 ========================= */
 
 .container {
-  display: block;
-  position: relative;
-  line-height: 20px;
-  padding-left: 25px;
-  margin: 2px 40px 4px 0;
-  user-select: none;
-  color: var(--text);
-  cursor: pointer; /* important: label is what you hover */
+    display: block;
+    position: relative;
+    line-height: 20px;
+    padding-left: 25px;
+    margin: 2px 40px 4px 0;
+    user-select: none;
+    color: var(--text);
+    cursor: pointer; /* important: label is what you hover */
 }
 
 .container input {
-  position: absolute;
-  opacity: 0;
-  height: 0;
-  width: 0;
+    position: absolute;
+    opacity: 0;
+    height: 0;
+    width: 0;
 }
 
 .checkmark {
-  position: absolute;
-  top: 0;
-  left: 0;
-  height: 20px;
-  width: 20px;
-  border-radius: var(--radius-sm);
-  background-color: var(--panel);
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 20px;
+    width: 20px;
+    border-radius: var(--radius-sm);
+    background-color: var(--panel);
 }
 
 .container:hover input ~ .checkmark {
-  background-color: var(--panel-hover);
+    background-color: var(--panel-hover);
 }
 
 .container input:checked ~ .checkmark {
-  background-color: #2196f3;
+    background-color: #2196f3;
 }
 
 .checkmark:after {
-  content: "";
-  position: absolute;
-  display: none;
+    content: "";
+    position: absolute;
+    display: none;
 }
 
 .container input:checked ~ .checkmark:after {
-  display: block;
+    display: block;
 }
 
 /* the “tick” */
 .container .checkmark:after {
-  left: 7px;
-  top: 3px;
-  width: 4px;
-  height: 9px;
-  border: solid white;
-  border-width: 0 3px 3px 0;
-  transform: rotate(45deg);
+    left: 7px;
+    top: 3px;
+    width: 4px;
+    height: 9px;
+    border: solid white;
+    border-width: 0 3px 3px 0;
+    transform: rotate(45deg);
 }
 
 /* =========================
@@ -241,7 +250,7 @@ option {
 ========================= */
 
 #table-container {
-  min-height: 400px; /* prevents page collapsing when empty */
+    min-height: 400px; /* prevents page collapsing when empty */
 }
 
 .items {
@@ -296,8 +305,14 @@ option {
 
 .fake-select {
     position: relative;
-    width: var(--select-w);
     margin-bottom: 5px;
+}
+.fake-select.small {
+    width: 150px;
+}
+
+.fake-select.large {
+    width: 200px;
 }
 
 /* Make the fake “selected” control look like your other buttons,
@@ -307,10 +322,14 @@ option {
     height: var(--btn-h);
     margin-bottom: 0;              /* avoids double spacing inside container */
     display: flex;
-    align-items: center;
-    gap: 8px;
+    align-items: center;        /* vertical */
     font-size: 14px;
+    gap: 8px;
 }
+.fake-select.small .selected {
+    justify-content: center;    /* horizontal */
+}
+
 
 /* icons inside dropdown + selected */
 .fake-select img {

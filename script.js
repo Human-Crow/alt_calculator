@@ -52,61 +52,20 @@ const ALT_RECIPES = [
 //#endregion
 
 
-//#region Target Box
-const realSelect = document.getElementById("target_box");
-const fakeSelect = document.getElementById("fake_target_box");
-const selectedBtn = fakeSelect.querySelector(".selected");
-const optionsDiv = fakeSelect.querySelector(".options");
-
-
-function renderSelected(option) {
-    selectedBtn.innerHTML = `
-        <img src="${itemToImg(option.value)}" alt="">
-        <span>${option.textContent}</span>
-    `;
-}
-
-for (const option of realSelect.options) {
-    const div = document.createElement("div");
-    div.className = "option";
-
-    div.innerHTML = `
-        <img src="${itemToImg(option.value)}" alt="">
-        <span>${option.textContent}</span>
-    `;
-
-    div.addEventListener("click", () => {
-        realSelect.value = option.value;
-        renderSelected(option);
-        fakeSelect.classList.remove("open");
-
-        // fire normal change event
-        realSelect.dispatchEvent(new Event("change"));
-    });
-
-    optionsDiv.appendChild(div);
-
-    if (option.selected) {
-        renderSelected(option);
-    }
-}
-
-// toggle dropdown
-selectedBtn.addEventListener("click", () => {
-    fakeSelect.classList.toggle("open");
-});
-
-// close when clicking outside
-document.addEventListener("click", e => {
-    if (!fakeSelect.contains(e.target)) {
-        fakeSelect.classList.remove("open");
-    }
-});
-//#endregion
-
-
 
 //#region Element functions
+makeFakeSelect({
+    realSelect: target_box,
+    fakeSelect: document.getElementById("fake_target_box"),
+    withImages: true
+});
+
+makeFakeSelect({
+    realSelect: limit_box,
+    fakeSelect: document.getElementById("fake_limit_box"),
+    withImages: false
+});
+
 for (const res of RESOURCES) {
     res.field.onchange = function() {
         output.replaceChildren();
@@ -1481,21 +1440,6 @@ function round_sig(num, sig, preRound = 6) {
     return s;
 }
 
-function str_num2(num, max_len, fill= true) {
-    let num_len = String(num).length;
-    let str = num.toPrecision(max_len -1);
-    if (num_len <= max_len) {
-        str = String(num); }
-    else if (str.length > max_len){
-        str = num.toFixed(max_len -2);
-    }
-    if (fill) {
-        return str.padEnd(max_len, ' '); 
-    } else {
-        return str;
-    }
-}
-
 function get_url_param(target_key) {
     const url_vars = window.location.search.substring(1).split('&');
     for (const url_var of url_vars) {
@@ -1544,6 +1488,67 @@ function paste_insert(event) {
             wood.dispatchEvent(new Event("change"));
         }
     }
+}
+
+
+function makeFakeSelect({realSelect, fakeSelect, withImages = false}) {
+    const selectedBtn = fakeSelect.querySelector(".selected");
+    const optionsDiv = fakeSelect.querySelector(".options");
+
+    function renderSelected(option) {
+        if (withImages) {
+            selectedBtn.innerHTML = `
+                <img src="${itemToImg(option.value)}" alt="">
+                <span>${option.textContent}</span>
+            `;
+        } else {
+            selectedBtn.textContent = option.textContent;
+        }
+    }
+
+    optionsDiv.replaceChildren();
+
+    for (const option of realSelect.options) {
+        const div = document.createElement("div");
+        div.className = "option";
+
+        if (withImages) {
+            div.innerHTML = `
+                <img src="${itemToImg(option.value)}" alt="">
+                <span>${option.textContent}</span>
+            `;
+        } else {
+            div.textContent = option.textContent;
+        }
+
+        div.addEventListener("click", () => {
+            realSelect.value = option.value;
+            renderSelected(option);
+            fakeSelect.classList.remove("open");
+
+            // forward native change event
+            realSelect.dispatchEvent(new Event("change"));
+        });
+
+        optionsDiv.appendChild(div);
+
+        if (option.selected) {
+            renderSelected(option);
+        }
+    }
+
+    // toggle dropdown
+    selectedBtn.addEventListener("click", e => {
+        e.stopPropagation();
+        fakeSelect.classList.toggle("open");
+    });
+
+    // close when clicking outside
+    document.addEventListener("click", e => {
+        if (!fakeSelect.contains(e.target)) {
+            fakeSelect.classList.remove("open");
+        }
+    });
 }
 //#endregion
 
