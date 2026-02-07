@@ -58,9 +58,6 @@ const fakeSelect = document.getElementById("fake_target_box");
 const selectedBtn = fakeSelect.querySelector(".selected");
 const optionsDiv = fakeSelect.querySelector(".options");
 
-function itemToImg(value) {
-    return "items/" + value.toLowerCase() + ".png";
-}
 
 function renderSelected(option) {
     selectedBtn.innerHTML = `
@@ -1183,10 +1180,10 @@ async function show_recipe_ratios() {
         // icon cell
         const tdImg = document.createElement("td");
         const img = document.createElement("img");
-        img.src = "items/" + key + ".png";
+        img.src = itemToImg(key);
         img.alt = key.replace(/_/g, " ");
         img.loading = "lazy";
-        img.onerror = () => { img.src = "items/unknown.png"; };
+        img.onerror = () => { img.src = itemToImg("unknown"); };
         tdImg.appendChild(img);
 
         // name cell
@@ -1255,10 +1252,10 @@ async function show_resource_boosts() {
         wrap.className = "res-head";
 
         const img = document.createElement("img");
-        img.src = "items/" + key + ".png";     // adjust if filenames differ
+        img.src = itemToImg(key);
         img.alt = name;
         img.loading = "lazy";
-        img.onerror = () => { img.src = "items/unknown.png"; };
+        img.onerror = () => { img.src = itemToImg("unknown"); };
 
         const span = document.createElement("span");
         span.textContent = name;
@@ -1368,12 +1365,10 @@ function show_result(raw_item_dict, divide, show_zero) {
         const tdImg = document.createElement("td");
         const img = document.createElement("img");
         img.className = "item-img";
-        img.src = "items/" + name.replace(/_(ALT|STD)$/, "") + ".png";
+        img.src = itemToImg(name.replace(/_(ALT|STD)$/, ""));
         img.alt = name;
         img.loading = "lazy";
-        img.onerror = () => {
-            img.src = "items/unknown.png";
-        };
+        img.onerror = () => {img.src = itemToImg("unknown"); };
         tdImg.appendChild(img);
 
         const tdName = document.createElement("td");
@@ -1395,6 +1390,10 @@ function show_result(raw_item_dict, divide, show_zero) {
 
 
 //#region Other functions
+function itemToImg(value) {
+    return new URL(`./items/${value}.png`, import.meta.url).href;;
+}
+
 function show_warning(message) {
     const warning = document.createElement("div");
     warning.textContent = message;
