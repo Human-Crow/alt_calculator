@@ -1391,7 +1391,7 @@ function show_result(raw_item_dict, divide, show_zero) {
 
 //#region Other functions
 function itemToImg(value) {
-    return new URL(`./items/${value}.png`, import.meta.url).href;;
+    return "items/" + value + ".png";
 }
 
 function show_warning(message) {

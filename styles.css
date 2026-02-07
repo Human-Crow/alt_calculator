@@ -120,6 +120,7 @@ display: block;
   height: var(--btn-h);
   margin-bottom: 5px;
   cursor: pointer; /* always, not only on hover */
+  font-size: 14px;
 }
 
 button:hover {
@@ -171,7 +172,7 @@ select::-webkit-scrollbar-thumb {
 option {
   background-color: var(--bg);
   color: var(--text);
-  font-size: 16px;
+  font-size: 14px;
 }
 
 /* =========================
@@ -249,8 +250,8 @@ option {
 }
 
 .items img {
-    width: 18px;
-    height: 18px;
+    width: 20px;
+    height: 20px;
 }
 
 .note {
@@ -313,8 +314,8 @@ option {
 
 /* icons inside dropdown + selected */
 .fake-select img {
-    width: 18px;
-    height: 18px;
+    width: 20px;
+    height: 20px;
 }
 
 /* dropdown panel */
