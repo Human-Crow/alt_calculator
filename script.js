@@ -9,9 +9,11 @@ const clear_button2 = document.getElementById("clear_button2");
 const score_button = document.getElementById("score_button");
 const alt_recipe_button = document.getElementById("alt_recipe_button");
 const res_boosts_button = document.getElementById("res_boosts_button");
+const bulk_button = document.getElementById("bulk_button");
 
 const limit_box = document.getElementById("limit_box");
 const target_box = document.getElementById("target_box");
+const split_box = document.getElementById("split_box");
 const alt_box = document.getElementById("alt_box");
 const boost_box = document.getElementById("boost_box");
 const gen2_box = document.getElementById("gen2_box");
@@ -89,6 +91,14 @@ goal.onchange = function() {
     }
 }
 
+function hide_boost_elems() {
+    const isGoal = (limit_box.value === "Goal");
+    res_boosts_button.classList.toggle("hidden", !boost_box.checked || isGoal);
+    boost_note.textContent = (boost_box.checked && limit_box.value === "Resource")
+        ? "The calculations are\nbased on an approximation"
+        : "";
+}
+
 limit_box.onchange = function () {
     output.replaceChildren();
 
@@ -97,22 +107,7 @@ limit_box.onchange = function () {
     // Show one section, hide the other
     resource_fields.classList.toggle("hidden", isGoal);
     goal_fields.classList.toggle("hidden", !isGoal);
-
-    // Boost/Gen2 controls only exist in Resource mode
-    boost_field.classList.toggle("hidden", isGoal);
-    gen2_field.classList.toggle("hidden", isGoal);
-
-    // If switching to Goal mode, force-disable Boost + Gen2
-    if (isGoal) {
-        if (boost_box.checked) {
-            boost_box.checked = false;
-            boost_box.dispatchEvent(new Event("change"));
-        }
-        if (gen2_box.checked) {
-            gen2_box.checked = false;
-            gen2_box.dispatchEvent(new Event("change"));
-        }
-    }
+    if (isGoal) {hide_boost_elems();}
 };
 
 target_box.onchange = function() {
@@ -128,10 +123,7 @@ alt_box.onchange = function() {
 
 boost_box.onchange = function() {
     output.replaceChildren();
-    res_boosts_button.classList.toggle("hidden", !boost_box.checked);
-    boost_note.textContent = boost_box.checked
-        ? "The calculations are\nbased on an approximation"
-        : "";
+    hide_boost_elems();
     update_url_param("boost", boost_box.checked? 1:0);
 };
 
@@ -172,6 +164,132 @@ document.onclick = function(event) {
         clear_state = false;
     }
 };
+
+
+async function get_bulk() {
+    split_box.checked = true;
+
+    const id_map = {
+        mode: "limit_box",
+        item: "target_box",
+        goal: "goal",
+        gen2: "gen2_box",
+        e_wd: "wood",
+        e_st: "stone",
+        e_ir: "iron",
+        e_cp: "copper",
+        e_cl: "coal",
+        e_wr: "wolframite",
+        e_ur: "uranium"
+    };
+    const alt_map = {
+        a_cw: "Copper_Wire",
+        a_ig: "Iron_Gear",
+        a_st: "Steel",
+        a_cc: "Concrete",
+        a_el: "Electromagnet",
+        a_lc: "Logic_Circuit",
+        a_em: "Electric_Motor",
+        a_if: "Industrial_Frame",
+        a_tu: "Turbocharger",
+        a_sc: "Super_Computer",
+        a_tc: "Tungsten_Carbide",
+        a_ro: "Rotor"
+    };
+    const boost_map = {
+        Coal: ["c_cl", "n_cl"],
+        Copper_Ore: ["c_cp", "n_cp"],
+        Iron_Ore: ["c_ir", "n_ir"],
+        Stone: ["c_st", "n_st"],
+        Uranium_Ore: ["c_ur", "n_ur"],
+        Wolframite: ["c_wr", "n_wr"],
+        Wood_Log: ["c_wd", "n_wd"]
+    }
+    const result = [
+        "t_ws:4",
+        "t_fn:4",
+        "t_ms:4",
+        "t_fg:4",
+        "t_if:4",
+        "t_mf:4",
+        "t_ex:5",
+        "t_bs:480"
+    ];
+
+    for (const [short_id, html_id] of Object.entries(id_map)) {
+        const el = document.getElementById(html_id);
+        if (!el) continue;
+
+        let value;
+
+        if (el instanceof HTMLInputElement && el.type === "checkbox") {
+            value = el.checked ? 1 : 0;
+        }
+        else if (el instanceof HTMLInputElement) {
+            value = el.value;
+        }
+        else if (el instanceof HTMLSelectElement) {
+            value = el.value;
+        }
+        else {
+            continue;
+        }
+
+        if (value === "" || value === "0" || value === 0) continue;
+
+        result.push(`${short_id}:${value}`);
+    }
+
+    const resources = extractor_values();
+    const limit = (limit_box.value === "Goal")? Number(goal.value) : resources;
+    const all_items = await SeedSolver.solve(limit, alt_box.checked, boost_box.checked, gen2_box.checked);
+
+    const alt_ratios = get_alt_ratios(all_items);
+    for (const [short_id, alt_id] of Object.entries(alt_map)) {
+        const value = alt_ratios[alt_id] || 0;
+        if (value > 0) {
+            result.push(`${short_id}:${value}`);
+        }
+    }
+    const cpp = all_items["Coal_Power_Plant"] || 0;
+    if (cpp) {
+        result.push(`c_pp:${cpp}`);
+    }
+    const npp = (all_items["Nuclear_Fuel_Cell"] || 0) / SeedSolver.NPP_RATE;
+    if (npp) {
+        result.push(`n_pp:${npp}`);
+    }
+
+    const res_boosts = get_resource_boosts(all_items, resources);
+    for (const [key, [coalPer, nucPer, total]] of Object.entries(res_boosts)) {
+        const [c_key, n_key] = boost_map[key];
+        if (coalPer) {
+            result.push(`${c_key}:${coalPer}`);
+        }
+        if (nucPer) {
+            result.push(`${n_key}:${nucPer}`);
+        }
+    }
+
+    return result.join(",");
+}
+
+
+bulk_button.onclick = async function copy_bulk() {
+    const bulk = await get_bulk();
+
+    navigator.clipboard.writeText(bulk).then(() => {
+        const btn = document.querySelector("button[onclick='copy_bulk()']");
+        if (!btn) return;
+
+        const old = btn.textContent;
+        btn.textContent = "Copied!";
+
+        setTimeout(() => {
+            btn.textContent = old;
+        }, 1000);
+    });
+}
 //#endregion
 
 
@@ -181,7 +299,7 @@ const SeedSolver = {
     EX_RATE_UR: [10, 50],
     NPP_RATE: 0.5,
     CPP_RATE: 10,
-    NUC_BOOST: [1.4, 1.6],
+    NUC_BOOST: [1.4 * (3600/3612), 1.6],
     COAL_BOOST: 1.2,
 
     EX_NPP: [44, 15.7],
@@ -367,7 +485,14 @@ const SeedSolver = {
             {
                 vars: [
                     { name: 'Coal', coef: 1.0 },
-                    { name: 'Coal_Power_Plant', coef: this.CPP_RATE },
+                    { name: 'Coal_RAW', coef: -1.0 },
+                    { name: 'Coal_Power_Plant', coef: -1.0 * this.CPP_RATE },
+                ],
+                bnds: { type: glpk.GLP_FX, ub: 0.0, lb: 0.0},
+            },
+            {
+                vars: [
+                    { name: 'Coal', coef: 1.0 },
                     { name: 'Coal_Coal_Ex', coef: (1 - this.COAL_BOOST) * this.EX_RATE[+gen_2] },
                     { name: 'Coal_Nuc_Ex', coef: (1 - this.NUC_BOOST[+gen_2]) * this.EX_RATE[+gen_2] },
                 ],
@@ -423,6 +548,13 @@ const SeedSolver = {
                     { name: 'Coal', coef: 1.0 },
                 ],
                 bnds: { type: glpk.GLP_UP, ub: Coal_Extractors * this.EX_RATE[+gen_2], lb: 0.0},
+            },
+            {
+                vars: [
+                    { name: 'Coal', coef: 1.0 },
+                    { name: 'Coal_RAW', coef: -1.0 },
+                ],
+                bnds: { type: glpk.GLP_FX, ub: 0.0, lb: 0.0},
             },
             {
                 vars: [
@@ -559,7 +691,7 @@ const SeedSolver = {
             },
             {
                 vars: [
-                    { name: 'Coal', coef: 1.0 },
+                    { name: 'Coal_RAW', coef: 1.0 },
                     { name: 'Graphite', coef: -3.0 },
                     { name: 'Steel_ALT', coef: -4.0 },
                 ],
@@ -1114,26 +1246,97 @@ const SeedSolver = {
 
 
 //#region Show functions
-async function show_recipe_ratios() {
-    const limit = (limit_box.value === "Goal")? Number(goal.value) : extractor_values();
-    const all_items = await SeedSolver.solve(limit, alt_box.checked, boost_box.checked, gen2_box.checked);
-    output.replaceChildren();
-
+function show_nuc_ratios() {
     const title = document.createElement("p");
-    title.textContent = "Used Alt recipes:";
-    title.style.margin = "0 0 6px 0";
+    title.textContent = "For Nuclear Fuel Cells:";
+    title.style.margin = "24px 0 6px 0";
     output.appendChild(title);
-
     const table = document.createElement("table");
     table.className = "items ratios";
+    for (const key of ["Steel", "Tungsten_Carbide"]) {
+        const percent = 1;
+
+        const tr = document.createElement("tr");
+        // icon cell
+        const tdImg = document.createElement("td");
+        const img = document.createElement("img");
+        img.src = itemToImg(key);
+        img.alt = key.replace(/_/g, " ");
+        img.loading = "lazy";
+        img.onerror = () => { img.src = itemToImg("unknown"); };
+        tdImg.appendChild(img);
+
+        // name cell
+        const tdName = document.createElement("td");
+        tdName.textContent = key.replace(/_/g, " ");
+
+        // percent cell
+        const tdValue = document.createElement("td");
+        tdValue.className = "pct-value";
+        tdValue.textContent = round_sig(percent * 100, 6);
+
+        // percent sign cell
+        const tdSymbol = document.createElement("td");
+        tdSymbol.className = "pct-symbol";
+        tdSymbol.textContent = "%";
+
+        tr.append(tdImg, tdName, tdValue, tdSymbol);
+        table.appendChild(tr);
+    }
+    output.appendChild(table);
+}
+
+function get_alt_ratios(all_items) {
+    const npp_items = {
+        Steel: 2.25,
+        Tungsten_Carbide: 1.5
+    };
+    const npps = (all_items["Nuclear_Fuel_Cell"] || 0) / SeedSolver.NPP_RATE;
+    const split = split_box.checked && boost_box.checked;
+
+    const result = {};
     for (const key of ALT_RECIPES) {
-        const alt = all_items[key + "_ALT"] ?? 0;
+        let alt = all_items[key + "_ALT"] ?? 0;
+        if (split) {
+            alt -= npps * (npp_items[key] ?? 0);
+        }
         const std = all_items[key + "_STD"] ?? 0;
 
         const total = alt + std;
         const value = (total <= 0) ? 0 : (alt / total);
         const percent = Math.max(0, Math.min(1, value));
 
+        result[key] = percent;
+    }
+
+    return result;
+}
+
+
+async function show_recipe_ratios() {
+    const limit = (limit_box.value === "Goal")? Number(goal.value) : extractor_values();
+    const all_items = await SeedSolver.solve(limit, alt_box.checked, boost_box.checked, gen2_box.checked);
+
+    const split = split_box.checked && boost_box.checked;
+    output.replaceChildren();
+
+    const title = document.createElement("p");
+    title.textContent = `Used ${split? "":"Total "}Alt recipes:`;
+    title.style.margin = "0 0 6px 0";
+    output.appendChild(title);
+
+    if (split) {
+        show_nuc_ratios();
+        const title = document.createElement("p");
+        title.textContent = `For ${target_box.value.replaceAll("_"," ")}s:`;
+        title.style.margin = "24px 0 6px 0";
+        output.appendChild(title);
+    }
+    const table = document.createElement("table");
+    table.className = "items ratios";
+
+    const alt_ratios = get_alt_ratios(all_items);
+    for (const [key, percent] of Object.entries(alt_ratios)) {
         const tr = document.createElement("tr");
 
         // icon cell
@@ -1165,6 +1368,28 @@ async function show_recipe_ratios() {
     output.appendChild(table);
 }
 
+
+function get_resource_boosts(all_items, resources) {
+    const result = {};
+    for (const res of RESOURCES) {
+        const key = res.key;                  // e.g. "Wood_Log" etc.
+        const name = key.replace(/_/g, " ");
+        const base = key.split("_")[0];       // keep your original mapping
+
+        const total = resources[res.i] ?? 0;
+
+        const coalExt = all_items[base + "_Coal_Ex"] ?? 0;
+        const nucExt  = all_items[base + "_Nuc_Ex"] ?? 0;
+
+        const coalPer = (total <= 0) ? 0 : Math.max(0, Math.min(1, coalExt / total));
+        const nucPer  = (total <= 0) ? 0 : Math.max(0, Math.min(1, nucExt / total));
+        
+        result[key] = [coalPer, nucPer, total];
+    }
+
+    return result;
+}
+
 async function show_resource_boosts() {
     const resources = extractor_values();
     const all_items = await SeedSolver.solve(resources, alt_box.checked, boost_box.checked, gen2_box.checked);
@@ -1187,18 +1412,11 @@ async function show_resource_boosts() {
 
     const tbody = document.createElement("tbody");
 
-    for (const res of RESOURCES) {
-        const key = res.key;                  // e.g. "Wood_Log" etc.
+    const res_boosts = get_resource_boosts(all_items, resources);
+    for (const [key, [coalPer, nucPer, total]] of Object.entries(res_boosts)) {
+        const coalExt = total * coalPer;
+        const nucExt  = total * nucPer;
         const name = key.replace(/_/g, " ");
-        const base = key.split("_")[0];       // keep your original mapping
-
-        const total = resources[res.i] ?? 0;
-
-        const coalExt = all_items[base + "_Coal_Ex"] ?? 0;
-        const nucExt  = all_items[base + "_Nuc_Ex"] ?? 0;
-
-        const coalPer = (total <= 0) ? 0 : Math.max(0, Math.min(1, coalExt / total));
-        const nucPer  = (total <= 0) ? 0 : Math.max(0, Math.min(1, nucExt / total));
 
         // Row 1: icon + name (spans all columns)
         const r1 = document.createElement("tr");
@@ -1292,7 +1510,7 @@ function adjust_item_dict(item_dict, divide, show_zero) {
         first_keys.push(res.key);
     }
     let last_keys = keys.filter(
-        item => !first_keys.includes(item) && !item.endsWith('_Ex') && item != 'Coal_Power_Plant' && item != "Resource_Sum"
+        item => !first_keys.includes(item) && !item.endsWith('_Ex') && item != "Coal_RAW" && item != "Resource_Sum"
     );
     if (!alt_box.checked) {
         last_keys = last_keys.filter(item => !item.endsWith('_ALT') && !item.endsWith('_STD'));

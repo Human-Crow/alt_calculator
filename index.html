@@ -6,7 +6,7 @@
     <title>Alt Calculator</title>
 
     <link rel="icon" type="image/x-icon" href="favicon.ico" />
-    <link rel="stylesheet" href="styles.css?v=1.0.5" />
+    <link rel="stylesheet" href="styles.css?v=1.0.6" />
 </head>
 
 <body>
@@ -189,18 +189,26 @@
                 <span class="checkmark"></span>
             </label>
         </div>
+        <div class="input-row">
+            <label class="container">
+                Split Alt Ratios
+                <input type="checkbox" id="split_box" checked />
+                <span class="checkmark"></span>
+            </label>
+        </div>
     </div>
 
     <button id="score_button" type="button">Score</button>
     <button id="alt_recipe_button" class="hidden" type="button">Alt Recipes</button>
     <button id="res_boosts_button" class="hidden" type="button">Resource Boosts</button>
-
+    <button id="bulk_button" type="button">Copy Settings String</button>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="https://human-crow.github.io/tree_test/">Tree Viewer</a><br>
     <div id="table-container">
         <pre id="boost_note" class="note"></pre>
         <div class="spacer"></div>
         <div id="output"></div>
     </div>
 
-    <script type="module" src="./script.js?v=1.0.5"></script>
+    <script type="module" src="./script.js?v=1.0.6"></script>
 </body>
 </html>
