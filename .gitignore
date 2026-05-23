@@ -8,8 +8,10 @@ node_modules/
 
 # Source files
 *.ts
-src/**/*.js
-src/*.js
+*.d.ts
+*.d.ts.map
+docs/src/**/*.js
+docs/src/*.js
 
 # OS junk
 .DS_Store
