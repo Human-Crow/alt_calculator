@@ -604,6 +604,13 @@ const SeedSolver = {
         const general_cons = [
             {
                 vars: [
+                    { name: 'Coal', coef: 1.0 },
+                    { name: 'Coal_RAW', coef: -1.0 },
+                ],
+                bnds: { type: glpk.GLP_LO, lb: 0.0 },
+            },
+            {
+                vars: [
                     { name: 'Resource_Sum', coef: 1.0 },
                     { name: 'Wood_Log', coef: -1.0 },
                     { name: 'Stone', coef: -1.0 },
