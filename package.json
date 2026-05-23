@@ -1,0 +1,27 @@
+{
+  "name": "alt_calculator",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Human-Crow/alt_calculator.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/Human-Crow/alt_calculator/issues"
+  },
+  "homepage": "https://github.com/Human-Crow/alt_calculator#readme",
+  "devDependencies": {
+    "typescript": "^6.0.3"
+  }
+}

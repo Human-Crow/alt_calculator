@@ -1,0 +1,21 @@
+{
+    "compilerOptions": {
+        "rootDir": "./docs/src",
+        "outDir": "./docs/dist",
+
+        "target": "ES2023",
+        "module": "ESNext",
+
+        "strict": true,
+
+        "sourceMap": true,
+
+        "noUncheckedIndexedAccess": true,
+        "exactOptionalPropertyTypes": true,
+
+        "moduleDetection": "force",
+        "skipLibCheck": true
+    },
+
+    "include": ["docs/src"]
+}
