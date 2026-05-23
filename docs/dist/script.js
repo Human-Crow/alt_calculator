@@ -1,7 +1,6 @@
 // cd alt_calculator; if ($?) { npx tsc --watch }
-import GLPK from './glpk.js';
+import { resource_solver, goal_solver, get_resource_boosts, get_alt_ratios } from './solver.js';
 //#region Constants
-const glpk = await GLPK();
 const clear_button1 = document.getElementById("clear_button1");
 const clear_button2 = document.getElementById("clear_button2");
 const score_button = document.getElementById("score_button");
@@ -17,6 +16,8 @@ const gen2_box = document.getElementById("gen2_box");
 const boost_note = document.getElementById("boost_note");
 const zero_box = document.getElementById("zero_box");
 const ratio_box = document.getElementById("ratio_box");
+const fake_target_box = document.getElementById("fake_target_box");
+const fake_limit_box = document.getElementById("fake_limit_box");
 const resource_fields = document.getElementById("resource_fields");
 const goal_fields = document.getElementById("goal_fields");
 const boost_field = document.getElementById("boost_field");
@@ -39,23 +40,10 @@ const RESOURCES = [
     { key: "Wolframite", i: 5, field: wolframite, url: "wr" },
     { key: "Uranium_Ore", i: 6, field: uranium, url: "ur" }
 ];
-const ALT_RECIPES = [
-    "Concrete", "Copper_Wire", "Electric_Motor", "Electromagnet",
-    "Industrial_Frame", "Iron_Gear", "Logic_Circuit", "Rotor", "Steel",
-    "Super_Computer", "Tungsten_Carbide", "Turbocharger"
-];
 //#endregion
 //#region Element functions
-makeFakeSelect({
-    realSelect: target_box,
-    fakeSelect: document.getElementById("fake_target_box"),
-    withImages: true
-});
-makeFakeSelect({
-    realSelect: limit_box,
-    fakeSelect: document.getElementById("fake_limit_box"),
-    withImages: false
-});
+makeFakeSelect(target_box, fake_target_box, true);
+makeFakeSelect(limit_box, fake_limit_box, false);
 for (const res of RESOURCES) {
     res.field.onchange = function () {
         output.replaceChildren();
@@ -101,22 +89,33 @@ target_box.onchange = function () {
 alt_box.onchange = function () {
     output.replaceChildren();
     alt_recipe_button.classList.toggle("hidden", !alt_box.checked);
-    update_url_param("alt", alt_box.checked ? 1 : 0);
+    update_url_param("alt", alt_box.checked ? "1" : "0");
 };
 boost_box.onchange = function () {
     output.replaceChildren();
     hide_boost_elems();
-    update_url_param("boost", boost_box.checked ? 1 : 0);
+    update_url_param("boost", boost_box.checked ? "1" : "0");
 };
 gen2_box.onchange = function () {
     output.replaceChildren();
-    update_url_param("gen2", gen2_box.checked ? 1 : 0);
+    update_url_param("gen2", gen2_box.checked ? "1" : "0");
 };
 alt_recipe_button.onclick = function () { show_recipe_ratios(); };
 res_boosts_button.onclick = function () { show_resource_boosts(); };
+async function get_solution() {
+    let solution;
+    if (limit_box.value === "Goal") {
+        solution = await goal_solver(target_box.value, Number(goal.value), alt_box.checked);
+    }
+    else {
+        solution = await resource_solver(target_box.value, extractor_values(), alt_box.checked, boost_box.checked, gen2_box.checked);
+    }
+    console.log(solution);
+    return solution;
+}
 score_button.onclick = async function () {
-    let limit = (limit_box.value === "Goal") ? Number(goal.value) : extractor_values();
-    show_result(await SeedSolver.solve(limit, alt_box.checked, boost_box.checked, gen2_box.checked), ratio_box.checked, zero_box.checked);
+    const solution = await get_solution();
+    show_result(solution, ratio_box.checked, zero_box.checked);
 };
 let clear_state = false;
 document.onclick = function (event) {
@@ -209,10 +208,9 @@ async function get_bulk() {
             continue;
         result.push(`${short_id}:${value}`);
     }
-    const resources = extractor_values();
-    const limit = (limit_box.value === "Goal") ? Number(goal.value) : resources;
-    const all_items = await SeedSolver.solve(limit, alt_box.checked, boost_box.checked, gen2_box.checked);
-    const alt_ratios = get_alt_ratios(all_items);
+    const all_items = await get_solution();
+    const split = split_box.checked && boost_box.checked;
+    const alt_ratios = get_alt_ratios(all_items, split);
     for (const [short_id, alt_id] of Object.entries(alt_map)) {
         const value = alt_ratios[alt_id] || 0;
         if (value > 0) {
@@ -223,18 +221,21 @@ async function get_bulk() {
     if (cpp) {
         result.push(`c_pp:${cpp}`);
     }
-    const npp = (all_items["Nuclear_Fuel_Cell"] || 0) / SeedSolver.NPP_RATE;
+    const npp = all_items["Nuclear_Power_Plant"] || 0;
     if (npp) {
         result.push(`n_pp:${npp}`);
     }
-    const res_boosts = get_resource_boosts(all_items, resources);
-    for (const [key, [coalPer, nucPer, total]] of Object.entries(res_boosts)) {
-        const [c_key, n_key] = boost_map[key];
-        if (coalPer) {
-            result.push(`${c_key}:${coalPer}`);
+    const res_boosts = get_resource_boosts(all_items);
+    for (const [key, [coal_per, nuc_per]] of Object.entries(res_boosts)) {
+        const keys = boost_map[key];
+        if (!keys) {
+            continue;
         }
-        if (nucPer) {
-            result.push(`${n_key}:${nucPer}`);
+        if (coal_per) {
+            result.push(`${keys[0]}:${coal_per}`);
+        }
+        if (nuc_per) {
+            result.push(`${keys[1]}:${nuc_per}`);
         }
     }
     return result.join(",");
@@ -253,959 +254,6 @@ bulk_button.onclick = async function copy_bulk() {
     });
 };
 //#endregion
-//#region Solver function
-const SeedSolver = {
-    EX_RATE: [30, 150],
-    EX_RATE_UR: [10, 50],
-    NPP_RATE: 0.5,
-    CPP_RATE: 10,
-    NUC_BOOST: [1.4 * (3600 / 3612), 1.6],
-    COAL_BOOST: 1.2,
-    EX_NPP: [44, 15.7],
-    EX_CPP: [11, 4],
-    EX_NPP_UR: [8.5, 3.9],
-    EX_CPP_UR: [6.5, 3.0],
-    solve: async function (limit, alt, boost, gen_2) {
-        let mode;
-        if (typeof limit === "number") {
-            mode = "goal";
-        }
-        else if (Array.isArray(limit)) {
-            mode = "max";
-        }
-        else {
-            throw new TypeError("Invalid type for 'limit'");
-        }
-        let Wood_Extractors, Stone_Extractors, Iron_Extractors, Copper_Extractors;
-        let Coal_Extractors, Wolframite_Extractors, Uranium_Extractors;
-        if (mode === "max") {
-            Wood_Extractors = limit[0];
-            Stone_Extractors = limit[1];
-            Iron_Extractors = limit[2];
-            Copper_Extractors = limit[3];
-            Coal_Extractors = limit[4];
-            Wolframite_Extractors = limit[5];
-            Uranium_Extractors = limit[6];
-        }
-        let max_frac = gen_2 ? 1.00 : 0.95;
-        const boost_cons_gen_1 = [
-            {
-                vars: [
-                    { name: 'Wood_Nuc_Ex', coef: 1.0 },
-                ],
-                bnds: { type: glpk.GLP_UP, ub: Wood_Extractors * 0.9, lb: 0.0 },
-            },
-            {
-                vars: [
-                    { name: 'Stone_Nuc_Ex', coef: 1.0 },
-                ],
-                bnds: { type: glpk.GLP_UP, ub: Stone_Extractors * 0.9, lb: 0.0 },
-            },
-            {
-                vars: [
-                    { name: 'Iron_Nuc_Ex', coef: 1.0 },
-                ],
-                bnds: { type: glpk.GLP_UP, ub: Iron_Extractors * 0.9, lb: 0.0 },
-            },
-            {
-                vars: [
-                    { name: 'Copper_Nuc_Ex', coef: 1.0 },
-                ],
-                bnds: { type: glpk.GLP_UP, ub: Copper_Extractors * 0.9, lb: 0.0 },
-            },
-            {
-                vars: [
-                    { name: 'Coal_Nuc_Ex', coef: 1.0 },
-                ],
-                bnds: { type: glpk.GLP_UP, ub: Coal_Extractors * 0.9, lb: 0.0 },
-            },
-            {
-                vars: [
-                    { name: 'Wolframite_Nuc_Ex', coef: 1.0 },
-                ],
-                bnds: { type: glpk.GLP_UP, ub: Wolframite_Extractors * 0.9, lb: 0.0 },
-            },
-            {
-                vars: [
-                    { name: 'Uranium_Nuc_Ex', coef: 1.0 },
-                ],
-                bnds: { type: glpk.GLP_UP, ub: Uranium_Extractors * 0.2, lb: 0.0 },
-            },
-        ];
-        let boost_cons = [
-            {
-                vars: [
-                    { name: 'Wood_Coal_Ex', coef: 1.0 },
-                    { name: 'Wood_Nuc_Ex', coef: 1.0 },
-                ],
-                bnds: { type: glpk.GLP_UP, ub: Wood_Extractors * max_frac, lb: 0.0 },
-            },
-            {
-                vars: [
-                    { name: 'Stone_Coal_Ex', coef: 1.0 },
-                    { name: 'Stone_Nuc_Ex', coef: 1.0 },
-                ],
-                bnds: { type: glpk.GLP_UP, ub: Stone_Extractors * max_frac, lb: 0.0 },
-            },
-            {
-                vars: [
-                    { name: 'Iron_Coal_Ex', coef: 1.0 },
-                    { name: 'Iron_Nuc_Ex', coef: 1.0 },
-                ],
-                bnds: { type: glpk.GLP_UP, ub: Iron_Extractors * max_frac, lb: 0.0 },
-            },
-            {
-                vars: [
-                    { name: 'Copper_Coal_Ex', coef: 1.0 },
-                    { name: 'Copper_Nuc_Ex', coef: 1.0 },
-                ],
-                bnds: { type: glpk.GLP_UP, ub: Copper_Extractors * max_frac, lb: 0.0 },
-            },
-            {
-                vars: [
-                    { name: 'Coal_Coal_Ex', coef: 1.0 },
-                    { name: 'Coal_Nuc_Ex', coef: 1.0 },
-                ],
-                bnds: { type: glpk.GLP_UP, ub: Coal_Extractors * max_frac, lb: 0.0 },
-            },
-            {
-                vars: [
-                    { name: 'Wolframite_Coal_Ex', coef: 1.0 },
-                    { name: 'Wolframite_Nuc_Ex', coef: 1.0 },
-                ],
-                bnds: { type: glpk.GLP_UP, ub: Wolframite_Extractors * max_frac, lb: 0.0 },
-            },
-            {
-                vars: [
-                    { name: 'Uranium_Coal_Ex', coef: 1.0 },
-                    { name: 'Uranium_Nuc_Ex', coef: 1.0 },
-                ],
-                bnds: { type: glpk.GLP_UP, ub: Uranium_Extractors * max_frac, lb: 0.0 },
-            },
-            {
-                vars: [
-                    { name: 'Coal_Power_Plant', coef: 1.0 },
-                    { name: 'Wood_Coal_Ex', coef: -1.0 / this.EX_CPP[+gen_2] },
-                    { name: 'Stone_Coal_Ex', coef: -1.0 / this.EX_CPP[+gen_2] },
-                    { name: 'Iron_Coal_Ex', coef: -1.0 / this.EX_CPP[+gen_2] },
-                    { name: 'Copper_Coal_Ex', coef: -1.0 / this.EX_CPP[+gen_2] },
-                    { name: 'Coal_Coal_Ex', coef: -1.0 / this.EX_CPP[+gen_2] },
-                    { name: 'Wolframite_Coal_Ex', coef: -1.0 / this.EX_CPP[+gen_2] },
-                    { name: 'Uranium_Coal_Ex', coef: -1.0 / this.EX_CPP_UR[+gen_2] },
-                ],
-                bnds: { type: glpk.GLP_FX, ub: 0.0, lb: 0.0 },
-            },
-            {
-                vars: [
-                    { name: 'Nuclear_Fuel_Cell', coef: 1.0 },
-                    { name: 'Wood_Nuc_Ex', coef: -this.NPP_RATE / this.EX_NPP[+gen_2] },
-                    { name: 'Stone_Nuc_Ex', coef: -this.NPP_RATE / this.EX_NPP[+gen_2] },
-                    { name: 'Iron_Nuc_Ex', coef: -this.NPP_RATE / this.EX_NPP[+gen_2] },
-                    { name: 'Copper_Nuc_Ex', coef: -this.NPP_RATE / this.EX_NPP[+gen_2] },
-                    { name: 'Coal_Nuc_Ex', coef: -this.NPP_RATE / this.EX_NPP[+gen_2] },
-                    { name: 'Wolframite_Nuc_Ex', coef: -this.NPP_RATE / this.EX_NPP[+gen_2] },
-                    { name: 'Uranium_Nuc_Ex', coef: -this.NPP_RATE / this.EX_NPP_UR[+gen_2] },
-                ],
-                bnds: { type: glpk.GLP_FX, ub: 0.0, lb: 0.0 },
-            },
-            {
-                vars: [
-                    { name: 'Wood_Log', coef: 1.0 },
-                    { name: 'Wood_Coal_Ex', coef: (1 - this.COAL_BOOST) * this.EX_RATE[+gen_2] },
-                    { name: 'Wood_Nuc_Ex', coef: (1 - this.NUC_BOOST[+gen_2]) * this.EX_RATE[+gen_2] },
-                ],
-                bnds: { type: glpk.GLP_UP, ub: Wood_Extractors * this.EX_RATE[+gen_2], lb: 0.0 },
-            },
-            {
-                vars: [
-                    { name: 'Stone', coef: 1.0 },
-                    { name: 'Stone_Coal_Ex', coef: (1 - this.COAL_BOOST) * this.EX_RATE[+gen_2] },
-                    { name: 'Stone_Nuc_Ex', coef: (1 - this.NUC_BOOST[+gen_2]) * this.EX_RATE[+gen_2] },
-                ],
-                bnds: { type: glpk.GLP_UP, ub: Stone_Extractors * this.EX_RATE[+gen_2], lb: 0.0 },
-            },
-            {
-                vars: [
-                    { name: 'Iron_Ore', coef: 1.0 },
-                    { name: 'Iron_Coal_Ex', coef: (1 - this.COAL_BOOST) * this.EX_RATE[+gen_2] },
-                    { name: 'Iron_Nuc_Ex', coef: (1 - this.NUC_BOOST[+gen_2]) * this.EX_RATE[+gen_2] },
-                ],
-                bnds: { type: glpk.GLP_UP, ub: Iron_Extractors * this.EX_RATE[+gen_2], lb: 0.0 },
-            },
-            {
-                vars: [
-                    { name: 'Copper_Ore', coef: 1.0 },
-                    { name: 'Copper_Coal_Ex', coef: (1 - this.COAL_BOOST) * this.EX_RATE[+gen_2] },
-                    { name: 'Copper_Nuc_Ex', coef: (1 - this.NUC_BOOST[+gen_2]) * this.EX_RATE[+gen_2] },
-                ],
-                bnds: { type: glpk.GLP_UP, ub: Copper_Extractors * this.EX_RATE[+gen_2], lb: 0.0 },
-            },
-            {
-                vars: [
-                    { name: 'Coal', coef: 1.0 },
-                    { name: 'Coal_RAW', coef: -1.0 },
-                    { name: 'Coal_Power_Plant', coef: -1.0 * this.CPP_RATE },
-                ],
-                bnds: { type: glpk.GLP_FX, ub: 0.0, lb: 0.0 },
-            },
-            {
-                vars: [
-                    { name: 'Coal', coef: 1.0 },
-                    { name: 'Coal_Coal_Ex', coef: (1 - this.COAL_BOOST) * this.EX_RATE[+gen_2] },
-                    { name: 'Coal_Nuc_Ex', coef: (1 - this.NUC_BOOST[+gen_2]) * this.EX_RATE[+gen_2] },
-                ],
-                bnds: { type: glpk.GLP_UP, ub: Coal_Extractors * this.EX_RATE[+gen_2], lb: 0.0 },
-            },
-            {
-                vars: [
-                    { name: 'Wolframite', coef: 1.0 },
-                    { name: 'Wolframite_Coal_Ex', coef: (1 - this.COAL_BOOST) * this.EX_RATE[+gen_2] },
-                    { name: 'Wolframite_Nuc_Ex', coef: (1 - this.NUC_BOOST[+gen_2]) * this.EX_RATE[+gen_2] },
-                ],
-                bnds: { type: glpk.GLP_UP, ub: Wolframite_Extractors * this.EX_RATE[+gen_2], lb: 0.0 },
-            },
-            {
-                vars: [
-                    { name: 'Uranium_Ore', coef: 1.0 },
-                    { name: 'Uranium_Coal_Ex', coef: (1 - this.COAL_BOOST) * this.EX_RATE_UR[+gen_2] },
-                    { name: 'Uranium_Nuc_Ex', coef: (1 - this.NUC_BOOST[+gen_2]) * this.EX_RATE_UR[+gen_2] },
-                ],
-                bnds: { type: glpk.GLP_UP, ub: Uranium_Extractors * this.EX_RATE_UR[+gen_2], lb: 0.0 },
-            }
-        ];
-        if (!gen_2) {
-            boost_cons = boost_cons.concat(boost_cons_gen_1);
-        }
-        const non_boost_cons = [
-            {
-                vars: [
-                    { name: 'Wood_Log', coef: 1.0 },
-                ],
-                bnds: { type: glpk.GLP_UP, ub: Wood_Extractors * this.EX_RATE[+gen_2], lb: 0.0 },
-            },
-            {
-                vars: [
-                    { name: 'Stone', coef: 1.0 },
-                ],
-                bnds: { type: glpk.GLP_UP, ub: Stone_Extractors * this.EX_RATE[+gen_2], lb: 0.0 },
-            },
-            {
-                vars: [
-                    { name: 'Iron_Ore', coef: 1.0 },
-                ],
-                bnds: { type: glpk.GLP_UP, ub: Iron_Extractors * this.EX_RATE[+gen_2], lb: 0.0 },
-            },
-            {
-                vars: [
-                    { name: 'Copper_Ore', coef: 1.0 },
-                ],
-                bnds: { type: glpk.GLP_UP, ub: Copper_Extractors * this.EX_RATE[+gen_2], lb: 0.0 },
-            },
-            {
-                vars: [
-                    { name: 'Coal', coef: 1.0 },
-                ],
-                bnds: { type: glpk.GLP_UP, ub: Coal_Extractors * this.EX_RATE[+gen_2], lb: 0.0 },
-            },
-            {
-                vars: [
-                    { name: 'Coal', coef: 1.0 },
-                    { name: 'Coal_RAW', coef: -1.0 },
-                ],
-                bnds: { type: glpk.GLP_FX, ub: 0.0, lb: 0.0 },
-            },
-            {
-                vars: [
-                    { name: 'Wolframite', coef: 1.0 },
-                ],
-                bnds: { type: glpk.GLP_UP, ub: Wolframite_Extractors * this.EX_RATE[+gen_2], lb: 0.0 },
-            },
-            {
-                vars: [
-                    { name: 'Uranium_Ore', coef: 1.0 },
-                ],
-                bnds: { type: glpk.GLP_UP, ub: Uranium_Extractors * this.EX_RATE_UR[+gen_2], lb: 0.0 },
-            }
-        ];
-        const non_alt_cons = [
-            {
-                vars: [
-                    { name: 'Copper_Wire_ALT', coef: 1.0 },
-                ],
-                bnds: { type: glpk.GLP_FX, ub: 0.0, lb: 0.0 },
-            },
-            {
-                vars: [
-                    { name: 'Super_Computer_ALT', coef: 1.0 },
-                ],
-                bnds: { type: glpk.GLP_FX, ub: 0.0, lb: 0.0 },
-            },
-            {
-                vars: [
-                    { name: 'Turbocharger_ALT', coef: 1.0 },
-                ],
-                bnds: { type: glpk.GLP_FX, ub: 0.0, lb: 0.0 },
-            },
-            {
-                vars: [
-                    { name: 'Logic_Circuit_ALT', coef: 1.0 },
-                ],
-                bnds: { type: glpk.GLP_FX, ub: 0.0, lb: 0.0 },
-            },
-            {
-                vars: [
-                    { name: 'Iron_Gear_ALT', coef: 1.0 },
-                ],
-                bnds: { type: glpk.GLP_FX, ub: 0.0, lb: 0.0 },
-            },
-            {
-                vars: [
-                    { name: 'Steel_ALT', coef: 1.0 },
-                ],
-                bnds: { type: glpk.GLP_FX, ub: 0.0, lb: 0.0 },
-            },
-            {
-                vars: [
-                    { name: 'Industrial_Frame_ALT', coef: 1.0 },
-                ],
-                bnds: { type: glpk.GLP_FX, ub: 0.0, lb: 0.0 },
-            },
-            {
-                vars: [
-                    { name: 'Concrete_ALT', coef: 1.0 },
-                ],
-                bnds: { type: glpk.GLP_FX, ub: 0.0, lb: 0.0 },
-            },
-            {
-                vars: [
-                    { name: 'Electromagnet_ALT', coef: 1.0 },
-                ],
-                bnds: { type: glpk.GLP_FX, ub: 0.0, lb: 0.0 },
-            },
-            {
-                vars: [
-                    { name: 'Electric_Motor_ALT', coef: 1.0 },
-                ],
-                bnds: { type: glpk.GLP_FX, ub: 0.0, lb: 0.0 },
-            },
-            {
-                vars: [
-                    { name: 'Rotor_ALT', coef: 1.0 },
-                ],
-                bnds: { type: glpk.GLP_FX, ub: 0.0, lb: 0.0 },
-            },
-            {
-                vars: [
-                    { name: 'Tungsten_Carbide_ALT', coef: 1.0 },
-                ],
-                bnds: { type: glpk.GLP_FX, ub: 0.0, lb: 0.0 },
-            }
-        ];
-        const general_cons = [
-            {
-                vars: [
-                    { name: 'Coal', coef: 1.0 },
-                    { name: 'Coal_RAW', coef: -1.0 },
-                ],
-                bnds: { type: glpk.GLP_LO, lb: 0.0 },
-            },
-            {
-                vars: [
-                    { name: 'Resource_Sum', coef: 1.0 },
-                    { name: 'Wood_Log', coef: -1.0 },
-                    { name: 'Stone', coef: -1.0 },
-                    { name: 'Iron_Ore', coef: -1.0 },
-                    { name: 'Copper_Ore', coef: -1.0 },
-                    { name: 'Coal', coef: -1.0 },
-                    { name: 'Wolframite', coef: -1.0 },
-                    { name: 'Uranium_Ore', coef: -1.0 },
-                ],
-                bnds: { type: glpk.GLP_FX, ub: 0.0, lb: 0.0 },
-            },
-            {
-                vars: [
-                    { name: 'Wood_Log', coef: 1.0 },
-                    { name: 'Wood_Plank', coef: -1.0 },
-                    { name: 'Graphite', coef: -3.0 },
-                ],
-                bnds: { type: glpk.GLP_LO, lb: 0.0 },
-            },
-            {
-                vars: [
-                    { name: 'Stone', coef: 1.0 },
-                    { name: 'Sand', coef: -1.0 },
-                    { name: 'Concrete_ALT', coef: -20.0 },
-                ],
-                bnds: { type: glpk.GLP_LO, lb: 0.0 },
-            },
-            {
-                vars: [
-                    { name: 'Iron_Ore', coef: 1.0 },
-                    { name: 'Iron_Ingot', coef: -1.0 },
-                    { name: 'Steel_STD', coef: -6.0 },
-                    { name: 'Steel_ALT', coef: -4.0 },
-                ],
-                bnds: { type: glpk.GLP_LO, lb: 0.0 },
-            },
-            {
-                vars: [
-                    { name: 'Copper_Ore', coef: 1.0 },
-                    { name: 'Copper_Ingot', coef: -1.0 },
-                ],
-                bnds: { type: glpk.GLP_LO, lb: 0.0 },
-            },
-            {
-                vars: [
-                    { name: 'Coal_RAW', coef: 1.0 },
-                    { name: 'Graphite', coef: -3.0 },
-                    { name: 'Steel_ALT', coef: -4.0 },
-                ],
-                bnds: { type: glpk.GLP_LO, lb: 0.0 },
-            },
-            {
-                vars: [
-                    { name: 'Wolframite', coef: 1.0 },
-                    { name: 'Tungsten_Ore', coef: -5.0 },
-                ],
-                bnds: { type: glpk.GLP_LO, lb: 0.0 },
-            },
-            {
-                vars: [
-                    { name: 'Uranium_Ore', coef: 1.0 },
-                    { name: 'Enriched_Uranium', coef: -30.0 },
-                ],
-                bnds: { type: glpk.GLP_LO, lb: 0.0 },
-            },
-            {
-                vars: [
-                    { name: 'Atomic_Locator', coef: 1.0 },
-                    { name: 'Matter_Duplicator', coef: -4.0 },
-                ],
-                bnds: { type: glpk.GLP_LO, lb: 0.0 },
-            },
-            {
-                vars: [
-                    { name: 'Battery', coef: 1.0 },
-                    { name: 'Energy_Cube', coef: -2.0 },
-                    { name: 'Electric_Motor_STD', coef: -1.0 },
-                ],
-                bnds: { type: glpk.GLP_LO, lb: 0.0 },
-            },
-            {
-                vars: [
-                    { name: 'Carbon_Fiber', coef: 1.0 },
-                    { name: 'Nano_Wire', coef: -2.0 },
-                    { name: 'Copper_Wire_ALT', coef: -0.125 },
-                    { name: 'Industrial_Frame_ALT', coef: -4.0 },
-                ],
-                bnds: { type: glpk.GLP_LO, lb: 0.0 },
-            },
-            {
-                vars: [
-                    { name: 'Computer', coef: 1.0 },
-                    { name: 'Stabilizer', coef: -1.0 },
-                    { name: 'Super_Computer_STD', coef: -2.0 },
-                    { name: 'Super_Computer_ALT', coef: -1.0 },
-                    { name: 'Turbocharger_ALT', coef: -1.0 },
-                ],
-                bnds: { type: glpk.GLP_LO, lb: 0.0 },
-            },
-            {
-                vars: [
-                    { name: 'Concrete', coef: 1.0 },
-                    { name: 'Concrete_STD', coef: -1.0 },
-                    { name: 'Concrete_ALT', coef: -1.0 },
-                ],
-                bnds: { type: glpk.GLP_FX, ub: 0.0, lb: 0.0 },
-            },
-            {
-                vars: [
-                    { name: 'Concrete', coef: 1.0 },
-                    { name: 'Industrial_Frame_STD', coef: -6.0 },
-                    { name: 'Tank', coef: -4.0 },
-                    { name: 'Atomic_Locator', coef: -24.0 },
-                ],
-                bnds: { type: glpk.GLP_LO, lb: 0.0 },
-            },
-            {
-                vars: [
-                    { name: 'Condenser_Lens', coef: 1.0 },
-                    { name: 'Electron_Microscope', coef: -4.0 },
-                ],
-                bnds: { type: glpk.GLP_LO, lb: 0.0 },
-            },
-            {
-                vars: [
-                    { name: 'Copper_Ingot', coef: 1.0 },
-                    { name: 'Copper_Wire_STD', coef: -1.5 },
-                    { name: 'Heat_Sink', coef: -5.0 },
-                    { name: 'Rotor_ALT', coef: -18.0 },
-                ],
-                bnds: { type: glpk.GLP_LO, lb: 0.0 },
-            },
-            {
-                vars: [
-                    { name: 'Copper_Wire', coef: 1.0 },
-                    { name: 'Copper_Wire_STD', coef: -1.0 },
-                    { name: 'Copper_Wire_ALT', coef: -1.0 },
-                ],
-                bnds: { type: glpk.GLP_FX, ub: 0.0, lb: 0.0 },
-            },
-            {
-                vars: [
-                    { name: 'Copper_Wire', coef: 1.0 },
-                    { name: 'Electromagnet_STD', coef: -6.0 },
-                    { name: 'Logic_Circuit_STD', coef: -3.0 },
-                    { name: 'Gyroscope', coef: -12.0 },
-                    { name: 'Atomic_Locator', coef: -50.0 },
-                ],
-                bnds: { type: glpk.GLP_LO, lb: 0.0 },
-            },
-            {
-                vars: [
-                    { name: 'Coupler', coef: 1.0 },
-                    { name: 'Turbocharger_STD', coef: -4.0 },
-                    { name: 'Super_Computer_STD', coef: -8.0 },
-                ],
-                bnds: { type: glpk.GLP_LO, lb: 0.0 },
-            },
-            {
-                vars: [
-                    { name: 'Electric_Motor', coef: 1.0 },
-                    { name: 'Electric_Motor_STD', coef: -1.0 },
-                    { name: 'Electric_Motor_ALT', coef: -1.0 },
-                ],
-                bnds: { type: glpk.GLP_FX, ub: 0.0, lb: 0.0 },
-            },
-            {
-                vars: [
-                    { name: 'Electric_Motor', coef: 1.0 },
-                    { name: 'Stabilizer', coef: -1.0 },
-                    { name: 'Matter_Compressor', coef: -2.0 },
-                ],
-                bnds: { type: glpk.GLP_LO, lb: 0.0 },
-            },
-            {
-                vars: [
-                    { name: 'Electromagnet', coef: 1.0 },
-                    { name: 'Electromagnet_STD', coef: -1.0 },
-                    { name: 'Electromagnet_ALT', coef: -1.0 },
-                ],
-                bnds: { type: glpk.GLP_FX, ub: 0.0, lb: 0.0 },
-            },
-            {
-                vars: [
-                    { name: 'Electromagnet', coef: 1.0 },
-                    { name: 'Battery', coef: -8.0 },
-                    { name: 'Electron_Microscope', coef: -8.0 },
-                    { name: 'Magnetic_Field_Generator', coef: -10.0 },
-                    { name: 'Electric_Motor_ALT', coef: -6.0 },
-                ],
-                bnds: { type: glpk.GLP_LO, lb: 0.0 },
-            },
-            {
-                vars: [
-                    { name: 'Electron_Microscope', coef: 1.0 },
-                    { name: 'Atomic_Locator', coef: -2.0 },
-                ],
-                bnds: { type: glpk.GLP_LO, lb: 0.0 },
-            },
-            {
-                vars: [
-                    { name: 'Empty_Fuel_Cell', coef: 1.0 },
-                    { name: 'Nuclear_Fuel_Cell', coef: -1.0 },
-                    { name: 'Electric_Motor_ALT', coef: -1.0 },
-                ],
-                bnds: { type: glpk.GLP_LO, lb: 0.0 },
-            },
-            {
-                vars: [
-                    { name: 'Energy_Cube', coef: 1.0 },
-                    { name: 'Matter_Duplicator', coef: -5.0 },
-                ],
-                bnds: { type: glpk.GLP_LO, lb: 0.0 },
-            },
-            {
-                vars: [
-                    { name: 'Enriched_Uranium', coef: 1.0 },
-                    { name: 'Nuclear_Fuel_Cell', coef: -1.0 },
-                ],
-                bnds: { type: glpk.GLP_LO, lb: 0.0 },
-            },
-            {
-                vars: [
-                    { name: 'Glass', coef: 1.0 },
-                    { name: 'Condenser_Lens', coef: -3.0 },
-                    { name: 'Nano_Wire', coef: -4.0 },
-                    { name: 'Empty_Fuel_Cell', coef: -5.0 },
-                    { name: 'Tank', coef: -2.0 },
-                ],
-                bnds: { type: glpk.GLP_LO, lb: 0.0 },
-            },
-            {
-                vars: [
-                    { name: 'Graphite', coef: 1.0 },
-                    { name: 'Carbon_Fiber', coef: -4.0 },
-                    { name: 'Battery', coef: -8.0 },
-                    { name: 'Steel_STD', coef: -1.0 },
-                    { name: 'Tungsten_Carbide_STD', coef: -1.0 },
-                ],
-                bnds: { type: glpk.GLP_LO, lb: 0.0 },
-            },
-            {
-                vars: [
-                    { name: 'Gyroscope', coef: 1.0 },
-                    { name: 'Stabilizer', coef: -2.0 },
-                    { name: 'Super_Computer_ALT', coef: -1.0 },
-                    { name: 'Turbocharger_ALT', coef: -1.0 },
-                ],
-                bnds: { type: glpk.GLP_LO, lb: 0.0 },
-            },
-            {
-                vars: [
-                    { name: 'Heat_Sink', coef: 1.0 },
-                    { name: 'Computer', coef: -3.0 },
-                    { name: 'Super_Computer_STD', coef: -8.0 },
-                    { name: 'Logic_Circuit_ALT', coef: -1.0 },
-                    { name: 'Turbocharger_ALT', coef: -4.0 },
-                ],
-                bnds: { type: glpk.GLP_LO, lb: 0.0 },
-            },
-            {
-                vars: [
-                    { name: 'Industrial_Frame', coef: 1.0 },
-                    { name: 'Industrial_Frame_STD', coef: -1.0 },
-                    { name: 'Industrial_Frame_ALT', coef: -1.0 },
-                ],
-                bnds: { type: glpk.GLP_FX, ub: 0.0, lb: 0.0 },
-            },
-            {
-                vars: [
-                    { name: 'Industrial_Frame', coef: 1.0 },
-                    { name: 'Energy_Cube', coef: -1.0 },
-                    { name: 'Matter_Compressor', coef: -1.0 },
-                    { name: 'Magnetic_Field_Generator', coef: -1.0 },
-                    { name: 'Super_Computer_ALT', coef: -0.5 },
-                ],
-                bnds: { type: glpk.GLP_LO, lb: 0.0 },
-            },
-            {
-                vars: [
-                    { name: 'Iron_Gear', coef: 1.0 },
-                    { name: 'Iron_Gear_STD', coef: -1.0 },
-                    { name: 'Iron_Gear_ALT', coef: -1.0 },
-                ],
-                bnds: { type: glpk.GLP_FX, ub: 0.0, lb: 0.0 },
-            },
-            {
-                vars: [
-                    { name: 'Iron_Gear', coef: 1.0 },
-                    { name: 'Electric_Motor_STD', coef: -4.0 },
-                    { name: 'Turbocharger_STD', coef: -8.0 },
-                ],
-                bnds: { type: glpk.GLP_LO, lb: 0.0 },
-            },
-            {
-                vars: [
-                    { name: 'Iron_Ingot', coef: 1.0 },
-                    { name: 'Iron_Gear_STD', coef: -2.0 },
-                    { name: 'Iron_Plating', coef: -2.0 },
-                    { name: 'Electromagnet_STD', coef: -2.0 },
-                ],
-                bnds: { type: glpk.GLP_LO, lb: 0.0 },
-            },
-            {
-                vars: [
-                    { name: 'Iron_Plating', coef: 1.0 },
-                    { name: 'Metal_Frame', coef: -4.0 },
-                    { name: 'Rotor_STD', coef: -2.0 },
-                    { name: 'Rotor_ALT', coef: -18.0 },
-                    { name: 'Industrial_Frame_ALT', coef: -10.0 },
-                    { name: 'Logic_Circuit_ALT', coef: -1.0 },
-                ],
-                bnds: { type: glpk.GLP_LO, lb: 0.0 },
-            },
-            {
-                vars: [
-                    { name: 'Logic_Circuit', coef: 1.0 },
-                    { name: 'Logic_Circuit_STD', coef: -1.0 },
-                    { name: 'Logic_Circuit_ALT', coef: -1.0 },
-                ],
-                bnds: { type: glpk.GLP_FX, ub: 0.0, lb: 0.0 },
-            },
-            {
-                vars: [
-                    { name: 'Logic_Circuit', coef: 1.0 },
-                    { name: 'Computer', coef: -3.0 },
-                    { name: 'Turbocharger_STD', coef: -4.0 },
-                ],
-                bnds: { type: glpk.GLP_LO, lb: 0.0 },
-            },
-            {
-                vars: [
-                    { name: 'Magnetic_Field_Generator', coef: 1.0 },
-                    { name: 'Quantum_Entangler', coef: -1.0 },
-                ],
-                bnds: { type: glpk.GLP_LO, lb: 0.0 },
-            },
-            {
-                vars: [
-                    { name: 'Matter_Compressor', coef: 1.0 },
-                    { name: 'Particle_Glue', coef: -0.1 },
-                ],
-                bnds: { type: glpk.GLP_LO, lb: 0.0 },
-            },
-            {
-                vars: [
-                    { name: 'Matter_Duplicator', coef: 1.0 },
-                    { name: 'Earth_Token', coef: -1.0 },
-                ],
-                bnds: { type: glpk.GLP_LO, lb: 0.0 },
-            },
-            {
-                vars: [
-                    { name: 'Metal_Frame', coef: 1.0 },
-                    { name: 'Computer', coef: -1.0 },
-                    { name: 'Industrial_Frame_STD', coef: -2.0 },
-                    { name: 'Electron_Microscope', coef: -2.0 },
-                ],
-                bnds: { type: glpk.GLP_LO, lb: 0.0 },
-            },
-            {
-                vars: [
-                    { name: 'Nano_Wire', coef: 1.0 },
-                    { name: 'Electron_Microscope', coef: -2.0 },
-                    { name: 'Turbocharger_STD', coef: -2.0 },
-                    { name: 'Magnetic_Field_Generator', coef: -10.0 },
-                    { name: 'Electromagnet_ALT', coef: -1.0 / 12.0 },
-                ],
-                bnds: { type: glpk.GLP_LO, lb: 0.0 },
-            },
-            {
-                vars: [
-                    { name: 'Particle_Glue', coef: 1.0 },
-                    { name: 'Matter_Duplicator', coef: -100.0 },
-                ],
-                bnds: { type: glpk.GLP_LO, lb: 0.0 },
-            },
-            {
-                vars: [
-                    { name: 'Quantum_Entangler', coef: 1.0 },
-                    { name: 'Matter_Duplicator', coef: -2.0 },
-                ],
-                bnds: { type: glpk.GLP_LO, lb: 0.0 },
-            },
-            {
-                vars: [
-                    { name: 'Rotor', coef: 1.0 },
-                    { name: 'Rotor_STD', coef: -1.0 },
-                    { name: 'Rotor_ALT', coef: -1.0 },
-                ],
-                bnds: { type: glpk.GLP_FX, ub: 0.0, lb: 0.0 },
-            },
-            {
-                vars: [
-                    { name: 'Rotor', coef: 1.0 },
-                    { name: 'Gyroscope', coef: -2.0 },
-                    { name: 'Electric_Motor_STD', coef: -2.0 },
-                ],
-                bnds: { type: glpk.GLP_LO, lb: 0.0 },
-            },
-            {
-                vars: [
-                    { name: 'Sand', coef: 1.0 },
-                    { name: 'Silicon', coef: -2.0 },
-                    { name: 'Glass', coef: -4.0 },
-                    { name: 'Concrete_STD', coef: -10.0 },
-                ],
-                bnds: { type: glpk.GLP_LO, lb: 0.0 },
-            },
-            {
-                vars: [
-                    { name: 'Silicon', coef: 1.0 },
-                    { name: 'Logic_Circuit_STD', coef: -2.0 },
-                    { name: 'Super_Computer_ALT', coef: -20.0 },
-                ],
-                bnds: { type: glpk.GLP_LO, lb: 0.0 },
-            },
-            {
-                vars: [
-                    { name: 'Stabilizer', coef: 1.0 },
-                    { name: 'Quantum_Entangler', coef: -2.0 },
-                    { name: 'Magnetic_Field_Generator', coef: -1.0 },
-                ],
-                bnds: { type: glpk.GLP_LO, lb: 0.0 },
-            },
-            {
-                vars: [
-                    { name: 'Steel', coef: 1.0 },
-                    { name: 'Steel_STD', coef: -1.0 },
-                    { name: 'Steel_ALT', coef: -1.0 },
-                ],
-                bnds: { type: glpk.GLP_FX, ub: 0.0, lb: 0.0 },
-            },
-            {
-                vars: [
-                    { name: 'Steel', coef: 1.0 },
-                    { name: 'Steel_Rod', coef: -3.0 },
-                    { name: 'Iron_Gear_ALT', coef: -0.125 },
-                    { name: 'Electric_Motor_ALT', coef: -6.0 },
-                    { name: 'Tungsten_Carbide_ALT', coef: -0.5 },
-                    { name: 'Industrial_Frame_ALT', coef: -18.0 },
-                ],
-                bnds: { type: glpk.GLP_LO, lb: 0.0 },
-            },
-            {
-                vars: [
-                    { name: 'Steel_Rod', coef: 1.0 },
-                    { name: 'Rotor_STD', coef: -1.0 },
-                    { name: 'Concrete_STD', coef: -1.0 },
-                    { name: 'Nuclear_Fuel_Cell', coef: -1.0 },
-                    { name: 'Electromagnet_ALT', coef: -1.0 / 12.0 },
-                ],
-                bnds: { type: glpk.GLP_LO, lb: 0.0 },
-            },
-            {
-                vars: [
-                    { name: 'Super_Computer', coef: 1.0 },
-                    { name: 'Super_Computer_STD', coef: -1.0 },
-                    { name: 'Super_Computer_ALT', coef: -1.0 },
-                ],
-                bnds: { type: glpk.GLP_FX, ub: 0.0, lb: 0.0 },
-            },
-            {
-                vars: [
-                    { name: 'Super_Computer', coef: 1.0 },
-                    { name: 'Atomic_Locator', coef: -2.0 },
-                ],
-                bnds: { type: glpk.GLP_LO, lb: 0.0 },
-            },
-            {
-                vars: [
-                    { name: 'Tank', coef: 1.0 },
-                    { name: 'Matter_Compressor', coef: -1.0 },
-                ],
-                bnds: { type: glpk.GLP_LO, lb: 0.0 },
-            },
-            {
-                vars: [
-                    { name: 'Tungsten_Carbide', coef: 1.0 },
-                    { name: 'Tungsten_Carbide_STD', coef: -1.0 },
-                    { name: 'Tungsten_Carbide_ALT', coef: -1.0 },
-                ],
-                bnds: { type: glpk.GLP_FX, ub: 0.0, lb: 0.0 },
-            },
-            {
-                vars: [
-                    { name: 'Tungsten_Carbide', coef: 1.0 },
-                    { name: 'Coupler', coef: -1.0 },
-                    { name: 'Empty_Fuel_Cell', coef: -3.0 },
-                    { name: 'Industrial_Frame_STD', coef: -8.0 },
-                    { name: 'Tank', coef: -4.0 },
-                    { name: 'Turbocharger_ALT', coef: -1.0 },
-                ],
-                bnds: { type: glpk.GLP_LO, lb: 0.0 },
-            },
-            {
-                vars: [
-                    { name: 'Tungsten_Ore', coef: 1.0 },
-                    { name: 'Tungsten_Carbide_STD', coef: -2.0 },
-                    { name: 'Tungsten_Carbide_ALT', coef: -0.5 },
-                ],
-                bnds: { type: glpk.GLP_LO, lb: 0.0 },
-            },
-            {
-                vars: [
-                    { name: 'Turbocharger', coef: 1.0 },
-                    { name: 'Turbocharger_STD', coef: -1.0 },
-                    { name: 'Turbocharger_ALT', coef: -1.0 },
-                ],
-                bnds: { type: glpk.GLP_FX, ub: 0.0, lb: 0.0 },
-            },
-            {
-                vars: [
-                    { name: 'Turbocharger', coef: 1.0 },
-                    { name: 'Super_Computer_STD', coef: -1.0 },
-                    { name: 'Matter_Compressor', coef: -2.0 },
-                ],
-                bnds: { type: glpk.GLP_LO, lb: 0.0 },
-            },
-            {
-                vars: [
-                    { name: 'Wood_Frame', coef: 1.0 },
-                    { name: 'Metal_Frame', coef: -1.0 },
-                    { name: 'Concrete_ALT', coef: -4.0 },
-                ],
-                bnds: { type: glpk.GLP_LO, lb: 0.0 },
-            },
-            {
-                vars: [
-                    { name: 'Wood_Plank', coef: 1.0 },
-                    { name: 'Wood_Frame', coef: -4.0 },
-                ],
-                bnds: { type: glpk.GLP_LO, lb: 0.0 },
-            },
-        ];
-        let all_constraints;
-        if (mode === "max") {
-            if (alt && boost) {
-                all_constraints = general_cons.concat(boost_cons);
-            }
-            else if (alt) {
-                all_constraints = general_cons.concat(non_boost_cons);
-            }
-            else if (boost) {
-                all_constraints = general_cons.concat(boost_cons).concat(non_alt_cons);
-            }
-            else {
-                all_constraints = general_cons.concat(non_boost_cons).concat(non_alt_cons);
-            }
-        }
-        else {
-            all_constraints = (alt) ? general_cons : general_cons.concat(non_alt_cons);
-        }
-        // Solve target
-        let lp_res;
-        const opt = {
-            msglev: glpk.GLP_MSG_OFF
-        };
-        if (mode === "max") {
-            let lp_max = {
-                name: 'LP',
-                objective: {
-                    direction: glpk.GLP_MAX,
-                    vars: [
-                        { name: target_box.value, coef: 1.0 },
-                    ],
-                },
-                subjectTo: all_constraints,
-            };
-            lp_res = await glpk.solve(lp_max, opt);
-        }
-        // Minimize Resources
-        let bound = (mode === "max") ? lp_res.result.z : limit;
-        all_constraints.push({
-            vars: [
-                { name: target_box.value, coef: 1.0 },
-            ],
-            bnds: { type: glpk.GLP_FX, ub: bound, lb: bound },
-        });
-        let lp_min = {
-            name: 'LP',
-            objective: {
-                direction: glpk.GLP_MIN,
-                vars: [
-                    { name: "Resource_Sum", coef: 1.0 },
-                ],
-            },
-            subjectTo: all_constraints,
-        };
-        lp_res = await glpk.solve(lp_min, opt);
-        console.log("Solver finished successfully!");
-        return lp_res.result.vars;
-    }
-};
-//#endregion
 //#region Show functions
 function show_nuc_ratios() {
     const title = document.createElement("p");
@@ -1221,13 +269,13 @@ function show_nuc_ratios() {
         const tdImg = document.createElement("td");
         const img = document.createElement("img");
         img.src = itemToImg(key);
-        img.alt = key.replace(/_/g, " ");
+        img.alt = key.replaceAll("_", " ");
         img.loading = "lazy";
         img.onerror = () => { img.src = itemToImg("unknown"); };
         tdImg.appendChild(img);
         // name cell
         const tdName = document.createElement("td");
-        tdName.textContent = key.replace(/_/g, " ");
+        tdName.textContent = key.replaceAll("_", " ");
         // percent cell
         const tdValue = document.createElement("td");
         tdValue.className = "pct-value";
@@ -1241,30 +289,8 @@ function show_nuc_ratios() {
     }
     output.appendChild(table);
 }
-function get_alt_ratios(all_items) {
-    const npp_items = {
-        Steel: 2.25,
-        Tungsten_Carbide: 1.5
-    };
-    const npps = (all_items["Nuclear_Fuel_Cell"] || 0) / SeedSolver.NPP_RATE;
-    const split = split_box.checked && boost_box.checked;
-    const result = {};
-    for (const key of ALT_RECIPES) {
-        let alt = all_items[key + "_ALT"] ?? 0;
-        if (split) {
-            alt -= npps * (npp_items[key] ?? 0);
-        }
-        const std = all_items[key + "_STD"] ?? 0;
-        const total = alt + std;
-        const value = (total <= 0) ? 0 : (alt / total);
-        const percent = Math.max(0, Math.min(1, value));
-        result[key] = percent;
-    }
-    return result;
-}
 async function show_recipe_ratios() {
-    const limit = (limit_box.value === "Goal") ? Number(goal.value) : extractor_values();
-    const all_items = await SeedSolver.solve(limit, alt_box.checked, boost_box.checked, gen2_box.checked);
+    const all_items = await get_solution();
     const split = split_box.checked && boost_box.checked;
     output.replaceChildren();
     const title = document.createElement("p");
@@ -1280,20 +306,20 @@ async function show_recipe_ratios() {
     }
     const table = document.createElement("table");
     table.className = "items ratios";
-    const alt_ratios = get_alt_ratios(all_items);
+    const alt_ratios = get_alt_ratios(all_items, split);
     for (const [key, percent] of Object.entries(alt_ratios)) {
         const tr = document.createElement("tr");
         // icon cell
         const tdImg = document.createElement("td");
         const img = document.createElement("img");
         img.src = itemToImg(key);
-        img.alt = key.replace(/_/g, " ");
+        img.alt = key.replaceAll("_", " ");
         img.loading = "lazy";
         img.onerror = () => { img.src = itemToImg("unknown"); };
         tdImg.appendChild(img);
         // name cell
         const tdName = document.createElement("td");
-        tdName.textContent = key.replace(/_/g, " ");
+        tdName.textContent = key.replaceAll("_", " ");
         // percent cell
         const tdValue = document.createElement("td");
         tdValue.className = "pct-value";
@@ -1307,24 +333,8 @@ async function show_recipe_ratios() {
     }
     output.appendChild(table);
 }
-function get_resource_boosts(all_items, resources) {
-    const result = {};
-    for (const res of RESOURCES) {
-        const key = res.key; // e.g. "Wood_Log" etc.
-        const name = key.replace(/_/g, " ");
-        const base = key.split("_")[0]; // keep your original mapping
-        const total = resources[res.i] ?? 0;
-        const coalExt = all_items[base + "_Coal_Ex"] ?? 0;
-        const nucExt = all_items[base + "_Nuc_Ex"] ?? 0;
-        const coalPer = (total <= 0) ? 0 : Math.max(0, Math.min(1, coalExt / total));
-        const nucPer = (total <= 0) ? 0 : Math.max(0, Math.min(1, nucExt / total));
-        result[key] = [coalPer, nucPer, total];
-    }
-    return result;
-}
 async function show_resource_boosts() {
-    const resources = extractor_values();
-    const all_items = await SeedSolver.solve(resources, alt_box.checked, boost_box.checked, gen2_box.checked);
+    const all_items = await get_solution();
     output.replaceChildren();
     const title = document.createElement("p");
     title.textContent = "Resource Boosts:";
@@ -1339,11 +349,9 @@ async function show_resource_boosts() {
     thead.appendChild(headRow);
     table.appendChild(thead);
     const tbody = document.createElement("tbody");
-    const res_boosts = get_resource_boosts(all_items, resources);
-    for (const [key, [coalPer, nucPer, total]] of Object.entries(res_boosts)) {
-        const coalExt = total * coalPer;
-        const nucExt = total * nucPer;
-        const name = key.replace(/_/g, " ");
+    const res_boosts = get_resource_boosts(all_items);
+    for (const [key, [coal_per, nuc_per, coal_ex, nuc_ex]] of Object.entries(res_boosts)) {
+        const name = key.replaceAll("_", " ");
         // Row 1: icon + name (spans all columns)
         const r1 = document.createElement("tr");
         r1.className = "res-title";
@@ -1369,10 +377,10 @@ async function show_resource_boosts() {
         tdLabelPct.textContent = "percent";
         const tdCoalPct = document.createElement("td");
         tdCoalPct.className = "num";
-        tdCoalPct.textContent = round_sig(coalPer * 100, 6);
+        tdCoalPct.textContent = round_sig((coal_per || 0) * 100, 6);
         const tdNucPct = document.createElement("td");
         tdNucPct.className = "num";
-        tdNucPct.textContent = round_sig(nucPer * 100, 6);
+        tdNucPct.textContent = round_sig((nuc_per || 0) * 100, 6);
         r2.append(tdLabelPct, tdCoalPct, tdNucPct);
         // Row 3: extractors
         const r3 = document.createElement("tr");
@@ -1382,10 +390,10 @@ async function show_resource_boosts() {
         tdLabelEx.textContent = "extractors";
         const tdCoalEx = document.createElement("td");
         tdCoalEx.className = "num";
-        tdCoalEx.textContent = round_sig(coalExt, 6);
+        tdCoalEx.textContent = round_sig(coal_ex || 0, 6);
         const tdNucEx = document.createElement("td");
         tdNucEx.className = "num";
-        tdNucEx.textContent = round_sig(nucExt, 6);
+        tdNucEx.textContent = round_sig(nuc_ex || 0, 6);
         r3.append(tdLabelEx, tdCoalEx, tdNucEx);
         // Optional spacer row between resources
         const spacer = document.createElement("tr");
@@ -1409,7 +417,8 @@ function createSpacerRow(colSpan) {
 }
 function adjust_item_dict(item_dict, divide, show_zero) {
     let keys = Object.keys(item_dict);
-    const first_keys = [target_box.value];
+    const target_name = target_box.value;
+    const first_keys = [target_name];
     for (const res of RESOURCES) {
         first_keys.push(res.key);
     }
@@ -1421,7 +430,12 @@ function adjust_item_dict(item_dict, divide, show_zero) {
     keys = first_keys.concat(last_keys);
     let new_dict = {};
     for (const [index, key] of keys.entries()) {
-        let value = divide ? item_dict[key] / item_dict[keys[0]] : item_dict[key];
+        const amount = item_dict[key] || 0;
+        const target_amount = item_dict[target_name];
+        if (target_amount === undefined) {
+            throw new Error("Target not found!");
+        }
+        const value = divide ? amount / target_amount : amount;
         if (!show_zero && index > 7 && value <= 0) {
             continue;
         }
@@ -1445,14 +459,14 @@ function show_result(raw_item_dict, divide, show_zero) {
         img.onerror = () => { img.src = itemToImg("unknown"); };
         tdImg.appendChild(img);
         const tdName = document.createElement("td");
-        tdName.textContent = name.replace(/_/g, ' ');
+        tdName.textContent = name.replaceAll("_", ' ');
         const tdAmount = document.createElement("td");
         tdAmount.textContent = round_sig(amount, 6);
         tr.append(tdImg, tdName, tdAmount);
         table.appendChild(tr);
     }
-    table.insertBefore(createSpacerRow(3), table.rows[1]);
-    table.insertBefore(createSpacerRow(3), table.rows[9]);
+    table.insertBefore(createSpacerRow(3), table.rows[1] || null);
+    table.insertBefore(createSpacerRow(3), table.rows[9] || null);
     output.appendChild(table);
 }
 //#endregion
@@ -1481,8 +495,10 @@ function show_warning(message) {
     const warnings = document.querySelectorAll(".warning-message");
     if (warnings.length > 0) {
         const lastWarning = warnings[warnings.length - 1]; // Get last warning
-        const lastWarningRect = lastWarning.getBoundingClientRect(); // Get position
-        warning.style.top = `${lastWarningRect.bottom / 1.5 - 14.28454342 + 5}px`; // Adjust position
+        if (lastWarning) {
+            const lastWarningRect = lastWarning.getBoundingClientRect(); // Get position
+            warning.style.top = `${lastWarningRect.bottom / 1.5 - 14.28454342 + 5}px`; // Adjust position
+        }
     }
     // Add class for identification
     warning.classList.add("warning-message");
@@ -1507,9 +523,9 @@ function proper(str, separator = '') {
     }
 }
 function extractor_values() {
-    const result = [];
+    const result = {};
     for (const res of RESOURCES) {
-        result.push(Number(res.field.value) || 0);
+        result[res.key] = Number(res.field.value);
     }
     return result;
 }
@@ -1539,7 +555,7 @@ function get_url_param(target_key) {
     for (const url_var of url_vars) {
         const [key, value] = url_var.split('=');
         if (key === target_key) {
-            return value;
+            return value || "";
         }
     }
     return "";
@@ -1559,13 +575,15 @@ function update_url_param(param, value) {
     }
     const ordered_params = new URLSearchParams();
     for (let key of order) {
-        if (params.has(key)) {
-            ordered_params.set(key, params.get(key));
+        const param_key = params.get(key);
+        if (param_key) {
+            ordered_params.set(key, param_key);
         }
     }
     window.history.replaceState({}, '', `${url.origin}${url.pathname}?${ordered_params.toString()}`);
 }
 function paste_insert(event) {
+    // @ts-expect-error
     const data = event.clipboardData || window.clipboardData; // other browsers || safari
     if (data) {
         const values = data.getData('text/plain').split(/\s+/);
@@ -1581,10 +599,13 @@ function paste_insert(event) {
         }
     }
 }
-function makeFakeSelect({ realSelect, fakeSelect, withImages = false }) {
+function makeFakeSelect(realSelect, fakeSelect, withImages = false) {
     const selectedBtn = fakeSelect.querySelector(".selected");
     const optionsDiv = fakeSelect.querySelector(".options");
     function renderSelected(option) {
+        if (!(selectedBtn)) {
+            return;
+        }
         if (withImages) {
             selectedBtn.innerHTML = `
                 <img src="${itemToImg(option.value)}" alt="">
@@ -1594,6 +615,9 @@ function makeFakeSelect({ realSelect, fakeSelect, withImages = false }) {
         else {
             selectedBtn.textContent = option.textContent;
         }
+    }
+    if (!(selectedBtn) || !(optionsDiv)) {
+        return;
     }
     optionsDiv.replaceChildren();
     for (const option of realSelect.options) {
@@ -1621,15 +645,23 @@ function makeFakeSelect({ realSelect, fakeSelect, withImages = false }) {
         }
     }
     // toggle dropdown
-    selectedBtn.addEventListener("click", e => {
+    selectedBtn.addEventListener("click", (e) => {
         e.stopPropagation();
         fakeSelect.classList.toggle("open");
     });
     // close when clicking outside
     document.addEventListener("click", e => {
+        if (!(e.target instanceof Node))
+            return;
         if (!fakeSelect.contains(e.target)) {
             fakeSelect.classList.remove("open");
         }
+    });
+    realSelect.addEventListener("change", () => {
+        const option = realSelect.selectedOptions[0];
+        if (!option)
+            return;
+        renderSelected(option);
     });
 }
 //#endregion
@@ -1658,11 +690,13 @@ if (url_item) {
 }
 for (let setting of ["alt", "boost", "gen2"]) {
     let url_param = get_url_param(setting);
-    if (url_param != 0) {
+    if (url_param !== "0" && url_param !== "") {
         if (url_param === "1") {
             let checkbox = document.getElementById(`${setting}_box`);
-            checkbox.checked = true;
-            checkbox.dispatchEvent(new Event("change"));
+            if (checkbox instanceof HTMLInputElement) {
+                checkbox.checked = true;
+                checkbox.dispatchEvent(new Event("change"));
+            }
         }
         else {
             show_warning(`${setting} should be 0 or 1!`);
@@ -1670,8 +704,7 @@ for (let setting of ["alt", "boost", "gen2"]) {
     }
 }
 if ([...RESOURCES].every(res => Number(res.field.value) > 0) || Number(goal.value) > 0) {
-    let limit = (limit_box.value === "Goal") ? Number(goal.value) : extractor_values();
-    show_result(await SeedSolver.solve(limit, alt_box.checked, boost_box.checked, gen2_box.checked), ratio_box.checked, zero_box.checked);
+    show_result(await get_solution(), ratio_box.checked, zero_box.checked);
 }
 //#endregion
 //# sourceMappingURL=script.js.map
