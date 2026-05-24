@@ -6,73 +6,62 @@
     <title>Alt Calculator</title>
 
     <link rel="icon" type="image/x-icon" href="favicon.ico" />
-    <link rel="stylesheet" href="src/styles.css?v=1.0.0" />
+    <link rel="stylesheet" href="src/styles.css?v=1.0.1" />
 </head>
 
 <body>
     <h1>Builderment<br />Alt Calculator</h1>
 
     <p class="label">Select Solver Mode:</p>
-    <select id="limit_box" class="sr-only" aria-hidden="true" tabindex="-1">
-        <option value="Resource" selected>Resource Limited</option>
-        <option value="Goal">Goal Limited</option>
-    </select>
-
-    <div class="fake-select small" id="fake_limit_box">
-        <button class="selected" type="button"></button>
-        <div class="options" role="listbox"></div>
-    </div>
-
+    <button id="mode_btn">Resource Limited</button>
 
     <div class="spacer"></div>
     <div class="spacer"></div>
 
 
-    <div class="form-container" id="resource_fields">
+    <div class="input-container" id="resource_fields">
         <p>Available Extractors:</p>
 
-        <div class="input-row">
-            <button class="small-button" id="clear_button1" type="button">Clear Fields</button>
-        </div>
+        <button class="small-button" id="clear_button1" type="button">Clear Fields</button>
 
         <div class="input-row">
             <label class="res_label" for="wood">Wood</label>
-            <img class="res-icon" src="assets/Wood_Log.png" alt="Wood">
+            <img class="res-icon" src="assets/Wood_Log.png">
             <input class="resource" type="number" id="wood" min="0" />
         </div>
         <div class="input-row">
             <label class="res_label" for="stone">Stone</label>
-            <img class="res-icon" src="assets/Stone.png" alt="Stone">
+            <img class="res-icon" src="assets/Stone.png">
             <input class="resource" type="number" id="stone" min="0" />
         </div>
         <div class="input-row">
             <label class="res_label" for="iron">Iron</label>
-            <img class="res-icon" src="assets/Iron_Ore.png" alt="Iron">
+            <img class="res-icon" src="assets/Iron_Ore.png">
             <input class="resource" type="number" id="iron" min="0" />
         </div>
         <div class="input-row">
             <label class="res_label" for="copper">Copper</label>
-            <img class="res-icon" src="assets/Copper_Ore.png" alt="Copper">
+            <img class="res-icon" src="assets/Copper_Ore.png">
             <input class="resource" type="number" id="copper" min="0" />
         </div>
         <div class="input-row">
             <label class="res_label" for="coal">Coal</label>
-            <img class="res-icon" src="assets/Coal.png" alt="Coal">
+            <img class="res-icon" src="assets/Coal.png">
             <input class="resource" type="number" id="coal" min="0" />
         </div>
         <div class="input-row">
             <label class="res_label" for="wolframite">Wolframite</label>
-            <img class="res-icon" src="assets/Wolframite.png" alt="Wolframite">
+            <img class="res-icon" src="assets/Wolframite.png">
             <input class="resource" type="number" id="wolframite" min="0" />
         </div>
         <div class="input-row">
             <label class="res_label" for="uranium">Uranium</label>
-            <img class="res-icon" src="assets/Uranium_Ore.png" alt="Uranium">
+            <img class="res-icon" src="assets/Uranium_Ore.png">
             <input class="resource" type="number" id="uranium" min="0" />
         </div>
     </div>
 
-    <div class="form-container hidden" id="goal_fields">
+    <div class="input-container hidden" id="goal_fields">
         <p>Item Amounts:</p>
 
         <div class="input-row">
@@ -90,7 +79,6 @@
 
     <p class="label">Calculate:</p>
 
-    <!-- Keep real select for logic, but hide it in CSS (not inline) -->
     <select id="target_box" class="sr-only" aria-hidden="true" tabindex="-1">
         <option value="Atomic_Locator">Atomic Locator</option>
         <option value="Battery">Battery</option>
@@ -152,63 +140,57 @@
         <div class="options" role="listbox"></div>
     </div>
 
-    <div class="form-container">
-        <div class="input-row">
-            <label class="container">
-                Alt&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                <input type="checkbox" id="alt_box" />
-                <span class="checkmark"></span>
-            </label>
+    <div class="checkbox-container">
+        <label class="container">
+            Alt
+            <input type="checkbox" id="alt_box" />
+            <span class="checkmark"></span>
+        </label>
+        <label class="container" id="boost_container">
+            Boost
+            <input type="checkbox" id="boost_box" />
+            <span class="checkmark"></span>
+        </label>
 
-            <label class="container" id="boost_field">
-                Boost
-                <input type="checkbox" id="boost_box" />
-                <span class="checkmark"></span>
-            </label>
-        </div>
+        <label class="container">
+            Gen 2.0
+            <input type="checkbox" id="gen2_box" />
+            <span class="checkmark"></span>
+        </label>
 
-        <div class="input-row" id="gen2_field">
-            <label class="container">
-                Gen 2.0
-                <input type="checkbox" id="gen2_box" />
-                <span class="checkmark"></span>
-            </label>
-        </div>
+        <br><p class="label">Show:</p><br>
 
-        <p class="label">Show:</p>
-        <div class="input-row">
-            <label class="container">
-                Zeros
-                <input type="checkbox" id="zero_box" checked />
-                <span class="checkmark"></span>
-            </label>
+        <label class="container">
+            Zeros
+            <input type="checkbox" id="zero_box" checked />
+            <span class="checkmark"></span>
+        </label>
 
-            <label class="container">
-                Ratios
-                <input type="checkbox" id="ratio_box" />
-                <span class="checkmark"></span>
-            </label>
-        </div>
-        <div class="input-row">
-            <label class="container">
-                Split Alt Ratios
-                <input type="checkbox" id="split_box" checked />
-                <span class="checkmark"></span>
-            </label>
-        </div>
+        <label class="container">
+            Ratios
+            <input type="checkbox" id="ratio_box" />
+            <span class="checkmark"></span>
+        </label>
     </div>
+    <label class="container">
+        Split Alt Ratios
+        <input type="checkbox" id="split_box" checked />
+        <span class="checkmark"></span>
+    </label>
 
-    <button id="score_button" type="button">Score</button>
-    <button id="alt_recipe_button" class="hidden" type="button">Alt Recipes</button>
-    <button id="res_boosts_button" class="hidden" type="button">Resource Boosts</button>
-    <button id="bulk_button" type="button">Copy Settings String</button>
-    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="https://human-crow.github.io/tree_test/">Tree Viewer</a><br>
+    <div class="button-container">
+        <button id="score_button" type="button">Score</button>
+        <button id="alt_recipe_button" class="hidden" type="button">Alt Recipes</button>
+        <button id="res_boosts_button" class="hidden" type="button">Resource Boosts</button>
+        <button id="bulk_button" type="button">Copy Settings String</button>
+        <a href="https://human-crow.github.io/tree_test/">Tree Viewer</a>
+    </div>
     <div id="table-container">
         <pre id="boost_note" class="note"></pre>
         <div class="spacer"></div>
         <div id="output"></div>
     </div>
 
-    <script type="module" src="dist/script.js?v=1.0.2"></script>
+    <script type="module" src="dist/script.js?v=1.0.3"></script>
 </body>
 </html>

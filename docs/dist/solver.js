@@ -11,7 +11,7 @@ export const EX_NPP = [44, 15.7];
 export const EX_CPP = [11, 4];
 export const EX_NPP_UR = [8.5, 3.9];
 export const EX_CPP_UR = [6.5, 3.0];
-const RAW_RESOURCES = new Set([
+export const RAW_RESOURCES = new Set([
     "Wood_Log",
     "Stone",
     "Iron_Ore",
@@ -20,7 +20,7 @@ const RAW_RESOURCES = new Set([
     "Wolframite",
     "Uranium_Ore"
 ]);
-const ALT_RECIPES = new Set([
+export const ALT_RECIPES = new Set([
     "Concrete", "Copper_Wire", "Electric_Motor", "Electromagnet",
     "Industrial_Frame", "Iron_Gear", "Logic_Circuit", "Rotor", "Steel",
     "Super_Computer", "Tungsten_Carbide", "Turbocharger"

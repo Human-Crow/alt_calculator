@@ -1,5 +1,5 @@
 // cd alt_calculator; if ($?) { npx tsc --watch }
-import { resource_solver, goal_solver, get_resource_boosts, get_alt_ratios } from './solver.js';
+import { resource_solver, goal_solver, get_resource_boosts, get_alt_ratios, RAW_RESOURCES } from './solver.js';
 //#region Constants
 const clear_button1 = document.getElementById("clear_button1");
 const clear_button2 = document.getElementById("clear_button2");
@@ -7,7 +7,7 @@ const score_button = document.getElementById("score_button");
 const alt_recipe_button = document.getElementById("alt_recipe_button");
 const res_boosts_button = document.getElementById("res_boosts_button");
 const bulk_button = document.getElementById("bulk_button");
-const limit_box = document.getElementById("limit_box");
+const mode_btn = document.getElementById("mode_btn");
 const target_box = document.getElementById("target_box");
 const split_box = document.getElementById("split_box");
 const alt_box = document.getElementById("alt_box");
@@ -17,70 +17,78 @@ const boost_note = document.getElementById("boost_note");
 const zero_box = document.getElementById("zero_box");
 const ratio_box = document.getElementById("ratio_box");
 const fake_target_box = document.getElementById("fake_target_box");
-const fake_limit_box = document.getElementById("fake_limit_box");
+const boost_container = document.getElementById("boost_container");
 const resource_fields = document.getElementById("resource_fields");
 const goal_fields = document.getElementById("goal_fields");
-const boost_field = document.getElementById("boost_field");
-const gen2_field = document.getElementById("gen2_field");
 const goal = document.getElementById("goal");
-const wood = document.getElementById("wood");
-const stone = document.getElementById("stone");
-const iron = document.getElementById("iron");
-const copper = document.getElementById("copper");
-const coal = document.getElementById("coal");
-const wolframite = document.getElementById("wolframite");
-const uranium = document.getElementById("uranium");
+const extractor_inputs = {};
+document.querySelectorAll("#resource_fields input")
+    .forEach(input => { extractor_inputs[input.id] = input; });
 const output = document.getElementById("output");
-const RESOURCES = [
-    { key: "Wood_Log", i: 0, field: wood, url: "wd" },
-    { key: "Stone", i: 1, field: stone, url: "st" },
-    { key: "Iron_Ore", i: 2, field: iron, url: "ir" },
-    { key: "Copper_Ore", i: 3, field: copper, url: "cp" },
-    { key: "Coal", i: 4, field: coal, url: "cl" },
-    { key: "Wolframite", i: 5, field: wolframite, url: "wr" },
-    { key: "Uranium_Ore", i: 6, field: uranium, url: "ur" }
-];
+const url_map = {
+    wood: "wd",
+    stone: "st",
+    iron: "ir",
+    copper: "cp",
+    coal: "cl",
+    wolframite: "wr",
+    uranium: "ur"
+};
+const resource_map = {
+    wood: "Wood_Log",
+    stone: "Stone",
+    iron: "Iron_Ore",
+    copper: "Copper_Ore",
+    coal: "Coal",
+    wolframite: "Wolframite",
+    uranium: "Uranium_Ore"
+};
 //#endregion
 //#region Element functions
 makeFakeSelect(target_box, fake_target_box, true);
-makeFakeSelect(limit_box, fake_limit_box, false);
-for (const res of RESOURCES) {
-    res.field.onchange = function () {
+for (const elem of Object.values(extractor_inputs)) {
+    elem.onchange = function () {
         output.replaceChildren();
-        update_url_param(res.url, res.field.value);
+        const url_id = url_map[elem.id];
+        if (!url_id) {
+            throw new Error("Could not find url id!");
+        }
+        update_url_param(url_id, elem.value);
         if (goal.value != "") {
             goal.value = "";
             update_url_param("goal", "");
         }
     };
 }
-wood.onpaste = function (ev) { wood.blur(); paste_insert(ev); };
 goal.onchange = function () {
     output.replaceChildren();
     update_url_param("goal", goal.value);
-    for (const res of RESOURCES) {
-        if (res.field.value != "") {
-            res.field.value = "";
-            update_url_param(res.url, "");
+    for (const elem of Object.values(extractor_inputs)) {
+        if (elem.value != "") {
+            elem.value = "";
+            const url_id = url_map[elem.id];
+            if (!url_id) {
+                throw new Error("Could not find url id!");
+            }
+            update_url_param(url_id, "");
         }
     }
 };
-function hide_boost_elems() {
-    const isGoal = (limit_box.value === "Goal");
-    res_boosts_button.classList.toggle("hidden", !boost_box.checked || isGoal);
-    boost_note.textContent = (boost_box.checked && limit_box.value === "Resource")
+function toggle_boost_elems() {
+    res_boosts_button.classList.toggle("hidden", !boost_box.checked || is_mode_goal);
+    boost_note.textContent = (boost_box.checked && !is_mode_goal)
         ? "The calculations are\nbased on an approximation"
         : "";
 }
-limit_box.onchange = function () {
+let is_mode_goal = false;
+mode_btn.onclick = function () {
+    is_mode_goal = !is_mode_goal;
+    mode_btn.textContent = `${is_mode_goal ? "Goal" : "Resource"} Limited`;
     output.replaceChildren();
-    const isGoal = (limit_box.value === "Goal");
-    // Show one section, hide the other
-    resource_fields.classList.toggle("hidden", isGoal);
-    goal_fields.classList.toggle("hidden", !isGoal);
-    if (isGoal) {
-        hide_boost_elems();
-    }
+    resource_fields.classList.toggle("hidden", is_mode_goal);
+    goal_fields.classList.toggle("hidden", !is_mode_goal);
+    boost_container.classList.toggle("visible", is_mode_goal);
+    toggle_boost_elems();
 };
 target_box.onchange = function () {
     output.replaceChildren();
@@ -93,7 +101,7 @@ alt_box.onchange = function () {
 };
 boost_box.onchange = function () {
     output.replaceChildren();
-    hide_boost_elems();
+    toggle_boost_elems();
     update_url_param("boost", boost_box.checked ? "1" : "0");
 };
 gen2_box.onchange = function () {
@@ -104,13 +112,12 @@ alt_recipe_button.onclick = function () { show_recipe_ratios(); };
 res_boosts_button.onclick = function () { show_resource_boosts(); };
 async function get_solution() {
     let solution;
-    if (limit_box.value === "Goal") {
+    if (is_mode_goal) {
         solution = await goal_solver(target_box.value, Number(goal.value), alt_box.checked);
     }
     else {
         solution = await resource_solver(target_box.value, extractor_values(), alt_box.checked, boost_box.checked, gen2_box.checked);
     }
-    console.log(solution);
     return solution;
 }
 score_button.onclick = async function () {
@@ -119,13 +126,13 @@ score_button.onclick = async function () {
 };
 let clear_state = false;
 document.onclick = function (event) {
-    let clear_button = (limit_box.value === "Goal") ? clear_button2 : clear_button1;
+    let clear_button = (is_mode_goal) ? clear_button2 : clear_button1;
     clear_button.innerText = "Clear Fields";
     if (event.target === clear_button) {
         if (clear_state) {
-            for (const res of RESOURCES) {
-                res.field.value = "";
-                res.field.dispatchEvent(new Event("change"));
+            for (const elem of Object.values(extractor_inputs)) {
+                elem.value = "";
+                elem.dispatchEvent(new Event("change"));
             }
             goal.value = "";
             goal.dispatchEvent(new Event("change"));
@@ -142,7 +149,7 @@ document.onclick = function (event) {
 async function get_bulk() {
     split_box.checked = true;
     const id_map = {
-        mode: "limit_box",
+        mode: "mode_btn",
         item: "target_box",
         goal: "goal",
         gen2: "gen2_box",
@@ -200,6 +207,9 @@ async function get_bulk() {
         }
         else if (el instanceof HTMLSelectElement) {
             value = el.value;
+        }
+        else if (el instanceof HTMLButtonElement) {
+            value = el.textContent.split(" ")[0];
         }
         else {
             continue;
@@ -268,10 +278,10 @@ function show_nuc_ratios() {
         // icon cell
         const tdImg = document.createElement("td");
         const img = document.createElement("img");
-        img.src = itemToImg(key);
+        img.src = get_item_src(key);
         img.alt = key.replaceAll("_", " ");
         img.loading = "lazy";
-        img.onerror = () => { img.src = itemToImg("unknown"); };
+        img.onerror = () => { img.src = get_item_src("unknown"); };
         tdImg.appendChild(img);
         // name cell
         const tdName = document.createElement("td");
@@ -312,10 +322,10 @@ async function show_recipe_ratios() {
         // icon cell
         const tdImg = document.createElement("td");
         const img = document.createElement("img");
-        img.src = itemToImg(key);
+        img.src = get_item_src(key);
         img.alt = key.replaceAll("_", " ");
         img.loading = "lazy";
-        img.onerror = () => { img.src = itemToImg("unknown"); };
+        img.onerror = () => { img.src = get_item_src("unknown"); };
         tdImg.appendChild(img);
         // name cell
         const tdName = document.createElement("td");
@@ -360,10 +370,10 @@ async function show_resource_boosts() {
         const wrap = document.createElement("div");
         wrap.className = "res-head";
         const img = document.createElement("img");
-        img.src = itemToImg(key);
+        img.src = get_item_src(key);
         img.alt = name;
         img.loading = "lazy";
-        img.onerror = () => { img.src = itemToImg("unknown"); };
+        img.onerror = () => { img.src = get_item_src("unknown"); };
         const span = document.createElement("span");
         span.textContent = name;
         wrap.append(img, span);
@@ -419,8 +429,8 @@ function adjust_item_dict(item_dict, divide, show_zero) {
     let keys = Object.keys(item_dict);
     const target_name = target_box.value;
     const first_keys = [target_name];
-    for (const res of RESOURCES) {
-        first_keys.push(res.key);
+    for (const res of RAW_RESOURCES) {
+        first_keys.push(res);
     }
     let last_keys = keys.filter(item => !first_keys.includes(item) && !item.endsWith('_Ex') && item != "Coal_RAW" && item != "Resource_Sum");
     if (!alt_box.checked) {
@@ -453,10 +463,10 @@ function show_result(raw_item_dict, divide, show_zero) {
         const tdImg = document.createElement("td");
         const img = document.createElement("img");
         img.className = "item-img";
-        img.src = itemToImg(name.replace(/_(ALT|STD)$/, ""));
+        img.src = get_item_src(name.replace(/_(ALT|STD)$/, ""));
         img.alt = name;
         img.loading = "lazy";
-        img.onerror = () => { img.src = itemToImg("unknown"); };
+        img.onerror = () => { img.src = get_item_src("unknown"); };
         tdImg.appendChild(img);
         const tdName = document.createElement("td");
         tdName.textContent = name.replaceAll("_", ' ');
@@ -471,7 +481,7 @@ function show_result(raw_item_dict, divide, show_zero) {
 }
 //#endregion
 //#region Other functions
-function itemToImg(value) {
+function get_item_src(value) {
     return "assets/" + value + ".png";
 }
 function show_warning(message) {
@@ -524,8 +534,9 @@ function proper(str, separator = '') {
 }
 function extractor_values() {
     const result = {};
-    for (const res of RESOURCES) {
-        result[res.key] = Number(res.field.value);
+    for (const [elem_id, name] of Object.entries(resource_map)) {
+        const elem = extractor_inputs[elem_id];
+        result[name] = Number(elem?.value || 0);
     }
     return result;
 }
@@ -567,7 +578,7 @@ function update_url_param(param, value) {
         return;
     }
     const order = ["alt", "boost", "gen2", "item", "goal", "wd", "st", "ir", "cp", "cl", "wr", "ur"];
-    if (value) {
+    if (value && value !== "0") {
         params.set(param, value);
     }
     else {
@@ -582,23 +593,6 @@ function update_url_param(param, value) {
     }
     window.history.replaceState({}, '', `${url.origin}${url.pathname}?${ordered_params.toString()}`);
 }
-function paste_insert(event) {
-    // @ts-expect-error
-    const data = event.clipboardData || window.clipboardData; // other browsers || safari
-    if (data) {
-        const values = data.getData('text/plain').split(/\s+/);
-        if (values.length > 1) {
-            for (const res of RESOURCES) {
-                res.field.value = values[res.i] || "";
-                res.field.dispatchEvent(new Event("change"));
-            }
-        }
-        else {
-            wood.value = values[0];
-            wood.dispatchEvent(new Event("change"));
-        }
-    }
-}
 function makeFakeSelect(realSelect, fakeSelect, withImages = false) {
     const selectedBtn = fakeSelect.querySelector(".selected");
     const optionsDiv = fakeSelect.querySelector(".options");
@@ -608,7 +602,7 @@ function makeFakeSelect(realSelect, fakeSelect, withImages = false) {
         }
         if (withImages) {
             selectedBtn.innerHTML = `
-                <img src="${itemToImg(option.value)}" alt="">
+                <img src="${get_item_src(option.value)}" alt="">
                 <span>${option.textContent}</span>
             `;
         }
@@ -625,7 +619,7 @@ function makeFakeSelect(realSelect, fakeSelect, withImages = false) {
         div.className = "option";
         if (withImages) {
             div.innerHTML = `
-                <img src="${itemToImg(option.value)}" alt="">
+                <img src="${get_item_src(option.value)}" alt="">
                 <span>${option.textContent}</span>
             `;
         }
@@ -668,21 +662,29 @@ function makeFakeSelect(realSelect, fakeSelect, withImages = false) {
 //#region Run when loaded
 goal.value = get_url_param("goal");
 if (goal.value === "") {
-    for (const res of RESOURCES) {
-        res.field.value = get_url_param(res.url);
+    for (const elem of Object.values(extractor_inputs)) {
+        const url_id = url_map[elem.id];
+        if (!url_id) {
+            throw new Error("Could not find url id!");
+        }
+        elem.value = get_url_param(url_id);
     }
 }
 else {
-    limit_box.value = "Goal";
-    limit_box.dispatchEvent(new Event("change"));
-    for (const res of RESOURCES) {
-        update_url_param(res.url, "");
+    mode_btn.dispatchEvent(new Event("click"));
+    for (const elem of Object.values(extractor_inputs)) {
+        const url_id = url_map[elem.id];
+        if (!url_id) {
+            throw new Error("Could not find url id!");
+        }
+        update_url_param(url_id, "");
     }
 }
 let url_item = proper(get_url_param("item"), '_');
 if (url_item) {
     if ([...target_box.options].some(option => option.value === url_item)) {
         target_box.value = url_item;
+        target_box.dispatchEvent(new Event("change"));
     }
     else {
         show_warning(`"${url_item}" is not a valid item!`);
@@ -703,7 +705,7 @@ for (let setting of ["alt", "boost", "gen2"]) {
         }
     }
 }
-if ([...RESOURCES].every(res => Number(res.field.value) > 0) || Number(goal.value) > 0) {
+if (Object.values(extractor_inputs).every(elem => Number(elem.value) > 0) || Number(goal.value) > 0) {
     show_result(await get_solution(), ratio_box.checked, zero_box.checked);
 }
 //#endregion

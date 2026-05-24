@@ -10,16 +10,22 @@
     --text: #ffffff;
     --warn: rgb(255, 110, 110);
 
-    --radius: 8px;
-    --radius-sm: 6px;
+    --radius: 12px;
+    --radius-sm: 9px;
 
-    --btn-h: 25px;
-    --btn-w: 200px;
+    --btn-h: 38px;
+    --btn-w: 300px;
 
-    --small-btn-h: 20px;
-    --small-btn-w: 75px;
+    --small-btn-h: 30px;
+    --small-btn-w: 110px;
 
-    --input-max-w: 50px;
+    --input-max-w: 75px;
+    --input-h: 25px;
+
+    --img-size: 30px;
+
+    --font-size: 22px;
+    --small-font-size: 16px;
 }
 
 body {
@@ -27,30 +33,31 @@ body {
     color: var(--text);
     font-family: sans-serif;
     touch-action: manipulation;
-
-    /* your “zoom” layout */
-    transform: scale(1.5);
-    transform-origin: top left;
-    width: 65%;
+    padding: 10px;
+    font-size: var(--font-size);
 }
 
 h1 {
     color: var(--text);
+    font-size: 45px;
 }
 
 p {
     color: var(--text);
-    margin: 0 0 5px 0;
+    margin: 0 0 8px 0;
+    font-size: var(--font-size);
 }
 
 a {
     color: #2196f3;
+    font-size: var(--font-size);
 }
 
 pre {
     color: var(--text);
     white-space: pre-wrap;
     margin: 0;
+    font-size: 19px;
 }
 
 .label {
@@ -61,8 +68,11 @@ pre {
 .hidden {
     display: none !important;
 }
+.visible {
+    visibility: hidden;
+}
 .spacer {
-    height: 10px;
+    height: 15px;
 }
 
 /* Hide element but keep it in DOM for JS.
@@ -84,8 +94,24 @@ pre {
    Form Layout
 ========================= */
 
-.form-container {
-    max-width: 170px;
+.checkbox-container {
+    display: grid;
+    grid-template-columns: repeat(2, max-content);
+    column-gap: 60px;
+    row-gap: 0px;
+    align-items: center;
+}
+
+.button-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+
+    display: inline-flex;
+}
+
+.input-container {
+    max-width: var(--btn-w);
 }
 
 .input-row {
@@ -96,22 +122,24 @@ pre {
 .res_label {
     flex: 1;
     text-align: right;
-    padding-right: 5px;
+    padding-right: 8px;
 }
 
 .resource {
     flex: 2;
     max-width: var(--input-max-w);
+    height: var(--input-h);
     color: var(--text);
     background-color: var(--bg);
-    border: 1px solid var(--border);
+    border: 2px solid var(--border);
     border-radius: var(--radius);
+    font-size: 20px;
 }
 
 .res-icon {
-    width: 20px;
-    height: 20px;
-    margin-right: 5px;
+    width: var(--img-size);
+    height: var(--img-size);
+    margin-right: 8px;
     flex-shrink: 0; /* prevents flex from stretching it */
 }
 
@@ -123,13 +151,13 @@ button {
     display: block;
     color: var(--text);
     background-color: var(--bg);
-    border: 1px solid var(--border);
+    border: 2px solid var(--border);
     border-radius: var(--radius);
     width: var(--btn-w);
     height: var(--btn-h);
-    margin-bottom: 5px;
+    margin-bottom: 6px;
+    font-size: var(--font-size);
     cursor: pointer; /* always, not only on hover */
-    font-size: 14px;
 }
 
 button:hover {
@@ -140,7 +168,7 @@ button:hover {
     color: var(--warn);
     width: var(--small-btn-w);
     height: var(--small-btn-h);
-    font-size: 11px;
+    font-size: var(--small-font-size);
     padding: 0;
 }
 
@@ -159,8 +187,7 @@ input:hover {
 select {
     background-color: var(--panel);
     color: var(--text);
-    padding: 6px;
-    font-size: 14px;
+    font-size: var(--font-size);
     border: none;
     cursor: pointer;
     border-radius: var(--radius-sm);
@@ -172,7 +199,7 @@ select:hover {
 
 /* Keep your old scrollbar styling for native selects */
 select::-webkit-scrollbar {
-    width: 12px;
+    width: 18px;
 }
 select::-webkit-scrollbar-track {
     background: var(--panel);
@@ -185,7 +212,7 @@ select::-webkit-scrollbar-thumb {
 option {
     background-color: var(--bg);
     color: var(--text);
-    font-size: 14px;
+    font-size: var(--font-size);
 }
 
 /* =========================
@@ -195,12 +222,12 @@ option {
 .container {
     display: block;
     position: relative;
-    line-height: 20px;
-    padding-left: 25px;
-    margin: 2px 40px 4px 0;
+    line-height: 30px;
+    padding-left: 38px;
+    margin: 3px 6px 6px 0;
     user-select: none;
     color: var(--text);
-    cursor: pointer; /* important: label is what you hover */
+    cursor: pointer;
 }
 
 .container input {
@@ -214,8 +241,8 @@ option {
     position: absolute;
     top: 0;
     left: 0;
-    height: 20px;
-    width: 20px;
+    height: 30px;
+    width: 30px;
     border-radius: var(--radius-sm);
     background-color: var(--panel);
 }
@@ -228,25 +255,24 @@ option {
     background-color: #2196f3;
 }
 
-.checkmark:after {
+.checkmark::after {
     content: "";
     position: absolute;
+    inset: 0;
+
+    background-color: white;
+
+    -webkit-mask: url("../assets/checkmark.svg") no-repeat center;
+    -webkit-mask-size: 90%;
+
+    mask: url("../assets/checkmark.svg") no-repeat center;
+    mask-size: 90%;
+
     display: none;
 }
 
-.container input:checked ~ .checkmark:after {
+.container input:checked ~ .checkmark::after {
     display: block;
-}
-
-/* the “tick” */
-.container .checkmark:after {
-    left: 7px;
-    top: 3px;
-    width: 4px;
-    height: 9px;
-    border: solid white;
-    border-width: 0 3px 3px 0;
-    transform: rotate(45deg);
 }
 
 /* =========================
@@ -254,17 +280,17 @@ option {
 ========================= */
 
 #table-container {
-    min-height: 400px; /* prevents page collapsing when empty */
+    min-height: 600px; /* prevents page collapsing when empty */
 }
 
 .items {
     color: var(--text);
-    font-size: 14px;
+    font-size: var(--font-size);
 }
 
 .items img {
-    width: 20px;
-    height: 20px;
+    width: var(--img-size);
+    height: var(--img-size);
 }
 
 .note {
@@ -278,7 +304,7 @@ option {
 
 .items.boosts3 th,
 .items.boosts3 td {
-    padding: 2px 6px;
+    padding: 3px 9px;
     vertical-align: middle;
 }
 
@@ -291,7 +317,7 @@ option {
 .items.boosts3 .res-head {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 12px;
 }
 
 .items.boosts3 .sub-label {
@@ -300,7 +326,7 @@ option {
 }
 
 .items.boosts3 .res-gap td {
-    padding: 6px 0;
+    padding: 9px 0;
 }
 
 /* =========================
@@ -309,14 +335,12 @@ option {
 
 .fake-select {
     position: relative;
-    margin-bottom: 5px;
-}
-.fake-select.small {
-    width: 150px;
+    margin-bottom: 6px;
 }
 
+
 .fake-select.large {
-    width: 200px;
+    width: var(--btn-w);
 }
 
 /* Make the fake “selected” control look like your other buttons,
@@ -324,11 +348,15 @@ option {
 .fake-select .selected {
     width: 100%;
     height: var(--btn-h);
-    margin-bottom: 0;              /* avoids double spacing inside container */
+    margin-bottom: 0;              /* avoids double spacing inside container */ 
+}
+.fake-select .selected, .fake-select .option {
+    padding: 6px 10px;
     display: flex;
-    align-items: center;        /* vertical */
-    font-size: 14px;
+    align-items: center;
     gap: 8px;
+    cursor: pointer;
+    font-size: var(--font-size);
 }
 .fake-select.small .selected {
     justify-content: center;    /* horizontal */
@@ -337,8 +365,8 @@ option {
 
 /* icons inside dropdown + selected */
 .fake-select img {
-    width: 20px;
-    height: 20px;
+    width: var(--img-size);
+    height: var(--img-size);
 }
 
 /* dropdown panel */
@@ -346,30 +374,22 @@ option {
     display: none;
     position: absolute;
     width: 100%;
-    margin-top: 4px;
+    margin-top: 8px;
 
     background: var(--bg);
-    border: 1px solid var(--border);
+    border: 2px solid var(--border);
     border-radius: var(--radius);
 
-    max-height: 300px;
+    max-height: 450px;
     overflow-y: auto;
     z-index: 10;
 
     color: var(--text);
-    font-size: 14px;
+    font-size: var(--font-size);
 }
 
 .fake-select.open .options {
     display: block;
-}
-
-.fake-select .option {
-    padding: 6px 10px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    cursor: pointer;
 }
 
 .fake-select .option:hover {
@@ -377,7 +397,9 @@ option {
 }
 
 /* scrollbar for the custom dropdown */
-.fake-select .options::-webkit-scrollbar { width: 8px; }
+.fake-select .options::-webkit-scrollbar {
+    width: 12px;
+}
 .fake-select .options::-webkit-scrollbar-track {
     background: var(--panel);
     border-radius: var(--radius-sm);
