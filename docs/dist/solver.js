@@ -1038,18 +1038,10 @@ export function get_resource_boosts(all_items) {
     }
     return result;
 }
-export function get_alt_ratios(all_items, split) {
-    const npp_items = {
-        Steel: 2.25,
-        Tungsten_Carbide: 1.5
-    };
-    const npps = (all_items["Nuclear_Power_Plant"] || 0);
+export function get_alt_ratios(all_items) {
     const result = {};
     for (const name of ALT_RECIPES) {
         let alt = all_items[name + "_ALT"] ?? 0;
-        if (split) {
-            alt -= npps * (npp_items[name] ?? 0);
-        }
         const std = all_items[name + "_STD"] ?? 0;
         const total = alt + std;
         const value = (total <= 0) ? 0 : (alt / total);

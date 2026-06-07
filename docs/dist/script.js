@@ -9,7 +9,6 @@ const res_boosts_button = document.getElementById("res_boosts_button");
 const bulk_button = document.getElementById("bulk_button");
 const mode_btn = document.getElementById("mode_btn");
 const target_box = document.getElementById("target_box");
-const split_box = document.getElementById("split_box");
 const alt_box = document.getElementById("alt_box");
 const boost_box = document.getElementById("boost_box");
 const gen2_box = document.getElementById("gen2_box");
@@ -218,8 +217,7 @@ async function get_bulk() {
         result.push(`${short_id}:${value}`);
     }
     const all_items = await get_solution();
-    const split = split_box.checked && boost_box.checked;
-    const alt_ratios = get_alt_ratios(all_items, split);
+    const alt_ratios = get_alt_ratios(all_items);
     for (const [short_id, alt_id] of Object.entries(alt_map)) {
         const value = alt_ratios[alt_id] || 0;
         result.push(`${short_id}:${value}`);
@@ -251,58 +249,16 @@ bulk_button.onclick = async function copy_bulk() {
 };
 //#endregion
 //#region Show functions
-function show_nuc_ratios() {
-    const title = document.createElement("p");
-    title.textContent = "For Nuclear Fuel Cells:";
-    title.style.margin = "24px 0 6px 0";
-    output.appendChild(title);
-    const table = document.createElement("table");
-    table.className = "items ratios";
-    for (const key of ["Steel", "Tungsten_Carbide"]) {
-        const percent = 1;
-        const tr = document.createElement("tr");
-        // icon cell
-        const tdImg = document.createElement("td");
-        const img = document.createElement("img");
-        img.src = get_item_src(key);
-        img.alt = key.replaceAll("_", " ");
-        img.loading = "lazy";
-        img.onerror = () => { img.src = get_item_src("unknown"); };
-        tdImg.appendChild(img);
-        // name cell
-        const tdName = document.createElement("td");
-        tdName.textContent = key.replaceAll("_", " ");
-        // percent cell
-        const tdValue = document.createElement("td");
-        tdValue.className = "pct-value";
-        tdValue.textContent = round_sig(percent * 100, 6);
-        // percent sign cell
-        const tdSymbol = document.createElement("td");
-        tdSymbol.className = "pct-symbol";
-        tdSymbol.textContent = "%";
-        tr.append(tdImg, tdName, tdValue, tdSymbol);
-        table.appendChild(tr);
-    }
-    output.appendChild(table);
-}
 async function show_recipe_ratios() {
     const all_items = await get_solution();
-    const split = split_box.checked && boost_box.checked;
     output.replaceChildren();
     const title = document.createElement("p");
-    title.textContent = `Used ${split ? "" : "Total "}Alt recipes:`;
+    title.textContent = '`Used Alt recipes:';
     title.style.margin = "0 0 6px 0";
     output.appendChild(title);
-    if (split) {
-        show_nuc_ratios();
-        const title = document.createElement("p");
-        title.textContent = `For ${target_box.value.replaceAll("_", " ")}s:`;
-        title.style.margin = "24px 0 6px 0";
-        output.appendChild(title);
-    }
     const table = document.createElement("table");
     table.className = "items ratios";
-    const alt_ratios = get_alt_ratios(all_items, split);
+    const alt_ratios = get_alt_ratios(all_items);
     for (const [key, percent] of Object.entries(alt_ratios)) {
         const tr = document.createElement("tr");
         // icon cell
