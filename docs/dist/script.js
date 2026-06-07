@@ -223,43 +223,30 @@ async function get_bulk() {
     const alt_ratios = get_alt_ratios(all_items, split);
     for (const [short_id, alt_id] of Object.entries(alt_map)) {
         const value = alt_ratios[alt_id] || 0;
-        if (value > 0) {
-            result.push(`${short_id}:${value}`);
-        }
+        result.push(`${short_id}:${value}`);
     }
     const cpp = all_items["Coal_Power_Plant"] || 0;
-    if (cpp) {
-        result.push(`c_pp:${cpp}`);
-    }
+    result.push(`c_pp:${cpp}`);
     const npp = all_items["Nuclear_Power_Plant"] || 0;
-    if (npp) {
-        result.push(`n_pp:${npp}`);
-    }
+    result.push(`n_pp:${npp}`);
     const res_boosts = get_resource_boosts(all_items);
     for (const [key, [coal_per, nuc_per]] of Object.entries(res_boosts)) {
         const keys = boost_map[key];
         if (!keys) {
             continue;
         }
-        if (coal_per) {
-            result.push(`${keys[0]}:${coal_per}`);
-        }
-        if (nuc_per) {
-            result.push(`${keys[1]}:${nuc_per}`);
-        }
+        result.push(`${keys[0]}:${coal_per}`);
+        result.push(`${keys[1]}:${nuc_per}`);
     }
     return result.join(",");
 }
 bulk_button.onclick = async function copy_bulk() {
     const bulk = await get_bulk();
     navigator.clipboard.writeText(bulk).then(() => {
-        const btn = document.querySelector("button[onclick='copy_bulk()']");
-        if (!btn)
-            return;
-        const old = btn.textContent;
-        btn.textContent = "Copied!";
+        const old = bulk_button.textContent;
+        bulk_button.textContent = "Copied!";
         setTimeout(() => {
-            btn.textContent = old;
+            bulk_button.textContent = old;
         }, 1000);
     });
 };
