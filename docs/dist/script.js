@@ -147,7 +147,6 @@ document.onclick = function (event) {
     }
 };
 async function get_bulk() {
-    split_box.checked = true;
     const id_map = {
         mode: "mode_btn",
         item: "target_box",
