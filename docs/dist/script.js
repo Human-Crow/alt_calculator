@@ -249,37 +249,41 @@ bulk_button.onclick = async function copy_bulk() {
 };
 //#endregion
 //#region Show functions
+function create_item_image(item) {
+    const img = document.createElement("img");
+    img.className = "item img";
+    img.src = get_item_src(item);
+    img.loading = "lazy";
+    img.onerror = () => { img.src = get_item_src("unknown"); };
+    return img;
+}
+function td(text = "", className = "") {
+    const cell = document.createElement("td");
+    if (className) {
+        cell.className = className;
+    }
+    if (text) {
+        cell.textContent = text;
+    }
+    return cell;
+}
 async function show_recipe_ratios() {
     const all_items = await get_solution();
     output.replaceChildren();
     const title = document.createElement("p");
-    title.textContent = '`Used Alt recipes:';
-    title.style.margin = "0 0 6px 0";
+    title.textContent = 'Used Alt recipes:';
     output.appendChild(title);
     const table = document.createElement("table");
-    table.className = "items ratios";
+    table.className = "item ratios";
     const alt_ratios = get_alt_ratios(all_items);
     for (const [key, percent] of Object.entries(alt_ratios)) {
+        const name = key.replaceAll("_", " ");
         const tr = document.createElement("tr");
-        // icon cell
-        const tdImg = document.createElement("td");
-        const img = document.createElement("img");
-        img.src = get_item_src(key);
-        img.alt = key.replaceAll("_", " ");
-        img.loading = "lazy";
-        img.onerror = () => { img.src = get_item_src("unknown"); };
-        tdImg.appendChild(img);
-        // name cell
-        const tdName = document.createElement("td");
-        tdName.textContent = key.replaceAll("_", " ");
-        // percent cell
-        const tdValue = document.createElement("td");
-        tdValue.className = "pct-value";
-        tdValue.textContent = round_sig(percent * 100, 6);
-        // percent sign cell
-        const tdSymbol = document.createElement("td");
-        tdSymbol.className = "pct-symbol";
-        tdSymbol.textContent = "%";
+        const tdImg = td();
+        tdImg.appendChild(create_item_image(key));
+        const tdName = td(name);
+        const tdValue = td(round_sig(percent * 100, 6), "pct-value");
+        const tdSymbol = td("%", "pct-symbol");
         tr.append(tdImg, tdName, tdValue, tdSymbol);
         table.appendChild(tr);
     }
@@ -290,11 +294,10 @@ async function show_resource_boosts() {
     output.replaceChildren();
     const title = document.createElement("p");
     title.textContent = "Resource Boosts:";
-    title.style.margin = "0 0 6px 0";
     output.appendChild(title);
     const table = document.createElement("table");
-    table.className = "items boosts3";
-    // Optional: small header for the two columns
+    table.className = "item boosts";
+    // Small header for the two columns
     const thead = document.createElement("thead");
     const headRow = document.createElement("tr");
     headRow.innerHTML = `<th></th><th class="num">Coal</th><th class="num">Nuclear</th>`;
@@ -307,47 +310,30 @@ async function show_resource_boosts() {
         // Row 1: icon + name (spans all columns)
         const r1 = document.createElement("tr");
         r1.className = "res-title";
-        const tdTitle = document.createElement("td");
+        const tdTitle = td();
         tdTitle.colSpan = 3;
         const wrap = document.createElement("div");
         wrap.className = "res-head";
-        const img = document.createElement("img");
-        img.src = get_item_src(key);
-        img.alt = name;
-        img.loading = "lazy";
-        img.onerror = () => { img.src = get_item_src("unknown"); };
         const span = document.createElement("span");
         span.textContent = name;
-        wrap.append(img, span);
+        wrap.append(create_item_image(key), span);
         tdTitle.appendChild(wrap);
         r1.appendChild(tdTitle);
         // Row 2: percentages
         const r2 = document.createElement("tr");
         r2.className = "res-sub";
-        const tdLabelPct = document.createElement("td");
-        tdLabelPct.className = "sub-label";
-        tdLabelPct.textContent = "percent";
-        const tdCoalPct = document.createElement("td");
-        tdCoalPct.className = "num";
-        tdCoalPct.textContent = round_sig((coal_per || 0) * 100, 6);
-        const tdNucPct = document.createElement("td");
-        tdNucPct.className = "num";
-        tdNucPct.textContent = round_sig((nuc_per || 0) * 100, 6);
+        const tdLabelPct = td("percent", "sub-label");
+        const tdCoalPct = td(round_sig((coal_per || 0) * 100, 6), "num");
+        const tdNucPct = td(round_sig((nuc_per || 0) * 100, 6), "num");
         r2.append(tdLabelPct, tdCoalPct, tdNucPct);
         // Row 3: extractors
         const r3 = document.createElement("tr");
         r3.className = "res-sub";
-        const tdLabelEx = document.createElement("td");
-        tdLabelEx.className = "sub-label";
-        tdLabelEx.textContent = "extractors";
-        const tdCoalEx = document.createElement("td");
-        tdCoalEx.className = "num";
-        tdCoalEx.textContent = round_sig(coal_ex || 0, 6);
-        const tdNucEx = document.createElement("td");
-        tdNucEx.className = "num";
-        tdNucEx.textContent = round_sig(nuc_ex || 0, 6);
+        const tdLabelEx = td("extractors", "sub-label");
+        const tdCoalEx = td(round_sig(coal_ex || 0, 6), "num");
+        const tdNucEx = td(round_sig(nuc_ex || 0, 6), "num");
         r3.append(tdLabelEx, tdCoalEx, tdNucEx);
-        // Optional spacer row between resources
+        // Spacer row between resources
         const spacer = document.createElement("tr");
         spacer.className = "res-gap";
         const spacerTd = document.createElement("td");
@@ -399,21 +385,13 @@ function show_result(raw_item_dict, divide, show_zero) {
     const item_dict = adjust_item_dict(raw_item_dict, divide, show_zero);
     output.replaceChildren();
     const table = document.createElement("table");
-    table.className = "items";
+    table.className = "item";
     for (const [name, amount] of Object.entries(item_dict)) {
         const tr = document.createElement("tr");
         const tdImg = document.createElement("td");
-        const img = document.createElement("img");
-        img.className = "item-img";
-        img.src = get_item_src(name.replace(/_(ALT|STD)$/, ""));
-        img.alt = name;
-        img.loading = "lazy";
-        img.onerror = () => { img.src = get_item_src("unknown"); };
-        tdImg.appendChild(img);
-        const tdName = document.createElement("td");
-        tdName.textContent = name.replaceAll("_", ' ');
-        const tdAmount = document.createElement("td");
-        tdAmount.textContent = round_sig(amount, 6);
+        tdImg.appendChild(create_item_image(name.replace(/_(ALT|STD)$/, "")));
+        const tdName = td(name.replaceAll("_", ' '));
+        const tdAmount = td(round_sig(amount, 6));
         tr.append(tdImg, tdName, tdAmount);
         table.appendChild(tr);
     }

@@ -6,8 +6,8 @@
     display: inline-flex;
 }
 
-
-button {
+.small-button,
+.norm-button {
     display: block;
     color: var(--text);
     background-color: var(--bg);
@@ -20,7 +20,8 @@ button {
     cursor: pointer;
 }
 
-button:hover {
+.small-button:hover,
+.norm-button:hover {
     background-color: var(--panel-hover);
 }
 

@@ -12,8 +12,8 @@
 <body>
     <h1>Builderment<br />Alt Calculator</h1>
 
-    <p class="label">Select Solver Mode:</p>
-    <button id="mode_btn">Resource Limited</button>
+    <p class="header-label">Select Solver Mode:</p>
+    <button class="norm-button" id="mode_btn">Resource Limited</button>
 
     <div class="spacer"></div>
     <div class="spacer"></div>
@@ -25,39 +25,39 @@
         <button class="small-button" id="clear_button1" type="button">Clear Fields</button>
 
         <div class="input-row">
-            <label class="res_label" for="wood">Wood</label>
-            <img class="res-icon" src="assets/Wood_Log.png">
-            <input class="resource" type="number" id="wood" min="0" />
+            <label class="input-label" for="wood">Wood</label>
+            <img class="input-icon" src="assets/Wood_Log.png">
+            <input class="input-field" type="number" id="wood" min="0" />
         </div>
         <div class="input-row">
-            <label class="res_label" for="stone">Stone</label>
-            <img class="res-icon" src="assets/Stone.png">
-            <input class="resource" type="number" id="stone" min="0" />
+            <label class="input-label" for="stone">Stone</label>
+            <img class="input-icon" src="assets/Stone.png">
+            <input class="input-field" type="number" id="stone" min="0" />
         </div>
         <div class="input-row">
-            <label class="res_label" for="iron">Iron</label>
-            <img class="res-icon" src="assets/Iron_Ore.png">
-            <input class="resource" type="number" id="iron" min="0" />
+            <label class="input-label" for="iron">Iron</label>
+            <img class="input-icon" src="assets/Iron_Ore.png">
+            <input class="input-field" type="number" id="iron" min="0" />
         </div>
         <div class="input-row">
-            <label class="res_label" for="copper">Copper</label>
-            <img class="res-icon" src="assets/Copper_Ore.png">
-            <input class="resource" type="number" id="copper" min="0" />
+            <label class="input-label" for="copper">Copper</label>
+            <img class="input-icon" src="assets/Copper_Ore.png">
+            <input class="input-field" type="number" id="copper" min="0" />
         </div>
         <div class="input-row">
-            <label class="res_label" for="coal">Coal</label>
-            <img class="res-icon" src="assets/Coal.png">
-            <input class="resource" type="number" id="coal" min="0" />
+            <label class="input-label" for="coal">Coal</label>
+            <img class="input-icon" src="assets/Coal.png">
+            <input class="input-field" type="number" id="coal" min="0" />
         </div>
         <div class="input-row">
-            <label class="res_label" for="wolframite">Wolframite</label>
-            <img class="res-icon" src="assets/Wolframite.png">
-            <input class="resource" type="number" id="wolframite" min="0" />
+            <label class="input-label" for="wolframite">Wolframite</label>
+            <img class="input-icon" src="assets/Wolframite.png">
+            <input class="input-field" type="number" id="wolframite" min="0" />
         </div>
         <div class="input-row">
-            <label class="res_label" for="uranium">Uranium</label>
-            <img class="res-icon" src="assets/Uranium_Ore.png">
-            <input class="resource" type="number" id="uranium" min="0" />
+            <label class="input-label" for="uranium">Uranium</label>
+            <img class="input-icon" src="assets/Uranium_Ore.png">
+            <input class="input-field" type="number" id="uranium" min="0" />
         </div>
     </div>
 
@@ -69,104 +69,104 @@
         </div>
 
         <div class="input-row">
-            <label class="res_label" for="goal">Amount</label>
-            <input class="resource" type="number" id="goal" min="0" />
+            <label class="input-label" for="goal">Amount</label>
+            <input class="input-field" type="number" id="goal" min="0" />
         </div>
     </div>
 
     <div class="spacer"></div>
     <div class="spacer"></div>
 
-    <p class="label">Calculate:</p>
+    <p class="header-label">Calculate:</p>
 
-    <select id="target_box" class="sr-only" aria-hidden="true" tabindex="-1">
-        <option value="Atomic_Locator">Atomic Locator</option>
-        <option value="Battery">Battery</option>
-        <option value="Carbon_Fiber">Carbon Fiber</option>
-        <option value="Coal">Coal</option>
-        <option value="Computer">Computer</option>
-        <option value="Concrete">Concrete</option>
-        <option value="Condenser_Lens">Condenser Lens</option>
-        <option value="Copper_Ingot">Copper Ingot</option>
-        <option value="Copper_Ore">Copper Ore</option>
-        <option value="Copper_Wire">Copper Wire</option>
-        <option value="Coupler">Coupler</option>
-        <option value="Earth_Token" selected>Earth Token</option>
-        <option value="Electric_Motor">Electric Motor</option>
-        <option value="Electromagnet">Electromagnet</option>
-        <option value="Electron_Microscope">Electron Microscope</option>
-        <option value="Empty_Fuel_Cell">Empty Fuel Cell</option>
-        <option value="Energy_Cube">Energy Cube</option>
-        <option value="Enriched_Uranium">Enriched Uranium</option>
-        <option value="Glass">Glass</option>
-        <option value="Graphite">Graphite</option>
-        <option value="Gyroscope">Gyroscope</option>
-        <option value="Heat_Sink">Heat Sink</option>
-        <option value="Industrial_Frame">Industrial Frame</option>
-        <option value="Iron_Gear">Iron Gear</option>
-        <option value="Iron_Ingot">Iron Ingot</option>
-        <option value="Iron_Ore">Iron Ore</option>
-        <option value="Iron_Plating">Iron Plating</option>
-        <option value="Logic_Circuit">Logic Circuit</option>
-        <option value="Magnetic_Field_Generator">Magnetic Field Generator</option>
-        <option value="Matter_Compressor">Matter Compressor</option>
-        <option value="Matter_Duplicator">Matter Duplicator</option>
-        <option value="Metal_Frame">Metal Frame</option>
-        <option value="Nano_Wire">Nano Wire</option>
-        <option value="Nuclear_Fuel_Cell">Nuclear Fuel Cell</option>
-        <option value="Particle_Glue">Particle Glue</option>
-        <option value="Quantum_Entangler">Quantum Entangler</option>
-        <option value="Rotor">Rotor</option>
-        <option value="Sand">Sand</option>
-        <option value="Silicon">Silicon</option>
-        <option value="Stabilizer">Stabilizer</option>
-        <option value="Steel">Steel</option>
-        <option value="Steel_Rod">Steel Rod</option>
-        <option value="Stone">Stone</option>
-        <option value="Super_Computer">Super Computer</option>
-        <option value="Tank">Tank</option>
-        <option value="Tungsten_Carbide">Tungsten Carbide</option>
-        <option value="Tungsten_Ore">Tungsten Ore</option>
-        <option value="Turbocharger">Turbocharger</option>
-        <option value="Uranium_Ore">Uranium Ore</option>
-        <option value="Wolframite">Wolframite</option>
-        <option value="Wood_Frame">Wood Frame</option>
-        <option value="Wood_Log">Wood Log</option>
-        <option value="Wood_Plank">Wood Plank</option>
+    <select id="target_box" class="select sr-only" aria-hidden="true" tabindex="-1">
+        <option class="select-option" value="Atomic_Locator">Atomic Locator</option>
+        <option class="select-option" value="Battery">Battery</option>
+        <option class="select-option" value="Carbon_Fiber">Carbon Fiber</option>
+        <option class="select-option" value="Coal">Coal</option>
+        <option class="select-option" value="Computer">Computer</option>
+        <option class="select-option" value="Concrete">Concrete</option>
+        <option class="select-option" value="Condenser_Lens">Condenser Lens</option>
+        <option class="select-option" value="Copper_Ingot">Copper Ingot</option>
+        <option class="select-option" value="Copper_Ore">Copper Ore</option>
+        <option class="select-option" value="Copper_Wire">Copper Wire</option>
+        <option class="select-option" value="Coupler">Coupler</option>
+        <option class="select-option" value="Earth_Token" selected>Earth Token</option>
+        <option class="select-option" value="Electric_Motor">Electric Motor</option>
+        <option class="select-option" value="Electromagnet">Electromagnet</option>
+        <option class="select-option" value="Electron_Microscope">Electron Microscope</option>
+        <option class="select-option" value="Empty_Fuel_Cell">Empty Fuel Cell</option>
+        <option class="select-option" value="Energy_Cube">Energy Cube</option>
+        <option class="select-option" value="Enriched_Uranium">Enriched Uranium</option>
+        <option class="select-option" value="Glass">Glass</option>
+        <option class="select-option" value="Graphite">Graphite</option>
+        <option class="select-option" value="Gyroscope">Gyroscope</option>
+        <option class="select-option" value="Heat_Sink">Heat Sink</option>
+        <option class="select-option" value="Industrial_Frame">Industrial Frame</option>
+        <option class="select-option" value="Iron_Gear">Iron Gear</option>
+        <option class="select-option" value="Iron_Ingot">Iron Ingot</option>
+        <option class="select-option" value="Iron_Ore">Iron Ore</option>
+        <option class="select-option" value="Iron_Plating">Iron Plating</option>
+        <option class="select-option" value="Logic_Circuit">Logic Circuit</option>
+        <option class="select-option" value="Magnetic_Field_Generator">Magnetic Field Generator</option>
+        <option class="select-option" value="Matter_Compressor">Matter Compressor</option>
+        <option class="select-option" value="Matter_Duplicator">Matter Duplicator</option>
+        <option class="select-option" value="Metal_Frame">Metal Frame</option>
+        <option class="select-option" value="Nano_Wire">Nano Wire</option>
+        <option class="select-option" value="Nuclear_Fuel_Cell">Nuclear Fuel Cell</option>
+        <option class="select-option" value="Particle_Glue">Particle Glue</option>
+        <option class="select-option" value="Quantum_Entangler">Quantum Entangler</option>
+        <option class="select-option" value="Rotor">Rotor</option>
+        <option class="select-option" value="Sand">Sand</option>
+        <option class="select-option" value="Silicon">Silicon</option>
+        <option class="select-option" value="Stabilizer">Stabilizer</option>
+        <option class="select-option" value="Steel">Steel</option>
+        <option class="select-option" value="Steel_Rod">Steel Rod</option>
+        <option class="select-option" value="Stone">Stone</option>
+        <option class="select-option" value="Super_Computer">Super Computer</option>
+        <option class="select-option" value="Tank">Tank</option>
+        <option class="select-option" value="Tungsten_Carbide">Tungsten Carbide</option>
+        <option class="select-option" value="Tungsten_Ore">Tungsten Ore</option>
+        <option class="select-option" value="Turbocharger">Turbocharger</option>
+        <option class="select-option" value="Uranium_Ore">Uranium Ore</option>
+        <option class="select-option" value="Wolframite">Wolframite</option>
+        <option class="select-option" value="Wood_Frame">Wood Frame</option>
+        <option class="select-option" value="Wood_Log">Wood Log</option>
+        <option class="select-option" value="Wood_Plank">Wood Plank</option>
     </select>
 
     <div class="fake-select large" id="fake_target_box">
-        <button class="selected" type="button"></button>
+        <button class="norm-button selected" type="button"></button>
         <div class="options" role="listbox"></div>
     </div>
 
     <div class="checkbox-container">
-        <label class="container">
+        <label class="check-label-container">
             Alt
             <input type="checkbox" id="alt_box" />
             <span class="checkmark"></span>
         </label>
-        <label class="container" id="boost_container">
+        <label class="check-label-container" id="boost_container">
             Boost
             <input type="checkbox" id="boost_box" />
             <span class="checkmark"></span>
         </label>
 
-        <label class="container">
+        <label class="check-label-container">
             Gen 2.0
             <input type="checkbox" id="gen2_box" />
             <span class="checkmark"></span>
         </label>
 
-        <br><p class="label">Show:</p><br>
+        <br><p class="header-label">Show:</p><br>
 
-        <label class="container">
+        <label class="check-label-container">
             Zeros
             <input type="checkbox" id="zero_box" checked />
             <span class="checkmark"></span>
         </label>
 
-        <label class="container">
+        <label class="check-label-container">
             Ratios
             <input type="checkbox" id="ratio_box" />
             <span class="checkmark"></span>
@@ -174,13 +174,13 @@
     </div>
 
     <div class="button-container">
-        <button id="score_button" type="button">Score</button>
-        <button id="alt_recipe_button" class="hidden" type="button">Alt Recipes</button>
-        <button id="res_boosts_button" class="hidden" type="button">Resource Boosts</button>
-        <button id="bulk_button" type="button">Copy Settings String</button>
+        <button id="score_button" class="norm-button" type="button">Score</button>
+        <button id="alt_recipe_button" class="norm-button hidden" type="button">Alt Recipes</button>
+        <button id="res_boosts_button" class="norm-button hidden" type="button">Resource Boosts</button>
+        <button id="bulk_button" class="norm-button" type="button">Copy Settings String</button>
         <a href="https://human-crow.github.io/tree_test/">Tree Viewer</a>
     </div>
-    <div id="table-container">
+    <div id="table-container" class="table-container">
         <pre id="boost_note" class="note"></pre>
         <div class="spacer"></div>
         <div id="output"></div>

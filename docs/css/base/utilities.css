@@ -21,3 +21,7 @@
     white-space: nowrap;
     border: 0;
 }
+
+.header-label {
+    margin: 0;
+}

@@ -1,4 +1,4 @@
-select {
+.select {
     background-color: var(--panel);
     color: var(--text);
     font-size: var(--font-size);
@@ -7,22 +7,22 @@ select {
     border-radius: var(--radius-sm);
 }
 
-select:hover {
+.select:hover {
     background-color: var(--panel-hover);
 }
 
-select::-webkit-scrollbar {
+.select::-webkit-scrollbar {
     width: 18px;
 }
-select::-webkit-scrollbar-track {
+.select::-webkit-scrollbar-track {
     background: var(--panel);
 }
-select::-webkit-scrollbar-thumb {
+.select::-webkit-scrollbar-thumb {
     background: var(--text);
     border-radius: var(--radius-sm);
 }
 
-option {
+.select-option {
     background-color: var(--bg);
     color: var(--text);
     font-size: var(--font-size);

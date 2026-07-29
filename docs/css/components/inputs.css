@@ -1,7 +1,3 @@
-.label {
-    margin: 0;
-}
-
 .input-container {
     max-width: var(--btn-w);
 }
@@ -11,13 +7,13 @@
     align-items: center;
 }
 
-.res_label {
+.input-label {
     flex: 1;
     text-align: right;
     padding-right: 8px;
 }
 
-.resource {
+.input-field {
     flex: 2;
     max-width: var(--input-max-w);
     height: var(--input-h);
@@ -28,13 +24,13 @@
     font-size: 20px;
 }
 
-.res-icon {
+.input-icon {
     width: var(--img-size);
     height: var(--img-size);
     margin-right: 8px;
     flex-shrink: 0;
 }
 
-input:hover {
+.input-field:hover {
     background-color: var(--panel-hover);
 }

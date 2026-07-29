@@ -7,7 +7,7 @@
 }
 
 
-.container {
+.check-label-container {
     display: block;
     position: relative;
     line-height: 30px;
@@ -18,7 +18,7 @@
     cursor: pointer;
 }
 
-.container input {
+.check-label-container input {
     position: absolute;
     opacity: 0;
     height: 0;
@@ -35,11 +35,11 @@
     background-color: var(--panel);
 }
 
-.container:hover input ~ .checkmark {
+.check-label-container:hover input ~ .checkmark {
     background-color: var(--panel-hover);
 }
 
-.container input:checked ~ .checkmark {
+.check-label-container input:checked ~ .checkmark {
     background-color: #2196f3;
 }
 
@@ -59,6 +59,6 @@
     display: none;
 }
 
-.container input:checked ~ .checkmark::after {
+.check-label-container input:checked ~ .checkmark::after {
     display: block;
 }
