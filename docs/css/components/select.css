@@ -1,0 +1,29 @@
+select {
+    background-color: var(--panel);
+    color: var(--text);
+    font-size: var(--font-size);
+    border: none;
+    cursor: pointer;
+    border-radius: var(--radius-sm);
+}
+
+select:hover {
+    background-color: var(--panel-hover);
+}
+
+select::-webkit-scrollbar {
+    width: 18px;
+}
+select::-webkit-scrollbar-track {
+    background: var(--panel);
+}
+select::-webkit-scrollbar-thumb {
+    background: var(--text);
+    border-radius: var(--radius-sm);
+}
+
+option {
+    background-color: var(--bg);
+    color: var(--text);
+    font-size: var(--font-size);
+}

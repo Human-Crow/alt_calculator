@@ -1,0 +1,82 @@
+.fake-select {
+    position: relative;
+    margin-bottom: 6px;
+}
+
+
+.fake-select.large {
+    width: var(--btn-w);
+}
+
+
+.fake-select .selected {
+    width: 100%;
+    height: var(--btn-h);
+    margin-bottom: 0;
+}
+.fake-select .selected, .fake-select .option {
+    padding: 6px 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    font-size: var(--font-size);
+}
+.fake-select.small .selected {
+    justify-content: center;
+}
+
+
+
+.fake-select img {
+    width: var(--img-size);
+    height: var(--img-size);
+}
+
+
+.fake-select .options {
+    display: none;
+    position: absolute;
+    width: 100%;
+    margin-top: 8px;
+
+    background: var(--bg);
+    border: 2px solid var(--border);
+    border-radius: var(--radius);
+
+    max-height: 450px;
+    overflow-y: auto;
+    z-index: 10;
+
+    color: var(--text);
+    font-size: var(--font-size);
+}
+
+.fake-select.open .options {
+    display: block;
+}
+
+.fake-select .option:hover {
+    background: var(--panel-hover);
+}
+
+
+.fake-select .options::-webkit-scrollbar {
+    width: 12px;
+}
+.fake-select .options::-webkit-scrollbar-track {
+    background: var(--panel);
+    border-radius: var(--radius-sm);
+}
+.fake-select .options::-webkit-scrollbar-thumb {
+    background: var(--text);
+    border-radius: var(--radius-sm);
+}
+
+
+@supports (-moz-appearance: none) {
+    .fake-select .options {
+        scrollbar-width: thin;
+        scrollbar-color: var(--text) var(--panel);
+    }
+}

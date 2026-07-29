@@ -1,0 +1,33 @@
+.button-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+
+    display: inline-flex;
+}
+
+
+button {
+    display: block;
+    color: var(--text);
+    background-color: var(--bg);
+    border: 2px solid var(--border);
+    border-radius: var(--radius);
+    width: var(--btn-w);
+    height: var(--btn-h);
+    margin-bottom: 6px;
+    font-size: var(--font-size);
+    cursor: pointer;
+}
+
+button:hover {
+    background-color: var(--panel-hover);
+}
+
+.small-button {
+    color: var(--warn);
+    width: var(--small-btn-w);
+    height: var(--small-btn-h);
+    font-size: var(--small-font-size);
+    padding: 0;
+}

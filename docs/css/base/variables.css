@@ -1,0 +1,25 @@
+:root {
+    --bg: #1e1e1e;
+    --panel: #2e2e2e;
+    --panel-hover: #3e3e3e;
+    --border: #6b6b6b;
+    --text: #ffffff;
+    --warn: rgb(255, 110, 110);
+
+    --radius: 12px;
+    --radius-sm: 9px;
+
+    --btn-h: 38px;
+    --btn-w: 300px;
+
+    --small-btn-h: 30px;
+    --small-btn-w: 110px;
+
+    --input-max-w: 75px;
+    --input-h: 25px;
+
+    --img-size: 30px;
+
+    --font-size: 22px;
+    --small-font-size: 16px;
+}
