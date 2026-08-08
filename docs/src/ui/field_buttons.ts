@@ -1,6 +1,7 @@
 import { ALT_ITEMS, RAW_ITEMS } from '../data/nameLists.js';
+import { BuildingId } from '../data/types.js';
 import { formatNumber } from '../utils/math.js';
-
+import { get_asset } from '../utils/asset_path.js';
 import { get_cached } from './cache.js';
 
 import { 
@@ -10,7 +11,8 @@ import {
     coal_inputs, 
     nuclear_inputs, 
     extractor_inputs, 
-    tier_inputs, 
+    tier_inputs,
+    tier_images,
 
     max_btn,
     min_btn,
@@ -140,6 +142,14 @@ function clear_btn_action(event: PointerEvent) {
     }
 }
 
+function update_tier_img(name: BuildingId, el_in: HTMLInputElement) {
+    const el_img = tier_images.get(name);
+    if (!el_img) throw new Error("No IMG element found!");
+    const value = el_in.value || "1";
+    el_img.src = get_asset(`${name}_${value}`);
+}
+
+
 export function init_field_btns() {
     max_btn.addEventListener("click", set_max_tiers);
     min_btn.addEventListener("click", set_min_tiers);
@@ -159,4 +169,11 @@ export function init_field_btns() {
             }
         }
     });
+
+    for (const [name, el] of tier_inputs) {
+        if (name === "Belt") continue;
+        el.addEventListener("change", () => {
+            update_tier_img(name, el);
+        });
+    }
 }

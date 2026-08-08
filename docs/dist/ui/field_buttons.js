@@ -1,7 +1,8 @@
 import { ALT_ITEMS, RAW_ITEMS } from '../data/nameLists.js';
 import { formatNumber } from '../utils/math.js';
+import { get_asset } from '../utils/asset_path.js';
 import { get_cached } from './cache.js';
-import { cpp_in, npp_in, alt_inputs, coal_inputs, nuclear_inputs, extractor_inputs, tier_inputs, max_btn, min_btn, clear_all_btn, optimal_btn, clear_alt_btn, clear_coal_btn, clear_nuc_btn, clear_ext_btn, clear_goal_btn, goal_in } from './dom.js';
+import { cpp_in, npp_in, alt_inputs, coal_inputs, nuclear_inputs, extractor_inputs, tier_inputs, tier_images, max_btn, min_btn, clear_all_btn, optimal_btn, clear_alt_btn, clear_coal_btn, clear_nuc_btn, clear_ext_btn, clear_goal_btn, goal_in } from './dom.js';
 function set_max_tiers() {
     for (const input of tier_inputs.values()) {
         input.value = input.max;
@@ -97,6 +98,13 @@ function clear_btn_action(event) {
         active_clear_button = clear_button;
     }
 }
+function update_tier_img(name, el_in) {
+    const el_img = tier_images.get(name);
+    if (!el_img)
+        throw new Error("No IMG element found!");
+    const value = el_in.value || "1";
+    el_img.src = get_asset(`${name}_${value}`);
+}
 export function init_field_btns() {
     max_btn.addEventListener("click", set_max_tiers);
     min_btn.addEventListener("click", set_min_tiers);
@@ -114,5 +122,12 @@ export function init_field_btns() {
             }
         }
     });
+    for (const [name, el] of tier_inputs) {
+        if (name === "Belt")
+            continue;
+        el.addEventListener("change", () => {
+            update_tier_img(name, el);
+        });
+    }
 }
 //# sourceMappingURL=field_buttons.js.map

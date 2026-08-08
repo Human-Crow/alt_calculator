@@ -46,19 +46,20 @@ export const clear_nuc_btn = document.getElementById("clear_nuclear_btn");
 export const able_nuc_btn = document.getElementById("able_nuclear_btn");
 export const clear_ext_btn = document.getElementById("clear_ex_btn");
 export const clear_goal_btn = document.getElementById("clear_goal_btn");
-function buildInputMap(ids, suffix = "") {
+function buildElemMap(ids, suffix = "") {
     const map = new Map();
     for (const id of ids) {
         const el = document.getElementById(`${id}${suffix}`);
-        if (el instanceof HTMLInputElement) {
+        if (el instanceof HTMLElement) {
             map.set(id, el);
         }
     }
     return map;
 }
-export const alt_inputs = buildInputMap(ALT_ITEMS, "_AR");
-export const tier_inputs = buildInputMap(BUILDINGS, "_BD");
-export const extractor_inputs = buildInputMap(RAW_ITEMS, "_EX");
-export const coal_inputs = buildInputMap(RAW_ITEMS, "_CB");
-export const nuclear_inputs = buildInputMap(RAW_ITEMS, "_NB");
+export const alt_inputs = buildElemMap(ALT_ITEMS, "_AR");
+export const tier_inputs = buildElemMap(BUILDINGS, "_BD");
+export const tier_images = buildElemMap(BUILDINGS, "_IMG");
+export const extractor_inputs = buildElemMap(RAW_ITEMS, "_EX");
+export const coal_inputs = buildElemMap(RAW_ITEMS, "_CB");
+export const nuclear_inputs = buildElemMap(RAW_ITEMS, "_NB");
 //# sourceMappingURL=dom.js.map

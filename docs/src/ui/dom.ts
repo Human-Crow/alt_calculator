@@ -1,4 +1,5 @@
 import { RAW_ITEMS, ALT_ITEMS, BUILDINGS } from '../data/nameLists.js';
+import { AltItemId, BuildingId, RawItemId } from '../data/types.js';
 
 
 export const gen2_box      = document.getElementById("gen2_box"        ) as HTMLInputElement;
@@ -58,22 +59,41 @@ export const clear_ext_btn = document.getElementById("clear_ex_btn") as HTMLButt
 export const clear_goal_btn = document.getElementById("clear_goal_btn") as HTMLButtonElement;
 
 
-function buildInputMap<K extends string>(
+function buildElemMap<K extends string, T extends HTMLElement>(
     ids: readonly K[], 
     suffix: string = ""
-): Map<K, HTMLInputElement> {
-    const map = new Map<K, HTMLInputElement>();
+): Map<K, T> {
+    const map = new Map<K, T>();
     for (const id of ids) {
         const el = document.getElementById(`${id}${suffix}`);
-        if (el instanceof HTMLInputElement) {
-            map.set(id, el);
+        if (el instanceof HTMLElement) {
+            map.set(id, el as T);
         }
     }
     return map;
 }
 
-export const alt_inputs       = buildInputMap(ALT_ITEMS, "_AR");
-export const tier_inputs      = buildInputMap(BUILDINGS, "_BD");
-export const extractor_inputs = buildInputMap(RAW_ITEMS, "_EX");
-export const coal_inputs      = buildInputMap(RAW_ITEMS, "_CB");
-export const nuclear_inputs   = buildInputMap(RAW_ITEMS, "_NB");
+
+export const alt_inputs = buildElemMap<AltItemId, HTMLInputElement>(
+    ALT_ITEMS, "_AR"
+);
+
+export const tier_inputs = buildElemMap<BuildingId, HTMLInputElement>(
+    BUILDINGS, "_BD"
+);
+
+export const tier_images = buildElemMap<BuildingId, HTMLImageElement>(
+    BUILDINGS, "_IMG"
+);
+
+export const extractor_inputs = buildElemMap<RawItemId, HTMLInputElement>(
+    RAW_ITEMS, "_EX"
+);
+
+export const coal_inputs = buildElemMap<RawItemId, HTMLInputElement>(
+    RAW_ITEMS, "_CB"
+);
+
+export const nuclear_inputs = buildElemMap<RawItemId, HTMLInputElement>(
+    RAW_ITEMS, "_NB"
+);

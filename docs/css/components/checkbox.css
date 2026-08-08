@@ -51,10 +51,10 @@
 
     background-color: white;
 
-    -webkit-mask: url("../../assets/checkmark.svg") no-repeat center;
+    -webkit-mask: url("../../assets/Checkmark.svg") no-repeat center;
     -webkit-mask-size: 90%;
 
-    mask: url("../../assets/checkmark.svg") no-repeat center;
+    mask: url("../../assets/Checkmark.svg") no-repeat center;
     mask-size: 90%;
 
     display: none;

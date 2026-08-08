@@ -7,6 +7,17 @@ export const VARIANTS = [
 ] as const;
 
 
+export const TIER_BUILDINGS = new Set([
+    'Forge',
+    'Furnace',
+    'Industrial_Factory',
+    'Machine_Shop',
+    'Manufacturer',
+    'Workshop',
+    'Extractor'
+]);
+
+
 export const BUILDINGS = [
     'Belt',
     'Coal_Power_Plant',
