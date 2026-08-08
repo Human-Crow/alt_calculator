@@ -10,16 +10,17 @@
     --radius-sm: 9px;
 
     --btn-h: 38px;
-    --btn-w: 300px;
+    --btn-w: 320px;
 
     --small-btn-h: 30px;
     --small-btn-w: 110px;
 
     --input-max-w: 75px;
     --input-h: 25px;
+    --input-l-h: 32.8px;
 
     --img-size: 30px;
 
-    --font-size: 22px;
+    --font-size: 24px;
     --small-font-size: 16px;
 }

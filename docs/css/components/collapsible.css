@@ -1,0 +1,27 @@
+.collap-summary {
+    line-height: 1;
+    cursor: pointer;
+    list-style: none;
+}
+
+.collapsible > .collap-summary {
+    cursor: pointer;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+}
+
+.collapsible > .collap-summary::before {
+    content: "▷";
+    margin-right: 10px;
+    transition: transform 0.2s ease;
+}
+
+.collapsible[open] > .collap-summary::before {
+    transform: rotate(90deg);
+}
+
+.indent {
+    border-left: 3px solid #444;
+    padding-left: 18px;
+}

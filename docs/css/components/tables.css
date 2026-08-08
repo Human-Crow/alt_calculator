@@ -7,43 +7,39 @@
     font-size: var(--font-size);
 }
 
-.item.img {
+.item-img {
     width: var(--img-size);
     height: var(--img-size);
 }
 
-.note {
-    color: var(--warn);
-}
 
-
-.item.boosts {
+.item-boosts {
     border-collapse: collapse;
 }
 
-.item.boosts th,
-.item.boosts td {
+.item-boosts th,
+.item-boosts td {
     padding: 3px 9px;
     vertical-align: middle;
 }
 
-.item.boosts th.num,
-.item.boosts td.num {
+.item-boosts th.num,
+.item-boosts td.num {
     text-align: right;
     white-space: nowrap;
 }
 
-.item.boosts .res-head {
+.item-boosts .res-head {
     display: flex;
     align-items: center;
     gap: 12px;
 }
 
-.item.boosts .sub-label {
+.item-boosts .sub-label {
     opacity: 0.8;
     font-size: 0.95em;
 }
 
-.item.boosts .res-gap td {
+.item-boosts .res-gap td {
     padding: 9px 0;
 }

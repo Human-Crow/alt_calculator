@@ -2,6 +2,18 @@
     max-width: var(--btn-w);
 }
 
+.input {
+    color: var(--text);
+    background-color: var(--bg);
+    border: 2px solid var(--border);
+    border-radius: var(--radius);
+    font-size: 20px;
+}
+
+.input:hover {
+    background-color: var(--panel-hover);
+}
+
 .input-row {
     display: flex;
     align-items: center;
@@ -13,17 +25,6 @@
     padding-right: 8px;
 }
 
-.input-field {
-    flex: 2;
-    max-width: var(--input-max-w);
-    height: var(--input-h);
-    color: var(--text);
-    background-color: var(--bg);
-    border: 2px solid var(--border);
-    border-radius: var(--radius);
-    font-size: 20px;
-}
-
 .input-icon {
     width: var(--img-size);
     height: var(--img-size);
@@ -31,6 +32,14 @@
     flex-shrink: 0;
 }
 
-.input-field:hover {
-    background-color: var(--panel-hover);
+.input-field {
+    flex: 2;
+    max-width: var(--input-max-w);
+    height: var(--input-h);
+}
+
+.input-field-l {
+    width: 100%;
+    height: var(--input-l-h);
+    margin: 3px 0;
 }

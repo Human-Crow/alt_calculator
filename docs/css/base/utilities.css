@@ -24,4 +24,49 @@
 
 .header-label {
     margin: 0;
+    font-size: 28px;
+    font-weight: bold;
+}
+
+.flex-block {
+    display: flex;
+    width: var(--btn-w);
+    gap: 6px;
+}
+
+.help-note {
+    margin-top: 0px;
+    margin-bottom: 0px;
+    color: #bbb;
+    font-size: 20px;
+}
+
+.note {
+    margin-top: 0px;
+    margin-bottom: 0px;
+    color: var(--warn);
+}
+
+.color-white {
+    color: #ffffff;
+}
+
+.color-yellow {
+    color: #dcdcaa;
+}
+
+.color-blue {
+    color: #9cdcfe;
+}
+
+.color-green {
+    color: #4ec9b0;
+}
+
+.color-purple {
+    color: #c586c0;
+}
+
+#output {
+    min-height: 1000px;
 }
