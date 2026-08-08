@@ -6,11 +6,13 @@ import { cpp_in, npp_in, alt_inputs, coal_inputs, nuclear_inputs, extractor_inpu
 function set_max_tiers() {
     for (const input of tier_inputs.values()) {
         input.value = input.max;
+        input.dispatchEvent(new Event("change"));
     }
 }
 function set_min_tiers() {
     for (const input of tier_inputs.values()) {
         input.value = input.min;
+        input.dispatchEvent(new Event("change"));
     }
 }
 function do_clear_alt() {

@@ -31,12 +31,14 @@ import {
 function set_max_tiers() {
     for (const input of tier_inputs.values()) {
         input.value = input.max;
+        input.dispatchEvent(new Event("change"));
     }
 }
 
 function set_min_tiers() {
     for (const input of tier_inputs.values()) {
         input.value = input.min;
+        input.dispatchEvent(new Event("change"));
     }
 }
 
