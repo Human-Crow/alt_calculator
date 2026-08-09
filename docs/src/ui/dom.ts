@@ -1,4 +1,4 @@
-import { RAW_ITEMS, ALT_ITEMS, BUILDINGS } from '../data/nameLists.js';
+import { RAW_ITEMS, ALT_ITEMS, BUILDINGS } from '../data/name_lists.js';
 import { AltItemId, BuildingId, RawItemId } from '../data/types.js';
 
 

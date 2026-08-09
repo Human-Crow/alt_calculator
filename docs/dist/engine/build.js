@@ -1,6 +1,6 @@
 import { make_item_key } from '../utils/item_keys.js';
 import { walk_tree } from './walk_tree.js';
-import { ALT_ITEMS } from '../data/nameLists.js';
+import { ALT_ITEMS } from '../data/name_lists.js';
 import { V } from '../data/enums.js';
 export function build_list(tree) {
     const split_map = new Map();

@@ -4,7 +4,7 @@ import {
     ITEMS, 
     ALT_ITEMS, 
     RAW_ITEMS
-} from "./nameLists.js";
+} from "./name_lists.js";
 
 
 export type VariantId   = typeof VARIANTS [number];

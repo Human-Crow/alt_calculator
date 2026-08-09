@@ -10,7 +10,7 @@ import {
     populate_frac_cell 
 } from './table_cells.js';
 
-import { RAW_ITEMS } from '../data/nameLists.js';
+import { RAW_ITEMS } from '../data/name_lists.js';
 
 
 function create_item_row(
@@ -99,22 +99,21 @@ export function render_node(
 export function render_main(
     settings: Settings,
     tree: RecipeNode[], 
-    container: HTMLElement, 
     render_child: ChildRenderer
-) {
-    container.innerHTML = "";
+): HTMLDivElement {
+    const body = document.createElement("div");
+    body.className = "tree";
     for (const node of tree) {
-        container.appendChild(render_node(settings, node, render_child));
+        body.appendChild(render_node(settings, node, render_child));
     }
+    return body;
 }
 
 
 export function render_list(
     settings: Settings,
     tree: RecipeNode[], 
-    container: HTMLElement
 ) {
-    container.innerHTML = "";
     const body = document.createElement("table");
     body.className = "tree-table";
     for (const node of tree) {
@@ -128,7 +127,7 @@ export function render_list(
     if (last_raw) {
         body.insertBefore(createSpacerRow(7), body.rows[last_raw + 2] ?? null);
     }
-    container.appendChild(body);
+    return body;
 }
 
 
@@ -200,13 +199,11 @@ function td(text = "", className = "") {
 }
 
 
-export function render_boosts(settings: Settings, container: HTMLElement) {
-    container.innerHTML = "";
-
+export function render_boosts(settings: Settings) {
     const title = document.createElement("p");
     title.textContent = "Resource Boosts:";
-    const div = document.createElement("div");
-    div.appendChild(title);
+    const body = document.createElement("div");
+    body.appendChild(title);
 
     const table = document.createElement("table");
     table.className = "item-boosts";
@@ -276,19 +273,17 @@ export function render_boosts(settings: Settings, container: HTMLElement) {
     }
 
     table.appendChild(tbody);
-    div.appendChild(table);
-    container.appendChild(div);
+    body.appendChild(table);
+    return body;
 }
 
 
 
-export function render_ratios(settings: Settings, container: HTMLElement) {
-    container.innerHTML = "";
-
+export function render_ratios(settings: Settings) {
     const title = document.createElement("p");
     title.textContent ='Used Alt recipes:';
-    const div = document.createElement("div");
-    div.appendChild(title);
+    const body = document.createElement("div");
+    body.appendChild(title);
 
     const table = document.createElement("table");
     table.className = "tree-table";
@@ -306,6 +301,6 @@ export function render_ratios(settings: Settings, container: HTMLElement) {
         table.appendChild(tr);
         populate_frac_cell(settings.is_rounded, tr, ratio);
     }
-    div.appendChild(table);
-    container.appendChild(div);
+    body.appendChild(table);
+    return body;
 }

@@ -110,4 +110,4 @@ export const RAW_ITEMS = [
     'Wolframite',
     'Uranium_Ore'
 ];
-//# sourceMappingURL=nameLists.js.map
+//# sourceMappingURL=name_lists.js.map

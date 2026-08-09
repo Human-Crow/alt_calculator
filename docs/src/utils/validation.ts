@@ -1,5 +1,5 @@
 import { ItemId, RawItemId, AltItemId } from '../data/types.js';
-import { ITEMS, ALT_ITEMS, RAW_ITEMS } from '../data/nameLists.js';
+import { ITEMS, ALT_ITEMS, RAW_ITEMS } from '../data/name_lists.js';
 
 
 

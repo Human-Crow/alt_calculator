@@ -2,7 +2,7 @@ import { V, B } from '../data/enums.js';
 import { get_asset, get_tier_asset } from '../utils/asset_path.js';
 import { is_raw_item } from '../utils/validation.js';
 import { get_item_display, populate_amount_cell, populate_belt_cell, populate_build_cell, populate_frac_cell } from './table_cells.js';
-import { RAW_ITEMS } from '../data/nameLists.js';
+import { RAW_ITEMS } from '../data/name_lists.js';
 function create_item_row(settings, node, td_class) {
     const { is_rounded, tiers } = settings;
     const { item_amount, item_name, variant, build_amounts, belt_amount } = node;
@@ -60,14 +60,15 @@ export function render_node(settings, node, render_child) {
     details.append(summary, body);
     return details;
 }
-export function render_main(settings, tree, container, render_child) {
-    container.innerHTML = "";
+export function render_main(settings, tree, render_child) {
+    const body = document.createElement("div");
+    body.className = "tree";
     for (const node of tree) {
-        container.appendChild(render_node(settings, node, render_child));
+        body.appendChild(render_node(settings, node, render_child));
     }
+    return body;
 }
-export function render_list(settings, tree, container) {
-    container.innerHTML = "";
+export function render_list(settings, tree) {
     const body = document.createElement("table");
     body.className = "tree-table";
     for (const node of tree) {
@@ -78,7 +79,7 @@ export function render_list(settings, tree, container) {
     if (last_raw) {
         body.insertBefore(createSpacerRow(7), body.rows[last_raw + 2] ?? null);
     }
-    container.appendChild(body);
+    return body;
 }
 export function render_mat_child(settings, node, td_class = "tree-indent1") {
     return create_item_row(settings, node, td_class);
@@ -125,12 +126,11 @@ function td(text = "", className = "") {
     }
     return cell;
 }
-export function render_boosts(settings, container) {
-    container.innerHTML = "";
+export function render_boosts(settings) {
     const title = document.createElement("p");
     title.textContent = "Resource Boosts:";
-    const div = document.createElement("div");
-    div.appendChild(title);
+    const body = document.createElement("div");
+    body.appendChild(title);
     const table = document.createElement("table");
     table.className = "item-boosts";
     // Small header for the two columns
@@ -183,15 +183,14 @@ export function render_boosts(settings, container) {
         tbody.append(r1, r2, r3, spacer);
     }
     table.appendChild(tbody);
-    div.appendChild(table);
-    container.appendChild(div);
+    body.appendChild(table);
+    return body;
 }
-export function render_ratios(settings, container) {
-    container.innerHTML = "";
+export function render_ratios(settings) {
     const title = document.createElement("p");
     title.textContent = 'Used Alt recipes:';
-    const div = document.createElement("div");
-    div.appendChild(title);
+    const body = document.createElement("div");
+    body.appendChild(title);
     const table = document.createElement("table");
     table.className = "tree-table";
     for (const [key, ratio] of settings.alt_ratios) {
@@ -205,7 +204,7 @@ export function render_ratios(settings, container) {
         table.appendChild(tr);
         populate_frac_cell(settings.is_rounded, tr, ratio);
     }
-    div.appendChild(table);
-    container.appendChild(div);
+    body.appendChild(table);
+    return body;
 }
 //# sourceMappingURL=render.js.map

@@ -3,7 +3,7 @@ import type { Constraint, LPModel, LPResult } from "./glpk.js";
 import { ItemId, Settings, Pair, NumberRec, ItemMap, VariantId, BuildMap } from '../data/types.js';
 import { I, V } from '../data/enums.js';
 import { C_BOOST, N_BOOST } from '../data/constants.js';
-import { ALT_ITEMS, RAW_ITEMS } from '../data/nameLists.js';
+import { ALT_ITEMS, RAW_ITEMS } from '../data/name_lists.js';
 import { get_speed } from './production.js';
 
 

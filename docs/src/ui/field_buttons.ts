@@ -1,4 +1,4 @@
-import { ALT_ITEMS, RAW_ITEMS } from '../data/nameLists.js';
+import { ALT_ITEMS, RAW_ITEMS } from '../data/name_lists.js';
 import { BuildingId } from '../data/types.js';
 import { formatNumber } from '../utils/math.js';
 import { get_asset } from '../utils/asset_path.js';

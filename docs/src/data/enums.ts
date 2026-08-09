@@ -1,4 +1,4 @@
-import { VARIANTS, BUILDINGS, ITEMS } from "./nameLists.js";
+import { VARIANTS, BUILDINGS, ITEMS } from "./name_lists.js";
 
 
 

@@ -23,7 +23,7 @@ import {
     render_ratios
 } from './render.js'
 
-
+import { Settings, RecipeNode } from '../data/types.js';
 
 import { 
     output_el,
@@ -38,53 +38,73 @@ import {
 import { get_cached } from './cache.js';
 
 
-async function run_tree() {
-    const {settings, tree} = await get_cached();
-    const info_tree = add_tree_info(settings, tree, false);
-    render_main(settings, info_tree, output_el, render_tree_child);
+async function run_view(
+    render: (settings: Settings, tree: RecipeNode[]) => HTMLElement
+) {
+    output_el.innerHTML = "Loading...";
+    try {
+        const { settings, tree } = await get_cached();
+        const body = render(settings, tree);
+        output_el.replaceChildren(body);
+    } catch (err) {
+        console.log(err);
+        const message = err instanceof Error ? err.message : String(err);
+        output_el.innerHTML = `Error:<br>${message}`;
+    }
 }
 
+async function run_tree() {
+    await run_view((settings, tree) => {
+        const info_tree = add_tree_info(settings, tree, false);
+        return render_main(settings, info_tree, render_tree_child);
+    });
+}
 
 async function run_list() {
-    const {settings, tree} = await get_cached();
-    const split_map = build_list(tree);
-    const conv_tree = convert_list(split_map);
-    const info_tree = sort_list(
-        add_tree_info(settings, conv_tree, true), settings.selected_item
-    );
-    render_list(settings, info_tree, output_el);
+    await run_view((settings, tree) => {
+        const split_map = build_list(tree);
+        const conv_tree = convert_list(split_map);
+        const info_tree = sort_list(
+            add_tree_info(settings, conv_tree, true), settings.selected_item
+        );
+        return render_list(settings, info_tree);
+    });
 }
 
 
 async function run_materials() {
-    const {settings, tree} = await get_cached();
-    const map = build_materials(tree, settings.alt_ratios);
-    const conv_tree = convert_mat_dep(map);
-    const info_tree = sort_mat_dep(
-        add_tree_info(settings, conv_tree, true), settings.selected_item
-    );
-    render_main(settings, info_tree, output_el, render_mat_child);
+    await run_view((settings, tree) => {
+        const map = build_materials(tree, settings.alt_ratios);
+        const conv_tree = convert_mat_dep(map);
+        const info_tree = sort_mat_dep(
+            add_tree_info(settings, conv_tree, true), settings.selected_item
+        );
+        return render_main(settings, info_tree, render_mat_child);
+    });
 }
 
 
 async function run_dependents() {
-    const {settings, tree} = await get_cached();
-    const map = build_dependents(tree, settings.alt_ratios);
-    const conv_tree = convert_mat_dep(map);
-    const info_tree = sort_mat_dep(
-        add_tree_info(settings, conv_tree, true), settings.selected_item
-    );
-    render_main(settings, info_tree, output_el, render_dep_child);
+    await run_view((settings, tree) => {
+        const map = build_dependents(tree, settings.alt_ratios);
+        const conv_tree = convert_mat_dep(map);
+        const info_tree = sort_mat_dep(
+            add_tree_info(settings, conv_tree, true), settings.selected_item
+        );
+        return render_main(settings, info_tree, render_dep_child);
+    });
 }
 
 async function run_ratios() {
-    const {settings} = await get_cached();
-    render_ratios(settings, output_el);
+    await run_view((settings) => {
+        return render_ratios(settings);
+    });
 }
 
 async function run_boosts() {
-    const {settings} = await get_cached();
-    render_boosts(settings, output_el);
+    await run_view((settings) => {
+        return render_boosts(settings);
+    });
 }
 
 

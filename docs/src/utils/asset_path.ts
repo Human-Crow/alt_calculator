@@ -1,6 +1,6 @@
 import { VariantId, ItemId, BuildMap } from '../data/types.js';
 import { get_recipe, get_recipes } from './get_recipe.js';
-import { ITEMS, BUILDINGS, TIER_BUILDINGS } from '../data/nameLists.js';
+import { ITEMS, BUILDINGS, TIER_BUILDINGS } from '../data/name_lists.js';
 
 
 

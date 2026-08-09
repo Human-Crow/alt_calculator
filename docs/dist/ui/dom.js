@@ -1,4 +1,4 @@
-import { RAW_ITEMS, ALT_ITEMS, BUILDINGS } from '../data/nameLists.js';
+import { RAW_ITEMS, ALT_ITEMS, BUILDINGS } from '../data/name_lists.js';
 export const gen2_box = document.getElementById("gen2_box");
 export const rounded_box = document.getElementById("rounded_box");
 export const alt_box = document.getElementById("alt_box");

@@ -1,4 +1,4 @@
-import { ITEMS, ALT_ITEMS, RAW_ITEMS } from '../data/nameLists.js';
+import { ITEMS, ALT_ITEMS, RAW_ITEMS } from '../data/name_lists.js';
 const ITEM_SET = new Set(ITEMS);
 const RAW_ITEM_SET = new Set(RAW_ITEMS);
 const ALT_ITEM_SET = new Set(ALT_ITEMS);
