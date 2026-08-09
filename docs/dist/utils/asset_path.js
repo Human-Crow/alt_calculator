@@ -23,10 +23,9 @@ export function get_asset(name) {
 export function get_tier_asset(tiers, item_name, variant) {
     const recipe = get_recipe(get_recipes(item_name), variant);
     let name = recipe.building;
-    const tier = tiers.get(name);
-    if (tier) {
-        name += `_${tier}`;
-    }
-    return get_asset(name);
+    if (assets.has(name))
+        return get_asset(name);
+    const tier = tiers.get(name) ?? 1;
+    return get_asset(`${name}_${tier}`);
 }
 //# sourceMappingURL=asset_path.js.map

@@ -33,9 +33,10 @@
 }
 
 .input-field {
+    box-sizing: border-box;
     flex: 2;
     max-width: var(--input-max-w);
-    height: var(--input-h);
+    height: var(--img-size);
 }
 
 .input-field-l {

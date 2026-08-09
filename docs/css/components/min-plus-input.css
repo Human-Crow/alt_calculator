@@ -1,0 +1,68 @@
+.min-plus-input {
+    position: relative;
+    display: flex;
+    width: max-content;
+}
+
+.mp-input-btn,
+.mp-input-field {
+    box-sizing: border-box;
+    height: var(--img-size);
+    margin: 0;
+    
+    padding: 1px 2px;/* T&B L&R*/
+
+    color: var(--text);
+    background-color: var(--bg);
+    border: 2px solid var(--border);
+    font-size: 20px;
+}
+
+.mp-input-field {
+    width: 60px;
+    border-radius: var(--radius) 0 0 var(--radius);
+    appearance: textfield;
+}
+
+.mp-input-btn {
+    width: 20px;
+    cursor: pointer;
+    border-left: 0;
+    font-weight: bold;
+    font-size: 22px;
+    line-height: 0;
+}
+
+.mp-input-btn[data-action="increase"] {
+    border-radius: 0 var(--radius) var(--radius) 0;
+}
+
+.mp-input-btn:hover,
+.mp-input-field:hover {
+    background-color: var(--panel-hover);
+}
+
+
+.mp-input-field:focus {
+    outline: none;
+}
+
+.min-plus-input:has(.mp-input-field:focus) .mp-input-field,
+.min-plus-input:has(.mp-input-field:focus) .mp-input-btn {
+    border-color: #dcdcdc;
+}
+
+.min-plus-input:has(.mp-input-field:focus)::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border: 2px solid #dcdcdc;
+    border-radius: var(--radius);
+    pointer-events: none;
+}
+
+.mp-input-field::-webkit-inner-spin-button,
+.mp-input-field::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}

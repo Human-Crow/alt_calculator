@@ -2,6 +2,7 @@
 // git rm -r --cached .
 
 
+import { init_inputs } from './ui/input_btns.js';
 import { init_bulk } from './ui/bulk.js';
 import { init_fake_select } from './ui/fake_select.js';
 import { init_field_btns } from './ui/field_buttons.js';
@@ -14,6 +15,7 @@ import { init_defaults } from './ui/defaults.js';
 import { init_hide } from './ui/hide.js';
 
 
+init_inputs();
 init_defaults();
 init_mode();
 init_bulk();
