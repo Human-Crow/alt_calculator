@@ -211,7 +211,7 @@ export function render_boosts(settings: Settings) {
     // Small header for the two columns
     const thead = document.createElement("thead");
     const headRow = document.createElement("tr");
-    headRow.innerHTML = `<th></th><th class="num">Coal</th><th class="num">Nuclear</th>`;
+    headRow.innerHTML = `<th></th><th class="num">Normal</th><th class="num">Coal</th><th class="num">Nuclear</th>`;
     thead.appendChild(headRow);
     table.appendChild(thead);
 
@@ -221,8 +221,10 @@ export function render_boosts(settings: Settings) {
         const extractors = settings.extractors.get(key) ?? 0;
         const coal_frac = settings.coal_fracs.get(key) ?? 0;
         const nuc_frac = settings.nuclear_fracs.get(key) ?? 0;
+        const norm_frac = 1 - coal_frac - nuc_frac;
         const coal_ex = coal_frac * extractors;
         const nuc_ex = nuc_frac * extractors;
+        const norm_ex = extractors - coal_ex - nuc_ex;
 
         const name = key.replaceAll("_", " ");
 
@@ -230,7 +232,7 @@ export function render_boosts(settings: Settings) {
         const r1 = document.createElement("tr");
 
         const tdTitle = td();
-        tdTitle.colSpan = 3;
+        tdTitle.colSpan = 4;
 
         const wrap = document.createElement("div");
         wrap.className = "res-head";
@@ -246,27 +248,31 @@ export function render_boosts(settings: Settings) {
         const r2 = document.createElement("tr");
 
         const tdLabelPct = td("fraction", "sub-label");
-        const tdCoalPct = td("", "num frac-cell1");
-        const tdNucPct = td("", "num frac-cell2");
-        r2.append(tdLabelPct, tdCoalPct, tdNucPct);
-        populate_frac_cell(settings.is_rounded, r2, coal_frac, "1");
-        populate_frac_cell(settings.is_rounded, r2, nuc_frac, "2");
+        const tdNormPct = td("", "num frac-cell1");
+        const tdCoalPct = td("", "num frac-cell2");
+        const tdNucPct = td("", "num frac-cell3");
+        r2.append(tdLabelPct, tdNormPct, tdCoalPct, tdNucPct);
+        populate_frac_cell(settings.is_rounded, r2, norm_frac, "1");
+        populate_frac_cell(settings.is_rounded, r2, coal_frac, "2");
+        populate_frac_cell(settings.is_rounded, r2, nuc_frac, "3");
 
         // Row 3: extractors
         const r3 = document.createElement("tr");
 
         const tdLabelEx = td("extractors", "sub-label");
-        const tdCoalEx = td("", "num number-cell1");
-        const tdNucEx = td("", "num number-cell2");
-        r3.append(tdLabelEx, tdCoalEx, tdNucEx);
-        populate_amount_cell(settings.is_rounded, r3, coal_ex, "1", false);
-        populate_amount_cell(settings.is_rounded, r3, nuc_ex, "2", false);
+        const tdNormEx = td("", "num number-cell1");
+        const tdCoalEx = td("", "num number-cell2");
+        const tdNucEx = td("", "num number-cell3");
+        r3.append(tdLabelEx, tdNormEx, tdCoalEx, tdNucEx);
+        populate_amount_cell(settings.is_rounded, r3, norm_ex, "1", false);
+        populate_amount_cell(settings.is_rounded, r3, coal_ex, "2", false);
+        populate_amount_cell(settings.is_rounded, r3, nuc_ex, "3", false);
 
         // Spacer row between resources
         const spacer = document.createElement("tr");
         spacer.className = "res-gap";
         const spacerTd = document.createElement("td");
-        spacerTd.colSpan = 3;
+        spacerTd.colSpan = 4;
         spacer.appendChild(spacerTd);
 
         tbody.append(r1, r2, r3, spacer);
