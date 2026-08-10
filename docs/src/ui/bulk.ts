@@ -229,7 +229,7 @@ function export_bulk() {
 
 
 
-export function bulk_key() {
+export function get_bulk_key() {
     const result = [];
 
     for (const html_id of html_ids) {

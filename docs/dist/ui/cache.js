@@ -1,21 +1,45 @@
 import { build_full_tree } from '../engine/tree.js';
 import { get_settings, update_settings } from './settings.js';
-import { bulk_key } from './bulk.js';
-let cached_key = "";
-let cached_settings = undefined;
-let cached_tree = undefined;
-export async function get_cached() {
+import { get_bulk_key } from './bulk.js';
+let settings_cache;
+let tree_cache;
+const view_cache = new Map();
+export async function get_cached_settings() {
     const settings = get_settings();
-    const key = bulk_key();
-    if (key != cached_key) {
-        cached_key = key;
-        cached_settings = await update_settings(settings);
-        cached_tree = build_full_tree(cached_settings);
+    const bulk_key = get_bulk_key();
+    if (settings_cache === undefined ||
+        settings_cache.bulk_key !== bulk_key) {
+        settings_cache = {
+            bulk_key,
+            value: await update_settings(settings),
+        };
     }
-    if (cached_settings === undefined || cached_tree === undefined) {
-        throw new Error("Nothing is cached!");
+    settings_cache.value.is_rounded = settings.is_rounded;
+    return settings_cache.value;
+}
+async function get_cached_tree() {
+    const bulk_key = get_bulk_key();
+    if (tree_cache === undefined ||
+        tree_cache.bulk_key !== bulk_key) {
+        const settings = await get_cached_settings();
+        tree_cache = {
+            bulk_key,
+            value: build_full_tree(settings),
+        };
     }
-    cached_settings.is_rounded = settings.is_rounded;
-    return { settings: cached_settings, tree: cached_tree };
+    return tree_cache.value;
+}
+export async function get_cached_view(key, render) {
+    const bulk_key = get_bulk_key();
+    const cached = view_cache.get(key);
+    if (cached?.bulk_key === bulk_key) {
+        return cached.value;
+    }
+    const settings = await get_cached_settings();
+    const tree = await get_cached_tree();
+    const value = render(settings, tree);
+    view_cache.set(key, { bulk_key, value });
+    console.log("created new", key);
+    return value;
 }
 //# sourceMappingURL=cache.js.map

@@ -179,7 +179,7 @@ function export_bulk() {
     }
     return result.join(",");
 }
-export function bulk_key() {
+export function get_bulk_key() {
     const result = [];
     for (const html_id of html_ids) {
         const el = document.getElementById(html_id);

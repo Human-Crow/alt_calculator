@@ -1,7 +1,7 @@
 import { ALT_ITEMS, RAW_ITEMS } from '../data/name_lists.js';
 import { formatNumber } from '../utils/math.js';
 import { get_asset } from '../utils/asset_path.js';
-import { get_cached } from './cache.js';
+import { get_cached_settings } from './cache.js';
 import { cpp_in, npp_in, alt_inputs, coal_inputs, nuclear_inputs, extractor_inputs, tier_inputs, tier_images, max_btn, min_btn, clear_all_btn, optimal_btn, clear_alt_btn, clear_coal_btn, clear_nuc_btn, clear_ext_btn, clear_goal_btn, goal_in } from './dom.js';
 function set_max_tiers() {
     for (const input of tier_inputs.values()) {
@@ -48,7 +48,7 @@ function do_clear_goal() {
     goal_in.dispatchEvent(new Event("change"));
 }
 async function do_optimal() {
-    const { settings: s } = await get_cached();
+    const s = await get_cached_settings();
     cpp_in.value = formatNumber(s.coal_pp ?? 0);
     npp_in.value = formatNumber(s.nuclear_pp ?? 0);
     for (const name of ALT_ITEMS) {

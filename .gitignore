@@ -3,7 +3,6 @@ node_modules/
 
 # TypeScript files
 *.js.map
-*.d.ts
 *.d.ts.map
 
 # OS junk

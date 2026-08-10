@@ -2,7 +2,7 @@ import { ALT_ITEMS, RAW_ITEMS } from '../data/name_lists.js';
 import { BuildingId } from '../data/types.js';
 import { formatNumber } from '../utils/math.js';
 import { get_asset } from '../utils/asset_path.js';
-import { get_cached } from './cache.js';
+import { get_cached_settings } from './cache.js';
 
 import { 
     cpp_in, 
@@ -86,7 +86,7 @@ function do_clear_goal() {
 
 
 async function do_optimal() {
-    const {settings: s} = await get_cached();
+    const s = await get_cached_settings();
     cpp_in.value = formatNumber(s.coal_pp ?? 0);
     npp_in.value = formatNumber(s.nuclear_pp ?? 0);
     for (const name of ALT_ITEMS) {
