@@ -48,6 +48,7 @@ async function get_cached_tree(): Promise<RecipeNode[]> {
             bulk_key,
             value: build_full_tree(settings),
         };
+        console.log("Tree created");
     }
     return tree_cache.value;
 }
@@ -56,7 +57,8 @@ async function get_cached_tree(): Promise<RecipeNode[]> {
 
 export async function get_cached_view(
     key: string,
-    render: (settings: Settings, tree: RecipeNode[]) => HTMLElement
+    render: (settings: Settings, tree?: RecipeNode[]) => HTMLElement,
+    needs_tree: boolean
 ): Promise<HTMLElement> {
 
     const bulk_key = get_bulk_key();
@@ -66,10 +68,10 @@ export async function get_cached_view(
     }
 
     const settings = await get_cached_settings();
-    const tree = await get_cached_tree();
+    const tree = needs_tree ? await get_cached_tree() : undefined;
     const value = render(settings, tree);
     view_cache.set(key, {bulk_key, value});
-    console.log("created new",key)
+    console.log(`'${key}' updated`);
 
     return value;
 }

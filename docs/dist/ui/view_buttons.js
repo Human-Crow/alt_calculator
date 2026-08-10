@@ -3,10 +3,10 @@ import { sort_list, sort_mat_dep, convert_mat_dep, convert_list, add_tree_info }
 import { render_dep_child, render_list, render_main, render_mat_child, render_tree_child, render_boosts, render_ratios } from './render.js';
 import { output_el, tree_btn, list_btn, mat_btn, dep_btn, ratios_btn, boosts_btn } from './dom.js';
 import { get_cached_view } from './cache.js';
-async function run_view(key, render) {
+async function run_view(key, render, needs_tree = true) {
     output_el.innerHTML = "Loading...";
     try {
-        const body = await get_cached_view(key, render);
+        const body = await get_cached_view(key, render, needs_tree);
         output_el.replaceChildren(body);
     }
     catch (err) {
@@ -48,12 +48,12 @@ async function run_dependents() {
 async function run_ratios() {
     await run_view("ratios", (settings) => {
         return render_ratios(settings);
-    });
+    }, false);
 }
 async function run_boosts() {
     await run_view("boosts", (settings) => {
         return render_boosts(settings);
-    });
+    }, false);
 }
 export function init_view_btns() {
     tree_btn.addEventListener("click", run_tree);

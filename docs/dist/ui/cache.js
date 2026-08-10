@@ -26,20 +26,21 @@ async function get_cached_tree() {
             bulk_key,
             value: build_full_tree(settings),
         };
+        console.log("Tree created");
     }
     return tree_cache.value;
 }
-export async function get_cached_view(key, render) {
+export async function get_cached_view(key, render, needs_tree) {
     const bulk_key = get_bulk_key();
     const cached = view_cache.get(key);
     if (cached?.bulk_key === bulk_key) {
         return cached.value;
     }
     const settings = await get_cached_settings();
-    const tree = await get_cached_tree();
+    const tree = needs_tree ? await get_cached_tree() : undefined;
     const value = render(settings, tree);
     view_cache.set(key, { bulk_key, value });
-    console.log("created new", key);
+    console.log(`'${key}' updated`);
     return value;
 }
 //# sourceMappingURL=cache.js.map
