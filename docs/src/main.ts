@@ -30,3 +30,16 @@ init_url(); // needs to be last
 window.visualViewport?.addEventListener("resize", () => {
     console.log("scale:", window.visualViewport?.scale);
 });
+
+document.addEventListener("focusin", event => {
+    if (!(event.target instanceof HTMLInputElement)) {
+        return;
+    }
+
+    setTimeout(() => {
+        window.scrollTo(
+            window.scrollX,
+            window.scrollY
+        );
+    }, 100);
+});

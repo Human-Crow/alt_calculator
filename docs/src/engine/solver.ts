@@ -951,7 +951,7 @@ export async function resource_solver(settings: Settings): Promise<NumberRec> {
 
     const min_res_result = await solve_min_resources(constraints);
 
-    console.log("resource_solver finished successfully!");
+    console.log("Resource Solver finished");
     return min_res_result.result.vars;
 }
 
@@ -971,7 +971,7 @@ export async function goal_solver(settings: Settings): Promise<NumberRec> {
 
     const min_res_result = await solve_min_resources(constraints)
 
-    console.log("goal_solver finished successfully!");
+    console.log("Goal Solver finished");
     return min_res_result.result.vars;
 }
 

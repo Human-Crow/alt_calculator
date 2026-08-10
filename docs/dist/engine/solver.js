@@ -862,7 +862,7 @@ export async function resource_solver(settings) {
     const max_result = await solve_max(selected_item, constraints);
     add_target_con(constraints, selected_item, max_result.result.z);
     const min_res_result = await solve_min_resources(constraints);
-    console.log("resource_solver finished successfully!");
+    console.log("Resource Solver finished");
     return min_res_result.result.vars;
 }
 export async function goal_solver(settings) {
@@ -873,7 +873,7 @@ export async function goal_solver(settings) {
     add_target_con(constraints, I.Coal_Power_Plant, coal_pp || 0);
     add_target_con(constraints, I.Nuclear_Power_Plant, nuclear_pp || 0);
     const min_res_result = await solve_min_resources(constraints);
-    console.log("goal_solver finished successfully!");
+    console.log("Goal Solver finished");
     return min_res_result.result.vars;
 }
 export function get_resource_boosts(all_items) {
