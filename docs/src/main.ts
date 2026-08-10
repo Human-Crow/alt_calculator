@@ -26,36 +26,3 @@ init_drag();
 init_number();
 init_hide();
 init_url(); // needs to be last
-
-
-
-let user_zoom = 1;
-let restoring_zoom = false;
-
-window.visualViewport?.addEventListener("resize", () => {
-    const viewport = window.visualViewport;
-
-    if (!viewport) return;
-
-    if (viewport.scale > 1) {
-        user_zoom = viewport.scale;
-        return;
-    }
-
-    if (viewport.scale === 1 && user_zoom > 1 && !restoring_zoom) {
-        restoring_zoom = true;
-
-        requestAnimationFrame(() => {
-            const meta = document.querySelector<HTMLMetaElement>(
-                'meta[name="viewport"]'
-            );
-
-            if (meta) {
-                meta.content =
-                    `width=device-width, initial-scale=${user_zoom}`;
-            }
-
-            restoring_zoom = false;
-        });
-    }
-});
