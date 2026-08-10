@@ -22,15 +22,11 @@ init_drag();
 init_number();
 init_hide();
 init_url(); // needs to be last
+let last_zoom = 1;
 window.visualViewport?.addEventListener("resize", () => {
-    console.log("scale:", window.visualViewport?.scale);
+    console.log("viewport resize:", window.visualViewport?.scale);
 });
 document.addEventListener("focusin", event => {
-    if (!(event.target instanceof HTMLInputElement)) {
-        return;
-    }
-    setTimeout(() => {
-        window.scrollTo(window.scrollX, window.scrollY);
-    }, 100);
+    console.log("focus:", event.target, "scale:", window.visualViewport?.scale, "last zoom:", last_zoom);
 });
 //# sourceMappingURL=main.js.map
