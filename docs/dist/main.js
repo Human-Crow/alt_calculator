@@ -22,4 +22,7 @@ init_drag();
 init_number();
 init_hide();
 init_url(); // needs to be last
+window.visualViewport?.addEventListener("resize", () => {
+    console.log("scale:", window.visualViewport?.scale);
+});
 //# sourceMappingURL=main.js.map
