@@ -18,11 +18,12 @@ import {
     able_all_btn,
     able_alt_btn,
     able_coal_btn,
-    able_nuc_btn
+    able_nuc_btn,
+    gen2_box
 } from "./dom.js";
 
 import { is_mode_goal } from "./solver_mode.js";
-
+import { update_page } from "./update_page.js";
 
 
 function check_enabled(button: HTMLButtonElement) {
@@ -110,18 +111,18 @@ export function init_hide() {
     });
 
     able_alt_btn.addEventListener("click", () => {
-        alt_box.checked = !alt_box.checked
-        alt_box.dispatchEvent(new Event("change"));
+        alt_box.checked = !alt_box.checked;
+        update_page(alt_box);
     });
 
     able_coal_btn.addEventListener("click", () => {
-        c_boost_box.checked = !c_boost_box.checked
-        c_boost_box.dispatchEvent(new Event("change"));
+        c_boost_box.checked = !c_boost_box.checked;
+        update_page(c_boost_box);
     });
 
     able_nuc_btn.addEventListener("click", () => {
-        n_boost_box.checked = !n_boost_box.checked
-        n_boost_box.dispatchEvent(new Event("change"));
+        n_boost_box.checked = !n_boost_box.checked;
+        update_page(n_boost_box);
     });
 
     able_all_btn.addEventListener("click", () => {
@@ -131,16 +132,16 @@ export function init_hide() {
         const nuc_enabled = check_enabled(able_nuc_btn);
         const is_goal = is_mode_goal();
         if (self_enabled) { // disable all
-            if (alt_enabled) able_alt_btn.click();
+            if (alt_enabled) update_page(able_alt_btn);
             if (!is_goal) {
-                if (coal_enabled) able_coal_btn.click();
-                if (nuc_enabled) able_nuc_btn.click();
+                if (coal_enabled) update_page(able_coal_btn);
+                if (nuc_enabled) update_page(able_nuc_btn);
             }
         } else { // enable all
-            if (!alt_enabled) able_alt_btn.click();
+            if (!alt_enabled) update_page(able_alt_btn);
             if (!is_goal) {
-                if (!coal_enabled) able_coal_btn.click();
-                if (!nuc_enabled) able_nuc_btn.click();
+                if (!coal_enabled) update_page(able_coal_btn);
+                if (!nuc_enabled) update_page(able_nuc_btn);
             }
         }
     });

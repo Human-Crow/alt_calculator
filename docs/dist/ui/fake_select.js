@@ -1,5 +1,6 @@
 import { get_asset } from '../utils/asset_path.js';
 import { item_sel, fake_sel, } from './dom.js';
+import { update_page } from './update_page.js';
 function make_fake_select(realSelect, fakeSelect, withImages = false) {
     const selectedBtn = fakeSelect.querySelector(".selected");
     const optionsDiv = fakeSelect.querySelector(".options");
@@ -38,7 +39,7 @@ function make_fake_select(realSelect, fakeSelect, withImages = false) {
             renderSelected(option);
             fakeSelect.classList.remove("open");
             // forward native change event
-            realSelect.dispatchEvent(new Event("change"));
+            update_page(realSelect);
         });
         optionsDiv.appendChild(div);
         if (option.selected) {

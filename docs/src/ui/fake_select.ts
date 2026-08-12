@@ -5,6 +5,7 @@ import {
     fake_sel,
 } from './dom.js'
 
+import { update_page } from './update_page.js';
 
 
 function make_fake_select(
@@ -49,7 +50,7 @@ function make_fake_select(
             fakeSelect.classList.remove("open");
 
             // forward native change event
-            realSelect.dispatchEvent(new Event("change"));
+            update_page(realSelect);
         });
 
         optionsDiv.appendChild(div);

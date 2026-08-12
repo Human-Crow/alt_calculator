@@ -1,3 +1,4 @@
+import { update_page } from "./update_page.js";
 const belt_speeds = [
     150, 165, 180, 195, 210, 240,
     270, 300, 330, 375, 420, 450, 480
@@ -32,7 +33,7 @@ export function init_inputs() {
                     input.stepDown();
                 }
             }
-            input.dispatchEvent(new Event("change", { bubbles: true }));
+            update_page(input, { bubbles: true });
         });
         increase.addEventListener("click", () => {
             if (input.id === "Belt_BD") {
@@ -45,7 +46,7 @@ export function init_inputs() {
             else {
                 input.stepUp();
             }
-            input.dispatchEvent(new Event("change", { bubbles: true }));
+            update_page(input, { bubbles: true });
         });
     });
 }

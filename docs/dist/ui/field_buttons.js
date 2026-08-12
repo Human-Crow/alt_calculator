@@ -3,16 +3,17 @@ import { formatNumber } from '../utils/math.js';
 import { get_asset } from '../utils/asset_path.js';
 import { get_cached_settings } from './cache.js';
 import { cpp_in, npp_in, alt_inputs, coal_inputs, nuclear_inputs, extractor_inputs, tier_inputs, tier_images, max_btn, min_btn, clear_all_btn, optimal_btn, clear_alt_btn, clear_coal_btn, clear_nuc_btn, clear_ext_btn, clear_goal_btn, goal_in } from './dom.js';
+import { update_page } from './update_page.js';
 function set_max_tiers() {
     for (const input of tier_inputs.values()) {
         input.value = input.max;
-        input.dispatchEvent(new Event("change"));
+        update_page(input);
     }
 }
 function set_min_tiers() {
     for (const input of tier_inputs.values()) {
         input.value = input.min;
-        input.dispatchEvent(new Event("change"));
+        update_page(input);
     }
 }
 function do_clear_alt() {
@@ -40,12 +41,12 @@ function do_clear_all() {
 function do_clear_extractors() {
     for (const input of extractor_inputs.values()) {
         input.value = "";
-        input.dispatchEvent(new Event("change"));
+        update_page(input);
     }
 }
 function do_clear_goal() {
     goal_in.value = "";
-    goal_in.dispatchEvent(new Event("change"));
+    update_page(goal_in);
 }
 async function do_optimal() {
     const s = await get_cached_settings();

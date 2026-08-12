@@ -13,8 +13,10 @@ import { init_number } from './ui/numbers.js';
 import { init_url } from './ui/url.js';
 import { init_defaults } from './ui/defaults.js';
 import { init_hide } from './ui/hide.js';
+import { init_update_page } from './ui/update_page.js';
 
 
+init_update_page();
 init_inputs();
 init_defaults();
 init_mode();

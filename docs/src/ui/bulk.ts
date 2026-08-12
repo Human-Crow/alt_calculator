@@ -6,10 +6,18 @@ import {
     bulk_in
 } from "./dom.js";
 
-import { default_values, get_btn_value } from "./defaults.js";
+import { get_default, get_elem_value } from "./defaults.js";
+import { update_page } from "./update_page.js";
 
 
 const bulk_map = new Map([
+    // General
+    ["mode", "mode_btn"],
+    ["item", "item_select"],
+
+    ["alt", "alt_box"],
+    ["gen2", "gen2_box"],
+
     ["t_ws", "Workshop_BD"],
     ["t_fn", "Furnace_BD"],
     ["t_ms", "Machine_Shop_BD"],
@@ -32,6 +40,13 @@ const bulk_map = new Map([
     ["a_tc", "Tungsten_Carbide_AR"],
     ["a_ro", "Rotor_AR"],
 
+    // Goal Mode only
+    ["goal", "goal_in"],
+
+    // Resource Mode only
+    ["c_bst", "c_boost_box"],
+    ["n_bst", "n_boost_box"],
+
     ["c_pp", "coal_pp_in"],
     ["c_wd", "Wood_Log_CB"],
     ["c_st", "Stone_CB"],
@@ -50,11 +65,6 @@ const bulk_map = new Map([
     ["n_wr", "Wolframite_NB"],
     ["n_ur", "Uranium_Ore_NB"],
 
-    ["mode", "mode_btn"],
-    ["item", "item_select"],
-
-    ["goal", "goal_in"],
-
     ["e_wd", "Wood_Log_EX"],
     ["e_st", "Stone_EX"],
     ["e_ir", "Iron_Ore_EX"],
@@ -62,11 +72,6 @@ const bulk_map = new Map([
     ["e_cl", "Coal_EX"],
     ["e_wr", "Wolframite_EX"],
     ["e_ur", "Uranium_Ore_EX"],
-
-    ["alt", "alt_box"],
-    ["c_bst", "c_boost_box"],
-    ["n_bst", "n_boost_box"],
-    ["gen2", "gen2_box"]
 ]);
 
 export const html_ids: string[] = Array.from(bulk_map.values());
@@ -91,20 +96,20 @@ function apply_value(el: HTMLElement, value: string) {
 
         if (el.type === "checkbox") {
             el.checked = value === "1" || value === "true" || value === "yes";
-            el.dispatchEvent(new Event("change"));
+            update_page(el);
             return;
         }
 
         el.value = value;
-        el.dispatchEvent(new Event("change"));
+        update_page(el);
     }
     else if (el instanceof HTMLSelectElement) {
         el.value = normalize_select_value(value);
-        el.dispatchEvent(new Event("change"));
+        update_page(el);
     }
     else if (el instanceof HTMLButtonElement) {
-        if (get_btn_value(el) != value) {
-            el.click();
+        if (get_elem_value(el) != value) {
+            update_page(el);
         }
     }
 }
@@ -147,10 +152,9 @@ function get_bulk_input(value: string): string {
     return value;
 }
 
-
-function import_bulk() {
-    const input = get_bulk_input(bulk_in.value);
-    const parsed = parse_input(input);
+export let importing_bulk = false;
+export function import_bulk(bulk_str: string) {
+    const parsed = parse_input(bulk_str);
 
     if (parsed === undefined) return;
 
@@ -160,6 +164,7 @@ function import_bulk() {
         ? parsed.map((value, i) => [bulk_ids[i], value] as const)
         : Object.entries(parsed);
 
+    importing_bulk = true;
     for (const [id, value] of entries) {
         if (!id) continue;
         const htmlId = bulk_map.get(id);
@@ -168,6 +173,7 @@ function import_bulk() {
         if (!el) continue;
         apply_value(el, value);
     }
+    importing_bulk = false;
 }
 
 
@@ -190,30 +196,14 @@ function export_bulk() {
         const el = document.getElementById(html_id);
         if (!el) continue;
 
-        let value;
+        let value: string;
         let is_default = false;
+        const default_val = get_default(html_id);
 
-        const default_val = default_values.get(html_id);
-
-        if (el instanceof HTMLInputElement && el.type === "checkbox") {
-            value = el.checked ? "1" : "0";
+        try {
+            value = get_elem_value(el);
             is_default = value === default_val;
-        }
-        else if (el instanceof HTMLInputElement) {
-            value = el.value;
-            is_default = value === default_val;
-        }
-        else if (el instanceof HTMLSelectElement) {
-            value = el.value;
-            is_default = value === default_val;
-        }
-        else if (el instanceof HTMLButtonElement) {
-            value = get_btn_value(el);
-            is_default = value === default_val;
-        }
-        else {
-            continue;
-        }
+        } catch { continue; }
 
         if (is_default) continue;
         if (value === "") continue;
@@ -235,21 +225,7 @@ export function get_bulk_key() {
     for (const html_id of html_ids) {
         const el = document.getElementById(html_id);
         if (!el) continue;
-
-        let value: string = "";
-
-        if (el instanceof HTMLInputElement && el.type === "checkbox") {
-            value = el.checked ? "1" : "0";
-        }
-        else if (el instanceof HTMLInputElement) {
-            value = el.value;
-        }
-        else if (el instanceof HTMLSelectElement) {
-            value = el.value;
-        }
-        else if (el instanceof HTMLButtonElement) {
-            value = get_btn_value(el);
-        }
+        let value = get_elem_value(el);
         if (value == "") value = "-";
         result.push(value);
     }
@@ -258,7 +234,10 @@ export function get_bulk_key() {
 
 
 export function init_bulk() {
-    import_btn.addEventListener("click", import_bulk);
+    import_btn.addEventListener("click", () => {
+        const bulk_str = get_bulk_input(bulk_in.value);
+        import_bulk(bulk_str);
+    });
 
     export_btn.addEventListener("click", () => {
         bulk_in.value = export_bulk();

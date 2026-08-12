@@ -27,18 +27,20 @@ import {
     goal_in
 } from './dom.js'
 
+import { update_page } from './update_page.js';
+
 
 function set_max_tiers() {
     for (const input of tier_inputs.values()) {
         input.value = input.max;
-        input.dispatchEvent(new Event("change"));
+        update_page(input);
     }
 }
 
 function set_min_tiers() {
     for (const input of tier_inputs.values()) {
         input.value = input.min;
-        input.dispatchEvent(new Event("change"));
+        update_page(input);
     }
 }
 
@@ -74,13 +76,13 @@ function do_clear_all() {
 function do_clear_extractors() {
     for (const input of extractor_inputs.values()) {
         input.value = "";
-        input.dispatchEvent(new Event("change"));
+        update_page(input);
     }
 }
 
 function do_clear_goal() {
     goal_in.value = "";
-    goal_in.dispatchEvent(new Event("change"));
+    update_page(goal_in);
 }
 
 

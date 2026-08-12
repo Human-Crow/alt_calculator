@@ -1,5 +1,8 @@
-import { extractor_inputs, goal_in, item_sel, alt_box, c_boost_box, n_boost_box, gen2_box, mode_btn, bulk_in, import_btn } from "./dom.js";
-import { default_values, get_btn_value } from "./defaults.js";
+import { extractor_inputs, goal_in, item_sel, alt_box, c_boost_box, n_boost_box, gen2_box, mode_btn } from "./dom.js";
+import { get_default, get_elem_value } from "./defaults.js";
+import { is_mode_goal } from "./solver_mode.js";
+import { import_bulk, importing_bulk } from "./bulk.js";
+import { update_page } from "./update_page.js";
 const url_map = {
     Wood_Log: "wd",
     Stone: "st",
@@ -10,13 +13,16 @@ const url_map = {
     Uranium_Ore: "ur"
 };
 const id_map = {
+    // General
     mode: "mode_btn",
+    item: "item_select",
     alt: "alt_box",
+    gen2: "gen2_box",
+    // Goal Mode only
+    goal: "goal_in",
+    // Resource Mode only
     cbst: "c_boost_box",
     nbst: "n_boost_box",
-    gen2: "gen2_box",
-    item: "item_select",
-    goal: "goal_in",
     wd: "Wood_Log_EX",
     st: "Stone_EX",
     ir: "Iron_Ore_EX",
@@ -25,44 +31,43 @@ const id_map = {
     wr: "Wolframite_EX",
     ur: "Uranium_Ore_EX"
 };
-const order = Object.keys(id_map);
-function get_url_param(target_key) {
-    const url_vars = window.location.search.substring(1).split('&');
-    for (const url_var of url_vars) {
-        const [key, value] = url_var.split('=');
-        if (key === target_key) {
-            return value || "";
-        }
+const goal_order = [
+    "mode", "item", "alt", "gen2",
+    "goal"
+];
+const resource_order = [
+    "mode", "item", "alt", "gen2",
+    "cbst", "nbst",
+    "wd", "st", "ir", "cp", "cl", "wr", "ur"
+];
+function get_html_id(url_id) {
+    const html_id = id_map[url_id];
+    if (html_id === undefined) {
+        throw new Error("URL id not in map!");
     }
-    return "";
+    return html_id;
 }
-function update_url_param(param, value) {
+function url_has_param(url_id) {
+    const params = new URLSearchParams(window.location.search);
+    return params.has(url_id);
+}
+function get_url_param(url_id) {
+    const params = new URLSearchParams(window.location.search);
+    const value = params.get(url_id);
+    return value || "";
+}
+function refresh_url() {
     const url = new URL(window.location.href);
-    const params = url.searchParams;
-    if (params.get(param) === value) {
-        return;
-    }
-    const id = id_map[param];
-    if (id === undefined) {
-        throw new Error("URL param not in map!");
-    }
-    const default_val = default_values.get(id);
-    if (default_val === undefined) {
-        throw new Error("ID not in defaults!");
-    }
-    const isDefault = value === default_val ||
-        (default_val === "" && value === "0");
-    if (isDefault) {
-        params.delete(param);
-    }
-    else {
-        params.set(param, value);
-    }
     const ordered_params = new URLSearchParams();
-    for (let key of order) {
-        const param_key = params.get(key);
-        if (param_key) {
-            ordered_params.set(key, param_key);
+    const order = is_mode_goal() ? goal_order : resource_order;
+    for (const url_id of order) {
+        const html_id = get_html_id(url_id);
+        const value = get_elem_value(html_id);
+        const default_val = get_default(html_id);
+        const isDefault = value === default_val ||
+            (default_val === "" && value === "0");
+        if (!isDefault) {
+            ordered_params.set(url_id, value);
         }
     }
     window.history.replaceState({}, '', `${url.origin}${url.pathname}?${ordered_params.toString()}`);
@@ -71,6 +76,18 @@ function clear_url() {
     const url = new URL(window.location.href);
     window.history.replaceState({}, '', `${url.origin}${url.pathname}`);
 }
+function update_url_param(url_id) {
+    if (importing_bulk)
+        return;
+    const url = new URL(window.location.href);
+    const params = url.searchParams;
+    const html_id = get_html_id(url_id);
+    const el_value = get_elem_value(html_id);
+    if (params.get(url_id) === el_value) {
+        return;
+    }
+    refresh_url();
+}
 function add_listeners() {
     for (const [name, elem] of extractor_inputs) {
         elem.addEventListener("change", () => {
@@ -78,29 +95,29 @@ function add_listeners() {
             if (!url_id) {
                 throw new Error("Could not find url id!");
             }
-            update_url_param(url_id, elem.value);
+            update_url_param(url_id);
         });
     }
     goal_in.addEventListener("change", () => {
-        update_url_param("goal", goal_in.value);
+        update_url_param("goal");
     });
     item_sel.addEventListener("change", () => {
-        update_url_param("item", item_sel.value);
+        update_url_param("item");
     });
     alt_box.addEventListener("change", () => {
-        update_url_param("alt", alt_box.checked ? "1" : "0");
+        update_url_param("alt");
     });
     c_boost_box.addEventListener("change", () => {
-        update_url_param("cbst", c_boost_box.checked ? "1" : "0");
+        update_url_param("cbst");
     });
     n_boost_box.addEventListener("change", () => {
-        update_url_param("nbst", n_boost_box.checked ? "1" : "0");
+        update_url_param("nbst");
     });
     gen2_box.addEventListener("change", () => {
-        update_url_param("gen2", gen2_box.checked ? "1" : "0");
+        update_url_param("gen2");
     });
     mode_btn.addEventListener("click", () => {
-        update_url_param("mode", get_btn_value(mode_btn));
+        update_url_param("mode");
     });
 }
 function proper(str, separator = '') {
@@ -152,12 +169,9 @@ function show_warning(message) {
     document.addEventListener("click", () => warning.remove(), { once: true });
 }
 function set_from_url() {
-    const bulk_val = get_url_param("bulk");
-    if (bulk_val) {
-        bulk_in.value = bulk_val;
-        clear_url();
-        import_btn.click();
-        bulk_in.value = "";
+    const bulk_str = get_url_param("bulk");
+    if (bulk_str) {
+        import_bulk(bulk_str);
         return;
     }
     goal_in.value = get_url_param("goal");
@@ -171,12 +185,12 @@ function set_from_url() {
     const mode_val = proper(get_url_param("mode"));
     if (mode_val) {
         if (["Goal", "Resource"].includes(mode_val)) {
-            const default_mode = default_values.get("mode_btn");
+            const default_mode = get_elem_value("mode_btn");
             if (default_mode === undefined) {
                 throw new Error("ID not in defaults!");
             }
             if (mode_val != default_mode) {
-                mode_btn.click();
+                update_page(mode_btn);
             }
         }
         else {
@@ -187,7 +201,7 @@ function set_from_url() {
     if (url_item) {
         if ([...item_sel.options].some(option => option.value === url_item)) {
             item_sel.value = url_item;
-            item_sel.dispatchEvent(new Event("change"));
+            update_page(item_sel);
         }
         else {
             show_warning(`"${url_item}" is not a valid item!`);
@@ -200,7 +214,7 @@ function set_from_url() {
                 const checkbox = document.getElementById(`${box}_box`);
                 if (checkbox instanceof HTMLInputElement) {
                     checkbox.checked = (url_param == "1") ? true : false;
-                    checkbox.dispatchEvent(new Event("change"));
+                    update_page(checkbox);
                 }
             }
             else {
