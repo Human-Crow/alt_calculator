@@ -62,7 +62,7 @@ export function get_build_amount(settings, item_name, variant, amount, is_total 
             amounts.push(nuc_frac > 0 ? amount / nuc_speed : 0);
         }
     }
-    else if (variant == V.SPLIT || variant == V.ALT) {
+    else if (variant == V.SPLIT) {
         const alt_ratio = alt_ratios.get(item_name) ?? 0;
         const std_ratio = 1 - alt_ratio;
         const std_am = amount / get_speed(tiers, item_name, V.STD);
@@ -76,8 +76,15 @@ export function get_build_amount(settings, item_name, variant, amount, is_total 
             amounts.push(alt_ratio > 0 ? alt_am : 0);
         }
     }
+    else if (variant == V.ALT) {
+        const alt_ratio = alt_ratios.get(item_name) ?? 0;
+        const alt_am = amount / get_speed(tiers, item_name, V.ALT);
+        amounts.push(0);
+        amounts.push(alt_ratio > 0 ? alt_am : 0);
+    }
     else {
-        amounts.push(amount / get_speed(tiers, item_name, variant));
+        const am = amount / get_speed(tiers, item_name, variant);
+        amounts.push(am);
     }
     return amounts;
 }
