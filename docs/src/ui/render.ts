@@ -1,6 +1,6 @@
-import { RecipeNode, Settings } from '../data/types.js';
+import { RecipeNode, Settings, VariantId } from '../data/types.js';
 import { V, B } from '../data/enums.js';
-import { get_asset, get_tier_asset } from '../utils/asset_path.js';
+import { get_asset, get_build_name } from '../utils/asset_path.js';
 import { is_raw_item } from '../utils/validation.js'
 import { 
     get_item_display, 
@@ -13,26 +13,26 @@ import {
 import { RAW_ITEMS } from '../data/name_lists.js';
 
 
-function create_item_row(
-    settings: Settings,
-    node: RecipeNode,
-    td_class: string
+function create_row(
+    is_rounded: boolean,
+    td_class: string,
+    item_name: string,
+    display_name: string,
+    item_amount: number,
+    build_img: string,
+    belt_img: string,
+    build_amounts?: number[],
+    belt_amount?: number,
 ): HTMLTableRowElement {
-    const {is_rounded, tiers} = settings;
-    const {item_amount, item_name, variant, build_amounts, belt_amount} = node;
-    const {name, is_split} = get_item_display(item_name, variant);
-    const build_img = get_tier_asset(tiers, item_name, 
-        is_split? V.STD : variant
-    );
-    
+
     const tr = document.createElement("tr");
     tr.innerHTML = `
         <td class="${td_class}"><img src="${get_asset(item_name)}" class="tree-img"></td>
-        <td class="tree-indent2">${name}</td>
+        <td class="tree-indent2">${display_name}</td>
         <td class="tree-indent2 number-cell"></td>
-        <td class="tree-indent2"><img src="${build_img}" class="tree-img"></td>
+        <td class="tree-indent2"><img src="${get_asset(build_img)}" class="tree-img"></td>
         <td class="tree-indent2 build-cell"></td>
-        <td class="tree-indent2"><img src="${get_asset(B.Belt)}" class="tree-img"></td>
+        <td class="tree-indent2"><img src="${get_asset(belt_img)}" class="tree-img"></td>
         <td class="tree-indent2 belt-cell"></td>
     `;
     populate_amount_cell(is_rounded, tr, item_amount);
@@ -41,6 +41,52 @@ function create_item_row(
         populate_belt_cell(is_rounded, tr, belt_amount);
     }
     return tr;
+}
+
+function create_item_row(
+    settings: Settings,
+    node: RecipeNode,
+    td_class: string
+): HTMLTableRowElement {
+    
+    const {is_rounded, tiers} = settings;
+    const {item_amount, item_name, variant, build_amounts, belt_amount} = node;
+    const {name, is_split} = get_item_display(item_name, variant);
+    const build_img = get_build_name(tiers, item_name, 
+        is_split? V.STD : variant
+    );
+
+    return create_row(
+        is_rounded, td_class, item_name, 
+        name, item_amount, build_img, 
+        B.Belt, build_amounts, belt_amount
+    );
+}
+
+function create_sum_row(
+    settings: Settings,
+    tree: RecipeNode[],
+    td_class: string
+): HTMLTableRowElement {
+
+    const {is_rounded} = settings;
+    const name = "Sum";
+    let item_amount = 0;
+    let build_amounts: [number] = [0];
+    let belt_amount = 0;
+
+    for (const node of tree) {
+        if (!is_raw_item(node.item_name)) continue;
+        item_amount += node.item_amount;
+        build_amounts[0] += node.build_amounts?.[0] ?? 0;
+        belt_amount += node.belt_amount ?? 0;
+    }
+
+    return create_row(
+        is_rounded, td_class, name, 
+        name, item_amount, name, 
+        name, build_amounts, belt_amount
+    );
 }
 
 
@@ -125,7 +171,9 @@ export function render_list(
     );
     body.insertBefore(createSpacerRow(7), body.rows[1] ?? null);
     if (last_raw) {
-        body.insertBefore(createSpacerRow(7), body.rows[last_raw + 2] ?? null);
+        const sum_row = create_sum_row(settings, tree, "tree-indent2");
+        body.insertBefore(sum_row, body.rows[last_raw + 2] ?? null);
+        body.insertBefore(createSpacerRow(7), body.rows[last_raw + 3] ?? null);
     }
     return body;
 }

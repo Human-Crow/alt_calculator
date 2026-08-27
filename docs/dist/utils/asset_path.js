@@ -1,6 +1,6 @@
 import { get_recipe, get_recipes } from './get_recipe.js';
 import { ITEMS, BUILDINGS, TIER_BUILDINGS } from '../data/name_lists.js';
-const assets = new Set(["Fraction", "Unknown"]);
+const assets = new Set(["Fraction", "Unknown", "Sum"]);
 for (const item of ITEMS) {
     assets.add(item);
 }
@@ -20,12 +20,12 @@ export function get_asset(name) {
         ? `assets/${name}.png`
         : "assets/Unknown.png";
 }
-export function get_tier_asset(tiers, item_name, variant) {
+export function get_build_name(tiers, item_name, variant) {
     const recipe = get_recipe(get_recipes(item_name), variant);
     let name = recipe.building;
     if (assets.has(name))
-        return get_asset(name);
+        return name;
     const tier = tiers.get(name) ?? 1;
-    return get_asset(`${name}_${tier}`);
+    return `${name}_${tier}`;
 }
 //# sourceMappingURL=asset_path.js.map

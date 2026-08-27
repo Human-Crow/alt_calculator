@@ -4,7 +4,7 @@ import { ITEMS, BUILDINGS, TIER_BUILDINGS } from '../data/name_lists.js';
 
 
 
-const assets = new Set<string>(["Fraction", "Unknown"]);
+const assets = new Set<string>(["Fraction", "Unknown", "Sum"]);
 
 for (const item of ITEMS) {
     assets.add(item);
@@ -26,15 +26,15 @@ export function get_asset(name: string): string {
         : "assets/Unknown.png";
 }
 
-export function get_tier_asset(
+export function get_build_name(
     tiers: BuildMap,
     item_name: ItemId, 
     variant: VariantId
 ): string {
     const recipe = get_recipe(get_recipes(item_name), variant);
     let name = recipe.building;
-    if (assets.has(name)) return get_asset(name);
+    if (assets.has(name)) return name;
 
     const tier = tiers.get(name) ?? 1;
-    return get_asset(`${name}_${tier}`);
+    return `${name}_${tier}`;
 }
