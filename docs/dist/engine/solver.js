@@ -78,21 +78,6 @@ const general_cons = [
     },
     {
         vars: [
-            { name: 'Coal', coef: 1.0 },
-            { name: 'Coal_RAW', coef: -1.0 },
-            { name: 'Coal_Power_Plant', coef: -1.0 * CPP_RATE },
-        ],
-        bnds: { type: glpk.GLP_FX, ub: 0.0, lb: 0.0 },
-    },
-    {
-        vars: [
-            { name: 'Coal', coef: 1.0 },
-            { name: 'Coal_RAW', coef: -1.0 },
-        ],
-        bnds: { type: glpk.GLP_LO, lb: 0.0 },
-    },
-    {
-        vars: [
             { name: 'Resource_Sum', coef: 1.0 },
             { name: 'Wood_Log', coef: -1.0 },
             { name: 'Stone', coef: -1.0 },
@@ -138,9 +123,10 @@ const general_cons = [
     },
     {
         vars: [
-            { name: 'Coal_RAW', coef: 1.0 },
+            { name: 'Coal', coef: 1.0 },
             { name: 'Graphite', coef: -3.0 },
             { name: 'Steel_ALT', coef: -4.0 },
+            { name: 'Coal_Power_Plant', coef: -1.0 * CPP_RATE },
         ],
         bnds: { type: glpk.GLP_LO, lb: 0.0 },
     },
