@@ -19,7 +19,7 @@ const bulk_map = new Map([
     ["a_ig", "Iron_Gear_AR"],
     ["a_st", "Steel_AR"],
     ["a_cc", "Concrete_AR"],
-    ["a_el", "Electromagnet_AR"],
+    ["a_eg", "Electromagnet_AR"],
     ["a_lc", "Logic_Circuit_AR"],
     ["a_em", "Electric_Motor_AR"],
     ["a_if", "Industrial_Frame_AR"],
