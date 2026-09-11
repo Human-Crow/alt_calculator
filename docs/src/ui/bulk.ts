@@ -35,7 +35,7 @@ const bulk_map = new Map([
     ["a_lc", "Logic_Circuit_AR"],
     ["a_em", "Electric_Motor_AR"],
     ["a_if", "Industrial_Frame_AR"],
-    ["a_tu", "Turbocharger_AR"],
+    ["a_tg", "Turbocharger_AR"],
     ["a_sc", "Super_Computer_AR"],
     ["a_tc", "Tungsten_Carbide_AR"],
     ["a_ro", "Rotor_AR"],
