@@ -3,7 +3,7 @@ import {
     export_btn,
     copy_txt_btn,
     copy_url_btn,
-    bulk_in
+    bulk_in,
 } from "./dom.js";
 
 import { get_default, get_elem_value } from "./defaults.js";
@@ -17,6 +17,7 @@ const bulk_map = new Map([
 
     ["alt", "alt_box"],
     ["gen2", "gen2_box"],
+    ["rnd", "rounded_box"],
 
     ["t_ws", "Workshop_BD"],
     ["t_fn", "Furnace_BD"],

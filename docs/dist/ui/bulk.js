@@ -1,4 +1,4 @@
-import { import_btn, export_btn, copy_txt_btn, copy_url_btn, bulk_in } from "./dom.js";
+import { import_btn, export_btn, copy_txt_btn, copy_url_btn, bulk_in, } from "./dom.js";
 import { get_default, get_elem_value } from "./defaults.js";
 import { update_page } from "./update_page.js";
 const bulk_map = new Map([
@@ -7,6 +7,7 @@ const bulk_map = new Map([
     ["item", "item_select"],
     ["alt", "alt_box"],
     ["gen2", "gen2_box"],
+    ["rnd", "rounded_box"],
     ["t_ws", "Workshop_BD"],
     ["t_fn", "Furnace_BD"],
     ["t_ms", "Machine_Shop_BD"],
