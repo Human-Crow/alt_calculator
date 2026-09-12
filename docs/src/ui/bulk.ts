@@ -96,23 +96,30 @@ function apply_value(el: HTMLElement, value: string) {
     if (el instanceof HTMLInputElement) {
 
         if (el.type === "checkbox") {
-            el.checked = value === "1" || value === "true" || value === "yes";
+            const new_value = value === "1" || value === "true" || value === "yes";
+            if (el.checked === new_value) return false;
+            el.checked = new_value;
             update_page(el);
-            return;
+            return true;
         }
-
+        if (el.value === value) return false;
         el.value = value;
         update_page(el);
+        return true;
     }
-    else if (el instanceof HTMLSelectElement) {
-        el.value = normalize_select_value(value);
+    if (el instanceof HTMLSelectElement) {
+        const new_value = normalize_select_value(value);
+        if (el.value === new_value) return false;
+        el.value = new_value;
         update_page(el);
+        return true;
     }
-    else if (el instanceof HTMLButtonElement) {
-        if (get_elem_value(el) != value) {
-            update_page(el);
-        }
+    if (el instanceof HTMLButtonElement) {
+        if (get_elem_value(el) === value) return false;
+        update_page(el);
+        return true;
     }
+    return false;
 }
 
 
@@ -157,7 +164,7 @@ export let importing_bulk = false;
 export function import_bulk(bulk_str: string) {
     const parsed = parse_input(bulk_str);
 
-    if (parsed === undefined) return;
+    if (parsed === undefined) return false;
 
     const bulk_ids = ["e_wd","e_st","e_ir","e_cp","e_cl","e_wr","e_ur"];
 
@@ -165,6 +172,7 @@ export function import_bulk(bulk_str: string) {
         ? parsed.map((value, i) => [bulk_ids[i], value] as const)
         : Object.entries(parsed);
 
+    let changed = false;
     importing_bulk = true;
     for (const [id, value] of entries) {
         if (!id) continue;
@@ -172,9 +180,13 @@ export function import_bulk(bulk_str: string) {
         if (!htmlId) continue;
         const el = document.getElementById(htmlId);
         if (!el) continue;
-        apply_value(el, value);
+        if (apply_value(el, value)) {
+            changed = true;
+        }
     }
     importing_bulk = false;
+
+    return changed;
 }
 
 
@@ -216,7 +228,16 @@ function export_bulk() {
 }
 
 
-
+function import_bulk_btn_func() {
+    const bulk_str = get_bulk_input(bulk_in.value);
+    const did_change = import_bulk(bulk_str);
+    if (!did_change) return;
+    const old = import_btn.textContent;
+    import_btn.textContent = "Imported!";
+    setTimeout(() => {
+        import_btn.textContent = old;
+    }, 1000);
+}
 
 
 
@@ -236,8 +257,7 @@ export function get_bulk_key() {
 
 export function init_bulk() {
     import_btn.addEventListener("click", () => {
-        const bulk_str = get_bulk_input(bulk_in.value);
-        import_bulk(bulk_str);
+        import_bulk_btn_func();
     });
 
     export_btn.addEventListener("click", () => {

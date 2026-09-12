@@ -110,7 +110,8 @@ export function clear_url() {
 
 
 function update_url_param(url_id: string) {
-    if (importing_bulk) return;
+    const has_bulk = url_has_param("bulk");
+    if (importing_bulk && has_bulk) return;
     
     const url = new URL(window.location.href);
     const params = url.searchParams;

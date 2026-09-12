@@ -77,7 +77,8 @@ export function clear_url() {
     window.history.replaceState({}, '', `${url.origin}${url.pathname}`);
 }
 function update_url_param(url_id) {
-    if (importing_bulk)
+    const has_bulk = url_has_param("bulk");
+    if (importing_bulk && has_bulk)
         return;
     const url = new URL(window.location.href);
     const params = url.searchParams;
