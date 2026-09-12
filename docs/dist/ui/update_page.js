@@ -11,6 +11,8 @@ export function update_page(el, eventInitDict) {
 }
 export function init_update_page() {
     for (const html_id of html_ids) {
+        if (html_id === "rounded_box")
+            continue;
         const el = document.getElementById(html_id);
         if (!el)
             continue;
