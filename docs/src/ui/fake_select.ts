@@ -29,6 +29,9 @@ function make_fake_select(
     }
 
     if (!(selectedBtn) || !(optionsDiv)) {return;}
+
+    fakeSelect.tabIndex = 0;
+
     optionsDiv.replaceChildren();
 
     for (const option of realSelect.options) {
@@ -59,6 +62,62 @@ function make_fake_select(
             renderSelected(option);
         }
     }
+
+    // Track keyboard search state
+    let lastKey = "";
+    let lastMatchIndex = -1;
+
+    fakeSelect.addEventListener("keydown", (e) => {
+        if (e.key.length !== 1) return;
+
+        const key = e.key.toLowerCase();
+
+        // Only handle letters
+        if (!/^[a-z]$/.test(key)) return;
+
+        const options = Array.from(realSelect.options);
+
+        const matches = options
+            .map((option, index) => ({ option, index }))
+            .filter(({ option }) =>
+                option.textContent?.trim().toLowerCase().startsWith(key)
+            );
+
+        if (matches.length === 0) return;
+        let matchIndex = 0;
+
+        if (key === lastKey) {
+            // Same key again → move to the next match
+            const currentMatch = matches.findIndex(
+                ({ index }) => index === lastMatchIndex
+            );
+
+            matchIndex = currentMatch === -1
+                ? 0
+                : (currentMatch + 1) % matches.length;
+        } else {
+            // New key → start from the first match
+            matchIndex = 0;
+        }
+
+        const match = matches[matchIndex];
+        if (!match) return;
+
+        realSelect.value = match.option.value;
+        renderSelected(match.option);
+        update_page(realSelect);
+
+        const optionDiv = optionsDiv.children[match.index];
+        if (optionDiv instanceof HTMLElement) {
+            optionsDiv.scrollTop = optionDiv.offsetTop;
+        }
+
+        lastKey = key;
+        lastMatchIndex = match.index;
+
+        e.preventDefault();
+    });
+
 
     // toggle dropdown
     selectedBtn.addEventListener("click", (e) => {
