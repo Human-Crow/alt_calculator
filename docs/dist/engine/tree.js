@@ -74,19 +74,36 @@ function build_split_branches(alt_ratios, gen, split_nodes) {
     }
     return branches;
 }
+function get_total_item_amount(node, item) {
+    let total = 0;
+    if (node.item_name === item) {
+        total += node.item_amount;
+    }
+    for (const child of node.children) {
+        total += get_total_item_amount(child, item);
+    }
+    return total;
+}
 export function build_full_tree(settings) {
     const { selected_item, goal_amount, coal_pp, nuclear_pp, alt_ratios, gen } = settings;
     const split_nodes = new Map();
-    const mainTree = build_tree(goal_amount, selected_item, alt_ratios, gen, split_nodes);
-    const result = [mainTree];
+    let cpp_tree = undefined;
+    let npp_tree = undefined;
+    let real_goal_amount = goal_amount;
     if (coal_pp) {
-        const cpp_tree = build_tree(coal_pp, I.Coal_Power_Plant, alt_ratios, gen, split_nodes);
-        result.push(cpp_tree);
+        cpp_tree = build_tree(coal_pp, I.Coal_Power_Plant, alt_ratios, gen, split_nodes);
+        real_goal_amount -= get_total_item_amount(cpp_tree, selected_item);
     }
     if (nuclear_pp) {
-        const npp_tree = build_tree(nuclear_pp, I.Nuclear_Power_Plant, alt_ratios, gen, split_nodes);
-        result.push(npp_tree);
+        npp_tree = build_tree(nuclear_pp, I.Nuclear_Power_Plant, alt_ratios, gen, split_nodes);
+        real_goal_amount -= get_total_item_amount(npp_tree, selected_item);
     }
+    const mainTree = build_tree(real_goal_amount, selected_item, alt_ratios, gen, split_nodes);
+    const result = [mainTree];
+    if (cpp_tree !== undefined)
+        result.push(cpp_tree);
+    if (npp_tree !== undefined)
+        result.push(npp_tree);
     const split_branches = build_split_branches(alt_ratios, gen, split_nodes);
     return [...result, ...split_branches];
 }
