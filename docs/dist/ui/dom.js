@@ -35,6 +35,7 @@ export const c_boost_label = document.getElementById("c_boost_label");
 export const n_boost_label = document.getElementById("n_boost_label");
 export const boost_note = document.getElementById("boost_note");
 export const output_el = document.getElementById("output");
+export const reset_btn = document.getElementById("reset_btn");
 export const clear_all_btn = document.getElementById("clear_all_btn");
 export const able_all_btn = document.getElementById("able_all_btn");
 export const optimal_btn = document.getElementById("optimal_btn");

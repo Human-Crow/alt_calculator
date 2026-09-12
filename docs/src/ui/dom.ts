@@ -46,6 +46,7 @@ export const boost_note = document.getElementById("boost_note") as HTMLParagraph
 export const output_el     = document.getElementById("output"          ) as HTMLElement;
 
 
+export const reset_btn = document.getElementById("reset_btn") as HTMLButtonElement;
 export const clear_all_btn = document.getElementById("clear_all_btn") as HTMLButtonElement;
 export const able_all_btn = document.getElementById("able_all_btn") as HTMLButtonElement;
 export const optimal_btn = document.getElementById("optimal_btn") as HTMLButtonElement;

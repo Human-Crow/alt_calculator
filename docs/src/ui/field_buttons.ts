@@ -3,10 +3,12 @@ import { BuildingId } from '../data/types.js';
 import { formatNumber } from '../utils/math.js';
 import { get_asset } from '../utils/asset_path.js';
 import { get_cached_settings } from './cache.js';
+import { clear_url } from './url.js';
 
 import { 
     cpp_in, 
     npp_in, 
+    bulk_in,
     alt_inputs, 
     coal_inputs, 
     nuclear_inputs, 
@@ -24,6 +26,7 @@ import {
     clear_nuc_btn,
     clear_ext_btn,
     clear_goal_btn,
+    reset_btn,
     goal_in
 } from './dom.js'
 
@@ -85,6 +88,11 @@ function do_clear_goal() {
     update_page(goal_in);
 }
 
+function do_clear_website() {
+    clear_url();
+    location.reload();
+}
+
 
 
 async function do_optimal() {
@@ -119,10 +127,13 @@ const button_actions = new Map<HTMLButtonElement, () => void>([
     [clear_nuc_btn, do_clear_nuclear],
     [clear_goal_btn, do_clear_goal],
     [clear_ext_btn, do_clear_extractors],
+    [reset_btn, do_clear_website],
 ]);
 
 
 let active_clear_button: HTMLButtonElement | null = null;
+let active_clear_button_text = "";
+
 function clear_btn_action(event: PointerEvent) {
     const clear_button = event.currentTarget;
 
@@ -133,16 +144,18 @@ function clear_btn_action(event: PointerEvent) {
         const action = button_actions.get(clear_button);
         action?.();
 
-        clear_button.innerText = "Clear";
+        clear_button.innerText = active_clear_button_text;
         active_clear_button = null;
     } else {
         // First click, or switching to another clear button
         if (active_clear_button !== null) {
-            active_clear_button.innerText = "Clear";
+            active_clear_button.innerText = active_clear_button_text;
         }
 
-        clear_button.innerText = "Confirm";
         active_clear_button = clear_button;
+        active_clear_button_text = clear_button.innerText;
+
+        clear_button.innerText = "Confirm";
     }
 }
 

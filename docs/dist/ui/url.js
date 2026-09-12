@@ -72,7 +72,7 @@ function refresh_url() {
     }
     window.history.replaceState({}, '', `${url.origin}${url.pathname}?${ordered_params.toString()}`);
 }
-function clear_url() {
+export function clear_url() {
     const url = new URL(window.location.href);
     window.history.replaceState({}, '', `${url.origin}${url.pathname}`);
 }
