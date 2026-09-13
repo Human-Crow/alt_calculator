@@ -87,6 +87,7 @@ function get_total_item_amount(node, item) {
 export function build_full_tree(settings) {
     const { selected_item, goal_amount, coal_pp, nuclear_pp, alt_ratios, gen } = settings;
     const split_nodes = new Map();
+    let main_tree = undefined;
     let cpp_tree = undefined;
     let npp_tree = undefined;
     let real_goal_amount = goal_amount;
@@ -98,8 +99,12 @@ export function build_full_tree(settings) {
         npp_tree = build_tree(nuclear_pp, I.Nuclear_Power_Plant, alt_ratios, gen, split_nodes);
         real_goal_amount -= get_total_item_amount(npp_tree, selected_item);
     }
-    const mainTree = build_tree(real_goal_amount, selected_item, alt_ratios, gen, split_nodes);
-    const result = [mainTree];
+    if (real_goal_amount > 0) {
+        main_tree = build_tree(real_goal_amount, selected_item, alt_ratios, gen, split_nodes);
+    }
+    const result = [];
+    if (main_tree !== undefined)
+        result.push(main_tree);
     if (cpp_tree !== undefined)
         result.push(cpp_tree);
     if (npp_tree !== undefined)

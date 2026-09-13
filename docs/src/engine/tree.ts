@@ -146,6 +146,7 @@ export function build_full_tree(settings: Settings): RecipeNode[] {
     } = settings;
 
     const split_nodes: SplitMap = new Map();
+    let main_tree: RecipeNode | undefined = undefined;
     let cpp_tree: RecipeNode | undefined = undefined;
     let npp_tree: RecipeNode | undefined = undefined;
     let real_goal_amount = goal_amount;
@@ -157,7 +158,6 @@ export function build_full_tree(settings: Settings): RecipeNode[] {
         );
         real_goal_amount -= get_total_item_amount(cpp_tree, selected_item);
     }
-
     if (nuclear_pp) {
         npp_tree = build_tree(
             nuclear_pp, I.Nuclear_Power_Plant, 
@@ -165,12 +165,15 @@ export function build_full_tree(settings: Settings): RecipeNode[] {
         );
         real_goal_amount -= get_total_item_amount(npp_tree, selected_item);
     }
+    if (real_goal_amount > 0) {
+        main_tree = build_tree(
+            real_goal_amount, selected_item, 
+            alt_ratios, gen, split_nodes
+        );
+    }
 
-    const mainTree = build_tree(
-        real_goal_amount, selected_item, 
-        alt_ratios, gen, split_nodes
-    );
-    const result = [mainTree];
+    const result = [];
+    if (main_tree !== undefined) result.push(main_tree);
     if (cpp_tree !== undefined) result.push(cpp_tree);
     if (npp_tree !== undefined) result.push(npp_tree);
 

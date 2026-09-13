@@ -84,10 +84,10 @@ const boost_cons: Constraint[] = [
 const general_cons: Constraint[] = [
     {
         vars: [
-            { name: 'Nuclear_Power_Plant', coef: 1.0 },
-            { name: 'Nuclear_Fuel_Cell', coef: -1.0 / NPP_RATE },
+            { name: 'Nuclear_Fuel_Cell', coef: 1.0 },
+            { name: 'Nuclear_Power_Plant', coef: -1.0 * NPP_RATE },
         ],
-        bnds: { type: glpk.GLP_FX, ub: 0.0, lb: 0.0},
+        bnds: { type: glpk.GLP_LO, lb: 0.0},
     },
     {
         vars: [
@@ -697,7 +697,7 @@ function add_coal_pp_con(
                 { name: 'Wolframite_Coal_Ex', coef: -1.0 / EX_CPP[gen_i] },
                 { name: 'Uranium_Coal_Ex', coef: -1.0 / EX_CPP_UR[gen_i] },
             ],
-            bnds: { type: glpk.GLP_FX, ub: 0.0, lb: 0.0 },
+            bnds: { type: glpk.GLP_LO, lb: 0.0 },
         });
     }
 }
@@ -729,7 +729,7 @@ function add_nuclear_pp_con(
                 { name: 'Wolframite_Nuc_Ex', coef: -1.0 / EX_NPP[gen_i] },
                 { name: 'Uranium_Nuc_Ex', coef: -1.0 / EX_NPP_UR[gen_i] },
             ],
-            bnds: { type: glpk.GLP_FX, ub: 0.0, lb: 0.0},
+            bnds: { type: glpk.GLP_LO, lb: 0.0},
         });
     }
 }
