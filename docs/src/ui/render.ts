@@ -166,14 +166,29 @@ export function render_list(
         body.appendChild(render_mat_child(settings, node, "tree-indent2"));
     }
 
+    const first_raw = tree.findIndex(({ item_name }) =>
+        is_raw_item(item_name)
+    );
     const last_raw = tree.findLastIndex(({item_name}) =>
         is_raw_item(item_name)
     );
-    body.insertBefore(createSpacerRow(7), body.rows[1] ?? null);
-    if (last_raw) {
+    
+    if (first_raw !== -1) {
+        body.insertBefore(
+            createSpacerRow(7), 
+            body.rows[first_raw] ?? null
+        );
+    }
+    if (last_raw !== -1) {
         const sum_row = create_sum_row(settings, tree, "tree-indent2");
-        body.insertBefore(sum_row, body.rows[last_raw + 2] ?? null);
-        body.insertBefore(createSpacerRow(7), body.rows[last_raw + 3] ?? null);
+        body.insertBefore(
+            sum_row, 
+            body.rows[last_raw + 2] ?? null
+        );
+        body.insertBefore(
+            createSpacerRow(7), 
+            body.rows[last_raw + 3] ?? null
+        );
     }
     return body;
 }
