@@ -19,6 +19,7 @@ import {
     render_main,
     render_mat_child,
     render_tree_child,
+    render_combi,
     render_boosts,
     render_ratios
 } from './render.js'
@@ -86,6 +87,25 @@ async function run_materials() {
 }
 
 
+async function run_combi() {
+    await run_view("combi", (settings, tree) => {
+        const mat_map = build_materials(tree!, settings.alt_ratios);
+        const dep_map = build_dependents(tree!, settings.alt_ratios);
+        const mat_conv_tree = convert_mat_dep(mat_map);
+        const dep_conv_tree = convert_mat_dep(dep_map);
+        const mat_info_tree = sort_mat_dep(
+            add_tree_info(settings, mat_conv_tree, true), 
+            settings.selected_item
+        );
+        const dep_info_tree = sort_mat_dep(
+            add_tree_info(settings, dep_conv_tree, true), 
+            settings.selected_item
+        );
+        return render_combi(settings, mat_info_tree, dep_info_tree);
+    });
+}
+
+
 async function run_dependents() {
     await run_view("dependents", (settings, tree) => {
         const map = build_dependents(tree!, settings.alt_ratios);
@@ -112,7 +132,7 @@ async function run_boosts() {
 
 export function init_view_btns() {
     tree_btn.addEventListener("click", run_tree);
-    list_btn.addEventListener("click", run_list);
+    list_btn.addEventListener("click", run_combi);
     mat_btn.addEventListener("click", run_materials);
     dep_btn.addEventListener("click", run_dependents);
     ratios_btn.addEventListener("click", run_ratios);

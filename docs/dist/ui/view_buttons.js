@@ -1,6 +1,6 @@
 import { build_list, build_dependents, build_materials } from '../engine/build.js';
 import { sort_list, sort_mat_dep, convert_mat_dep, convert_list, add_tree_info } from '../engine/convert.js';
-import { render_dep_child, render_list, render_main, render_mat_child, render_tree_child, render_boosts, render_ratios } from './render.js';
+import { render_dep_child, render_list, render_main, render_mat_child, render_tree_child, render_combi, render_boosts, render_ratios } from './render.js';
 import { output_el, tree_btn, list_btn, mat_btn, dep_btn, ratios_btn, boosts_btn } from './dom.js';
 import { get_cached_view } from './cache.js';
 async function run_view(key, render, needs_tree = true) {
@@ -37,6 +37,17 @@ async function run_materials() {
         return render_main(settings, info_tree, render_mat_child);
     });
 }
+async function run_combi() {
+    await run_view("combi", (settings, tree) => {
+        const mat_map = build_materials(tree, settings.alt_ratios);
+        const dep_map = build_dependents(tree, settings.alt_ratios);
+        const mat_conv_tree = convert_mat_dep(mat_map);
+        const dep_conv_tree = convert_mat_dep(dep_map);
+        const mat_info_tree = sort_mat_dep(add_tree_info(settings, mat_conv_tree, true), settings.selected_item);
+        const dep_info_tree = sort_mat_dep(add_tree_info(settings, dep_conv_tree, true), settings.selected_item);
+        return render_combi(settings, mat_info_tree, dep_info_tree);
+    });
+}
 async function run_dependents() {
     await run_view("dependents", (settings, tree) => {
         const map = build_dependents(tree, settings.alt_ratios);
@@ -57,7 +68,7 @@ async function run_boosts() {
 }
 export function init_view_btns() {
     tree_btn.addEventListener("click", run_tree);
-    list_btn.addEventListener("click", run_list);
+    list_btn.addEventListener("click", run_combi);
     mat_btn.addEventListener("click", run_materials);
     dep_btn.addEventListener("click", run_dependents);
     ratios_btn.addEventListener("click", run_ratios);

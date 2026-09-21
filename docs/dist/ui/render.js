@@ -52,7 +52,7 @@ function createSpacerRow(colSpan) {
     tr.appendChild(td);
     return tr;
 }
-export function render_node(settings, node, render_child) {
+function render_node(settings, node, render_child) {
     const summary = document.createElement("summary");
     summary.className = "tree-summary";
     const summary_table = document.createElement("table");
@@ -234,6 +234,103 @@ export function render_ratios(settings) {
         populate_frac_cell(settings.is_rounded, tr, ratio);
     }
     body.appendChild(table);
+    return body;
+}
+function node_key(node) {
+    return `${node.item_name}|${node.variant}`;
+}
+function render_combi_node(settings, mat_node, dep_node) {
+    // Wrapper for one complete item:
+    //
+    //   material table
+    //   summary
+    //   dependent table
+    //
+    const wrapper = document.createElement("div");
+    wrapper.className = "tree-combi";
+    // =========================================================
+    // Materials
+    // =========================================================
+    const mat_table = document.createElement("table");
+    mat_table.className = "tree-table tree-node tree-mat";
+    const mat_tbody = document.createElement("tbody");
+    for (const child of mat_node.children) {
+        mat_tbody.appendChild(render_mat_child(settings, child, "tree-indent1"));
+    }
+    mat_table.appendChild(mat_tbody);
+    // =========================================================
+    // Details / summary
+    // =========================================================
+    const details = document.createElement("details");
+    details.className = "tree-details";
+    details.open = true;
+    const summary = document.createElement("summary");
+    summary.className = "tree-summary";
+    const summary_table = document.createElement("table");
+    summary_table.className = "tree-table";
+    const summary_tbody = document.createElement("tbody");
+    summary_tbody.appendChild(create_item_row(settings, mat_node, "tree-indent2"));
+    summary_table.appendChild(summary_tbody);
+    summary.appendChild(summary_table);
+    // =========================================================
+    // Dependents
+    // =========================================================
+    const dep_table = document.createElement("table");
+    dep_table.className = "tree-table tree-node tree-dep";
+    const dep_tbody = document.createElement("tbody");
+    for (const child of dep_node.children) {
+        dep_tbody.appendChild(render_dep_child(settings, child));
+    }
+    dep_table.appendChild(dep_tbody);
+    // =========================================================
+    // Assemble
+    // =========================================================
+    details.append(summary, dep_table);
+    wrapper.append(mat_table, details);
+    // =========================================================
+    // Keep materials hidden/shown with <details>
+    // =========================================================
+    function update_material_visibility() {
+        mat_table.hidden = !details.open;
+    }
+    details.addEventListener("toggle", update_material_visibility);
+    update_material_visibility();
+    return wrapper;
+}
+export function render_combi(settings, mat_tree, dep_tree) {
+    const body = document.createElement("div");
+    body.className = "tree";
+    const mat_by_key = new Map(mat_tree.map(node => [
+        node_key(node),
+        node
+    ]));
+    const dep_by_key = new Map(dep_tree.map(node => [
+        node_key(node),
+        node
+    ]));
+    // Keep the ordering from the materials tree first,
+    // then add anything that exists only in dependents.
+    const keys = [
+        ...mat_tree.map(node => node_key(node)),
+        ...dep_tree
+            .map(node => node_key(node))
+            .filter(key => !mat_by_key.has(key))
+    ];
+    for (const key of keys) {
+        const mat_node = mat_by_key.get(key);
+        const dep_node = dep_by_key.get(key);
+        // One side can be missing.
+        const base_node = mat_node ?? dep_node;
+        const empty_mat_node = {
+            ...base_node,
+            children: []
+        };
+        const empty_dep_node = {
+            ...base_node,
+            children: []
+        };
+        body.appendChild(render_combi_node(settings, mat_node ?? empty_mat_node, dep_node ?? empty_dep_node));
+    }
     return body;
 }
 //# sourceMappingURL=render.js.map

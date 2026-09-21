@@ -50,3 +50,23 @@
     border-collapse: collapse;
     border-spacing: 0;
 }
+
+
+.tree-combi {
+    margin: 0;
+    padding: 0;
+}
+
+.tree-combi .tree-details {
+    margin: 0;
+    padding: 0;
+}
+
+.tree-combi .tree-mat {
+    margin-left: 15px;
+    margin-bottom: 0;
+}
+
+.tree-combi .tree-dep {
+    margin-left: 15px;
+}
