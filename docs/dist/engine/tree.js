@@ -13,7 +13,7 @@ function build_tree(amount, item_name, alt_ratios, gen, split_nodes) {
         };
     }
     const recipes = get_recipes(item_name);
-    const alt_ratio = alt_ratios.get(item_name) ?? 0;
+    const alt_ratio = roundN(alt_ratios.get(item_name) ?? 0);
     if (alt_ratio > 0 && alt_ratio < 1) {
         const entries = [
             [1 - alt_ratio, V.STD], [alt_ratio, V.ALT]

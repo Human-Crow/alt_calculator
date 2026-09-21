@@ -33,7 +33,7 @@ function build_tree(
     }
 
     const recipes = get_recipes(item_name);
-    const alt_ratio = alt_ratios.get(item_name) ?? 0;
+    const alt_ratio = roundN(alt_ratios.get(item_name) ?? 0);
 
     if (alt_ratio > 0 && alt_ratio < 1) {
         const entries: [number, VariantId][] = [
