@@ -4,6 +4,8 @@ import { formatNumber } from '../utils/math.js';
 import { get_asset } from '../utils/asset_path.js';
 import { get_cached_settings } from './cache.js';
 import { clear_url } from './url.js';
+import { is_approximate, is_coal_approx, is_nuclear_approx } from "./hide.js";
+import { boost_note, c_boost_note, n_boost_note } from "./dom.js";
 
 import { 
     cpp_in, 
@@ -59,6 +61,8 @@ function do_clear_coal() {
     for (const input of coal_inputs.values()) {
         input.value = "";
     }
+    c_boost_note.classList.toggle("hidden", !is_coal_approx());
+    boost_note.classList.toggle("hidden", !is_approximate());
 }
 
 function do_clear_nuclear() {
@@ -66,6 +70,8 @@ function do_clear_nuclear() {
     for (const input of nuclear_inputs.values()) {
         input.value = "";
     }
+    n_boost_note.classList.toggle("hidden", !is_nuclear_approx());
+    boost_note.classList.toggle("hidden", !is_approximate());
 }
 
 function do_clear_all() {
