@@ -19,7 +19,13 @@ import {
     able_alt_btn,
     able_coal_btn,
     able_nuc_btn,
-    gen2_box
+    gen2_box,
+    coal_inputs,
+    nuclear_inputs,
+    cpp_in,
+    npp_in,
+    c_boost_note,
+    n_boost_note
 } from "./dom.js";
 
 import { is_mode_goal } from "./solver_mode.js";
@@ -43,9 +49,29 @@ function nuclear_toggle(hide: boolean) {
     nuclear_note.classList.toggle("hidden", hide);
 }
 
+export function is_coal_approx() {
+    const coal_empty = [...coal_inputs.values()]
+    .some(input => input.value.trim() === "");
+    const cpp_empty = cpp_in.value.trim() === "";
+    return !is_mode_goal() && c_boost_box.checked && (coal_empty || cpp_empty);
+}
+
+export function is_nuclear_approx() {
+    const nuc_empty = [...nuclear_inputs.values()]
+    .some(input => input.value.trim() === "");
+    const npp_empty = npp_in.value.trim() === "";
+    return !is_mode_goal() && n_boost_box.checked && (npp_empty || nuc_empty);
+}
+
+export function is_approximate() {
+    return is_coal_approx() || is_nuclear_approx()
+}
+
 function boost_toggle(hide: boolean) {
     boosts_btn.classList.toggle("hidden", !hide);
-    boost_note.classList.toggle("hidden", !hide);
+    c_boost_note.classList.toggle("hidden", !is_coal_approx());
+    n_boost_note.classList.toggle("hidden", !is_nuclear_approx());
+    boost_note.classList.toggle("hidden", !is_approximate());
 }
 
 

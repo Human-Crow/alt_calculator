@@ -1,4 +1,4 @@
-import { alt_box, c_boost_box, n_boost_box, boosts_btn, ratios_btn, boost_note, alt_div, alt_note, coal_div, coal_note, nuclear_div, nuclear_note, goal_collap, ex_collap, c_boost_label, n_boost_label, able_all_btn, able_alt_btn, able_coal_btn, able_nuc_btn } from "./dom.js";
+import { alt_box, c_boost_box, n_boost_box, boosts_btn, ratios_btn, boost_note, alt_div, alt_note, coal_div, coal_note, nuclear_div, nuclear_note, goal_collap, ex_collap, c_boost_label, n_boost_label, able_all_btn, able_alt_btn, able_coal_btn, able_nuc_btn, coal_inputs, nuclear_inputs, cpp_in, npp_in, c_boost_note, n_boost_note } from "./dom.js";
 import { is_mode_goal } from "./solver_mode.js";
 import { update_page } from "./update_page.js";
 function check_enabled(button) {
@@ -15,9 +15,26 @@ function nuclear_toggle(hide) {
     nuclear_div.classList.toggle("hidden", !hide);
     nuclear_note.classList.toggle("hidden", hide);
 }
+export function is_coal_approx() {
+    const coal_empty = [...coal_inputs.values()]
+        .some(input => input.value.trim() === "");
+    const cpp_empty = cpp_in.value.trim() === "";
+    return !is_mode_goal() && c_boost_box.checked && (coal_empty || cpp_empty);
+}
+export function is_nuclear_approx() {
+    const nuc_empty = [...nuclear_inputs.values()]
+        .some(input => input.value.trim() === "");
+    const npp_empty = npp_in.value.trim() === "";
+    return !is_mode_goal() && n_boost_box.checked && (npp_empty || nuc_empty);
+}
+export function is_approximate() {
+    return is_coal_approx() || is_nuclear_approx();
+}
 function boost_toggle(hide) {
     boosts_btn.classList.toggle("hidden", !hide);
-    boost_note.classList.toggle("hidden", !hide);
+    c_boost_note.classList.toggle("hidden", !is_coal_approx());
+    n_boost_note.classList.toggle("hidden", !is_nuclear_approx());
+    boost_note.classList.toggle("hidden", !is_approximate());
 }
 function alt_toggle(hide) {
     ratios_btn.classList.toggle("hidden", !hide);

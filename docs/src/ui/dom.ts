@@ -42,6 +42,8 @@ export const c_boost_label = document.getElementById("c_boost_label") as HTMLLab
 export const n_boost_label = document.getElementById("n_boost_label") as HTMLLabelElement;
 
 
+export const c_boost_note = document.getElementById("c_boost_note") as HTMLParagraphElement;
+export const n_boost_note = document.getElementById("n_boost_note") as HTMLParagraphElement;
 export const boost_note = document.getElementById("boost_note") as HTMLParagraphElement;
 export const output_el     = document.getElementById("output"          ) as HTMLElement;
 
