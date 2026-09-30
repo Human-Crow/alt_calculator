@@ -51,6 +51,7 @@ declare module "./glpk.js" {
         result: {
             z: number;
             vars: Record<string, number>;
+            status: number;
         };
     }
 

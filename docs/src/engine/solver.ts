@@ -630,6 +630,25 @@ const general_cons: Constraint[] = [
 ];
 
 
+function status_text(status: number) {
+    switch (status) {
+        case glpk.GLP_UNDEF:
+            return "Solution is undefined";
+        case glpk.GLP_FEAS:
+            return "Feasible solution found, but it may not be optimal";
+        case glpk.GLP_INFEAS:
+            return "Solution is infeasible";
+        case glpk.GLP_NOFEAS:
+            return "No feasible solution exists";
+        case glpk.GLP_OPT:
+            return "Optimal solution found";
+        case glpk.GLP_UNBND:
+            return "Problem is unbounded";
+        default:
+            return `Unknown status (${status})`;
+    }
+}
+
 
 function get_extractor_name(item_name: ItemId): string {
     return item_name.split('_')[0] as string;
@@ -888,8 +907,12 @@ async function solve_max(
         },
         subjectTo: constraints,
     };
-
-    return await glpk.solve(lp_max, {msglev: glpk.GLP_MSG_OFF});
+    const result = await glpk.solve(lp_max, {msglev: glpk.GLP_MSG_OFF});
+    const status = result.result.status;
+    if (status !== glpk.GLP_OPT) {
+        throw new Error(`Max Solver: ${status_text(status)}`)
+    }
+    return result;
 }
 
 
@@ -907,8 +930,12 @@ async function solve_min_resources(
         },
         subjectTo: constraints,
     };
-
-    return await glpk.solve(lp_min, {msglev: glpk.GLP_MSG_OFF});
+    const result = await glpk.solve(lp_min, {msglev: glpk.GLP_MSG_OFF});
+    const status = result.result.status;
+    if (status !== glpk.GLP_OPT) {
+        throw new Error(`Min Solver: ${status_text(status)}`)
+    }
+    return result;
 }
 
 

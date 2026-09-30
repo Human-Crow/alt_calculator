@@ -27,10 +27,8 @@ export async function get_cached_settings(): Promise<Settings> {
         settings_cache === undefined ||
         settings_cache.bulk_key !== bulk_key
     ) {
-        settings_cache = {
-            bulk_key,
-            value: await update_settings(settings),
-        };
+        const new_settings = await update_settings(settings);
+        settings_cache = { bulk_key, value: new_settings };
     }
     settings_cache.value.is_rounded = settings.is_rounded;
     return settings_cache.value;
@@ -44,10 +42,8 @@ async function get_cached_tree(): Promise<RecipeNode[]> {
         tree_cache.bulk_key !== bulk_key
     ) {
         const settings = await get_cached_settings();
-        tree_cache = {
-            bulk_key,
-            value: build_full_tree(settings),
-        };
+        const tree = build_full_tree(settings);
+        tree_cache = { bulk_key, value: tree };
         console.log("Tree created");
     }
     return tree_cache.value;
