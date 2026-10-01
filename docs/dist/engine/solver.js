@@ -665,7 +665,7 @@ function add_alt_cons(constraints, alt_ratios) {
         constraints.push(constraint);
     }
 }
-function add_coal_pp_con(constraints, coal_pp, gen) {
+function add_coal_pp_con(constraints, coal_pp, coal_fracs, gen) {
     const gen_i = (gen == V.GEN1) ? 0 : 1;
     if (typeof coal_pp === "number") {
         constraints.push({
@@ -675,7 +675,7 @@ function add_coal_pp_con(constraints, coal_pp, gen) {
             bnds: { type: glpk.GLP_FX, ub: coal_pp, lb: coal_pp },
         });
     }
-    else {
+    if (coal_fracs.size < RAW_ITEMS.length) {
         constraints.push({
             vars: [
                 { name: 'Coal_Power_Plant', coef: 1.0 },
@@ -691,7 +691,7 @@ function add_coal_pp_con(constraints, coal_pp, gen) {
         });
     }
 }
-function add_nuclear_pp_con(constraints, nuclear_pp, gen) {
+function add_nuclear_pp_con(constraints, nuclear_pp, nuclear_fracs, gen) {
     const gen_i = (gen == V.GEN1) ? 0 : 1;
     if (typeof nuclear_pp === "number") {
         constraints.push({
@@ -701,7 +701,7 @@ function add_nuclear_pp_con(constraints, nuclear_pp, gen) {
             bnds: { type: glpk.GLP_FX, ub: nuclear_pp, lb: nuclear_pp },
         });
     }
-    else {
+    if (nuclear_fracs.size < RAW_ITEMS.length) {
         constraints.push({
             vars: [
                 { name: 'Nuclear_Power_Plant', coef: 1.0 },
@@ -866,8 +866,8 @@ export async function resource_solver(settings) {
     const constraints = general_cons.concat(boost_cons);
     add_extractor_cons(constraints, extractors);
     add_alt_cons(constraints, alt_ratios);
-    add_coal_pp_con(constraints, coal_pp, gen);
-    add_nuclear_pp_con(constraints, nuclear_pp, gen);
+    add_coal_pp_con(constraints, coal_pp, coal_fracs, gen);
+    add_nuclear_pp_con(constraints, nuclear_pp, nuclear_fracs, gen);
     add_coal_cons(constraints, coal_fracs);
     add_nuclear_cons(constraints, nuclear_fracs);
     add_max_total_cons(constraints, coal_fracs, nuclear_fracs, gen);
