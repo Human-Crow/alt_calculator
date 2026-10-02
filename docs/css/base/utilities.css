@@ -71,3 +71,17 @@
     min-height: 800px;
     margin-bottom: 200px;
 }
+
+
+.title {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.title-logo {
+    width: 1.2em;            /* scales with the title text, also on phones */
+    height: 1.2em;
+    flex: none;
+    border-radius: 18%;      /* soft corners, like an app icon */
+}
