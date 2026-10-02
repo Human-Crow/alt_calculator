@@ -5,6 +5,7 @@ import { I, V } from '../data/enums.js';
 import { C_BOOST, N_BOOST } from '../data/constants.js';
 import { ALT_ITEMS, RAW_ITEMS } from '../data/name_lists.js';
 import { get_speed } from './production.js';
+import { add_estimate_cons, EstimatePlants } from './estimate.js';
 
 
 
@@ -13,6 +14,8 @@ import { get_speed } from './production.js';
 const glpk = await GLPK();
 
 
+// Extractors per plant [Gen 1, Gen 2]: only used for raw items that have a boost share filled in
+// (items without shares use the patch estimate in estimate.ts)
 const EX_CPP    : Pair = [11 , 4   ];
 const EX_CPP_UR : Pair = [6.5, 3.0 ];
 const EX_NPP    : Pair = [44 , 15.7];
@@ -690,71 +693,42 @@ function add_alt_cons(constraints: Constraint[], alt_ratios: ItemMap) {
 }
 
 
-function add_coal_pp_con(
-    constraints: Constraint[], 
-    coal_pp: number | undefined,
-    coal_fracs: ItemMap,
+// Power plants needed for the boosts: the patch estimate's plants for raw items without boost shares,
+// a fixed number of extractors per plant for items with shares. A plant count that is filled in is used
+// as it is (it can be more than needed: those plants still burn fuel).
+function add_pp_con(
+    constraints: Constraint[],
+    plant: ItemId,
+    kind: "Coal" | "Nuc",
+    pp: number | undefined,
+    fracs: ItemMap,
+    estimated: readonly ItemId[],
+    est_plants: EstimatePlants["coal"],
+    per_plant: Pair,
+    per_plant_ur: Pair,
     gen: VariantId
 ) {
     const gen_i = (gen == V.GEN1) ? 0 : 1;
 
-    if (typeof coal_pp === "number") {
+    if (typeof pp === "number") {
         constraints.push({
             vars: [
-                { name: 'Coal_Power_Plant', coef: 1.0 },
+                { name: plant, coef: 1.0 },
             ],
-            bnds: { type: glpk.GLP_FX, ub: coal_pp, lb: coal_pp },
-        });
-    } 
-    if (coal_fracs.size < RAW_ITEMS.length) {
-        constraints.push({
-            vars: [
-                { name: 'Coal_Power_Plant', coef: 1.0 },
-                { name: 'Wood_Coal_Ex', coef: -1.0 / EX_CPP[gen_i] },
-                { name: 'Stone_Coal_Ex', coef: -1.0 / EX_CPP[gen_i] },
-                { name: 'Iron_Coal_Ex', coef: -1.0 / EX_CPP[gen_i] },
-                { name: 'Copper_Coal_Ex', coef: -1.0 / EX_CPP[gen_i] },
-                { name: 'Coal_Coal_Ex', coef: -1.0 / EX_CPP[gen_i] },
-                { name: 'Wolframite_Coal_Ex', coef: -1.0 / EX_CPP[gen_i] },
-                { name: 'Uranium_Coal_Ex', coef: -1.0 / EX_CPP_UR[gen_i] },
-            ],
-            bnds: { type: glpk.GLP_LO, lb: 0.0 },
+            bnds: { type: glpk.GLP_FX, ub: pp, lb: pp },
         });
     }
-}
+    // every share filled in: the plants are as given (as before; an empty count then means no plants)
+    if (fracs.size >= RAW_ITEMS.length) { return; }
 
-
-function add_nuclear_pp_con(
-    constraints: Constraint[], 
-    nuclear_pp: number | undefined,
-    nuclear_fracs: ItemMap,
-    gen: VariantId
-) {
-    const gen_i = (gen == V.GEN1) ? 0 : 1;
-
-    if (typeof nuclear_pp === "number") {
-        constraints.push({
-            vars: [
-                { name: 'Nuclear_Power_Plant', coef: 1.0 },
-            ],
-            bnds: { type: glpk.GLP_FX, ub: nuclear_pp, lb: nuclear_pp },
-        });
-    } 
-    if (nuclear_fracs.size < RAW_ITEMS.length) {
-        constraints.push({
-            vars: [
-                { name: 'Nuclear_Power_Plant', coef: 1.0 },
-                { name: 'Wood_Nuc_Ex', coef: -1.0 / EX_NPP[gen_i] },
-                { name: 'Stone_Nuc_Ex', coef: -1.0 / EX_NPP[gen_i] },
-                { name: 'Iron_Nuc_Ex', coef: -1.0 / EX_NPP[gen_i] },
-                { name: 'Copper_Nuc_Ex', coef: -1.0 / EX_NPP[gen_i] },
-                { name: 'Coal_Nuc_Ex', coef: -1.0 / EX_NPP[gen_i] },
-                { name: 'Wolframite_Nuc_Ex', coef: -1.0 / EX_NPP[gen_i] },
-                { name: 'Uranium_Nuc_Ex', coef: -1.0 / EX_NPP_UR[gen_i] },
-            ],
-            bnds: { type: glpk.GLP_LO, lb: 0.0},
-        });
+    const vars: { name: string, coef: number }[] = [{ name: plant, coef: 1.0 }];
+    for (const name of RAW_ITEMS) {
+        if (estimated.includes(name)) { continue; }
+        const per = (name == I.Uranium_Ore) ? per_plant_ur[gen_i] : per_plant[gen_i];
+        vars.push({ name: `${get_extractor_name(name)}_${kind}_Ex`, coef: -1.0 / per });
     }
+    for (const t of est_plants) vars.push({ name: t.name, coef: -t.coef });
+    constraints.push({ vars, bnds: { type: glpk.GLP_LO, lb: 0.0 } });
 }
 
 
@@ -797,11 +771,13 @@ function add_nuclear_cons(constraints: Constraint[], nuclear_fracs: ItemMap) {
 function add_nuclear_gen1_cons(
     constraints: Constraint[], 
     nuclear_fracs: ItemMap,
-    gen: VariantId
+    gen: VariantId,
+    estimated: readonly ItemId[]
 ) {
     if (gen != V.GEN1) { return; }
 
     for (const name of RAW_ITEMS) {
+        if (estimated.includes(name)) { continue; }
         const nuc_frac = nuclear_fracs.get(name);
         if (typeof nuc_frac === "number") { continue; }
 
@@ -824,9 +800,11 @@ function add_max_total_cons(
     constraints: Constraint[],
     coal_fracs: ItemMap,
     nuclear_fracs: ItemMap,
-    gen: VariantId
+    gen: VariantId,
+    estimated: readonly ItemId[]
 ) {
     for (const name of RAW_ITEMS) {
+        if (estimated.includes(name)) { continue; }
         const coal_frac = coal_fracs.get(name);
         const nuc_frac = nuclear_fracs.get(name);
 
@@ -954,22 +932,44 @@ export async function resource_solver(settings: Settings): Promise<NumberRec> {
     
     add_extractor_cons   (constraints, extractors);
     add_alt_cons         (constraints, alt_ratios);
-    add_coal_pp_con      (constraints, coal_pp, coal_fracs, gen);
-    add_nuclear_pp_con   (constraints, nuclear_pp, nuclear_fracs, gen);
+    // raw items with a boost share left empty (the other share empty or 0, e.g. that boost turned off):
+    // boosts and plants from the patch estimate
+    const estimated = RAW_ITEMS.filter((name) => {
+        const c = coal_fracs.get(name), n = nuclear_fracs.get(name);
+        return (c === undefined && !n) || (n === undefined && !c);
+    });
+    const est = add_estimate_cons(constraints, glpk.GLP_UP, extractors, estimated, gen, get_extractor_name);
+
+    add_pp_con(constraints, I.Coal_Power_Plant, "Coal", coal_pp, coal_fracs, estimated, est.coal, EX_CPP, EX_CPP_UR, gen);
+    add_pp_con(constraints, I.Nuclear_Power_Plant, "Nuc", nuclear_pp, nuclear_fracs, estimated, est.nuclear, EX_NPP, EX_NPP_UR, gen);
     add_coal_cons        (constraints, coal_fracs);
     add_nuclear_cons     (constraints, nuclear_fracs);
-    add_max_total_cons   (constraints, coal_fracs, nuclear_fracs, gen);
+    add_max_total_cons   (constraints, coal_fracs, nuclear_fracs, gen, estimated);
     add_raw_item_cons    (constraints, tiers, gen);
-    add_nuclear_gen1_cons(constraints, nuclear_fracs, gen);
+    add_nuclear_gen1_cons(constraints, nuclear_fracs, gen, estimated);
 
     const max_result = await solve_max(selected_item, constraints);
 
-    add_target_con(constraints, selected_item, max_result.result.z);
+    // at least the maximum (minus a rounding margin: an exact equality can make GLPK fail)
+    const z = max_result.result.z;
+    constraints.push({
+        vars: [
+            { name: selected_item, coef: 1.0 },
+        ],
+        bnds: { type: glpk.GLP_LO, lb: z - 1e-9 * Math.max(1, Math.abs(z)) },
+    });
 
-    const min_res_result = await solve_min_resources(constraints);
+    // fewest resources for that maximum; if GLPK fails on it, the maximum's own solution is still valid
+    let vars: NumberRec;
+    try {
+        vars = (await solve_min_resources(constraints)).result.vars;
+    } catch (e) {
+        console.warn("Min Solver failed, using the max solution:", e);
+        vars = max_result.result.vars;
+    }
 
     console.log("Resource Solver finished");
-    return min_res_result.result.vars;
+    return vars;
 }
 
 
@@ -1033,4 +1033,4 @@ export function get_alt_ratios(all_items: NumberRec): ItemMap {
     }
 
     return alt_ratios;
-}
+}

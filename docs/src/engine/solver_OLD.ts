@@ -1,26 +1,35 @@
 import GLPK from './glpk.js';
+import type { Constraint, LPModel, LPResult } from "./glpk.js";
+import { ItemId, Settings, Pair, NumberRec, ItemMap, VariantId, BuildMap } from '../data/types.js';
 import { I, V } from '../data/enums.js';
 import { C_BOOST, N_BOOST } from '../data/constants.js';
 import { ALT_ITEMS, RAW_ITEMS } from '../data/name_lists.js';
 import { get_speed } from './production.js';
-import { add_estimate_cons } from './estimate.js';
+
+
+
+
+
 const glpk = await GLPK();
-// Extractors per plant [Gen 1, Gen 2]: only used for raw items that have a boost share filled in
-// (items without shares use the patch estimate in estimate.ts)
-const EX_CPP = [11, 4];
-const EX_CPP_UR = [6.5, 3.0];
-const EX_NPP = [44, 15.7];
-const EX_NPP_UR = [8.5, 3.9];
-const NPP_RATE = 0.5;
-const CPP_RATE = 10;
-const boost_cons = [
+
+
+const EX_CPP    : Pair = [11 , 4   ];
+const EX_CPP_UR : Pair = [6.5, 3.0 ];
+const EX_NPP    : Pair = [44 , 15.7];
+const EX_NPP_UR : Pair = [8.5,  3.9];
+
+const NPP_RATE: number = 0.5;
+const CPP_RATE: number = 10;
+
+
+const boost_cons: Constraint[] = [
     {
         vars: [
             { name: 'Wood_Coal_Ex', coef: 1.0 },
             { name: 'Wood_Nuc_Ex', coef: 1.0 },
             { name: 'Wood_Ex', coef: -1.0 },
         ],
-        bnds: { type: glpk.GLP_UP, ub: 0.0 },
+        bnds: { type: glpk.GLP_UP, ub: 0.0},
     },
     {
         vars: [
@@ -28,7 +37,7 @@ const boost_cons = [
             { name: 'Stone_Nuc_Ex', coef: 1.0 },
             { name: 'Stone_Ex', coef: -1.0 },
         ],
-        bnds: { type: glpk.GLP_UP, ub: 0.0 },
+        bnds: { type: glpk.GLP_UP, ub: 0.0},
     },
     {
         vars: [
@@ -36,7 +45,7 @@ const boost_cons = [
             { name: 'Iron_Nuc_Ex', coef: 1.0 },
             { name: 'Iron_Ex', coef: -1.0 },
         ],
-        bnds: { type: glpk.GLP_UP, ub: 0.0 },
+        bnds: { type: glpk.GLP_UP, ub: 0.0},
     },
     {
         vars: [
@@ -44,7 +53,7 @@ const boost_cons = [
             { name: 'Copper_Nuc_Ex', coef: 1.0 },
             { name: 'Copper_Ex', coef: -1.0 },
         ],
-        bnds: { type: glpk.GLP_UP, ub: 0.0 },
+        bnds: { type: glpk.GLP_UP, ub: 0.0},
     },
     {
         vars: [
@@ -52,7 +61,7 @@ const boost_cons = [
             { name: 'Coal_Nuc_Ex', coef: 1.0 },
             { name: 'Coal_Ex', coef: -1.0 },
         ],
-        bnds: { type: glpk.GLP_UP, ub: 0.0 },
+        bnds: { type: glpk.GLP_UP, ub: 0.0},
     },
     {
         vars: [
@@ -60,7 +69,7 @@ const boost_cons = [
             { name: 'Wolframite_Nuc_Ex', coef: 1.0 },
             { name: 'Wolframite_Ex', coef: -1.0 },
         ],
-        bnds: { type: glpk.GLP_UP, ub: 0.0 },
+        bnds: { type: glpk.GLP_UP, ub: 0.0},
     },
     {
         vars: [
@@ -68,16 +77,17 @@ const boost_cons = [
             { name: 'Uranium_Nuc_Ex', coef: 1.0 },
             { name: 'Uranium_Ex', coef: -1.0 },
         ],
-        bnds: { type: glpk.GLP_UP, ub: 0.0 },
+        bnds: { type: glpk.GLP_UP, ub: 0.0},
     }
 ];
-const general_cons = [
+
+const general_cons: Constraint[] = [
     {
         vars: [
             { name: 'Nuclear_Fuel_Cell', coef: 1.0 },
             { name: 'Nuclear_Power_Plant', coef: -1.0 * NPP_RATE },
         ],
-        bnds: { type: glpk.GLP_LO, lb: 0.0 },
+        bnds: { type: glpk.GLP_LO, lb: 0.0},
     },
     {
         vars: [
@@ -90,15 +100,16 @@ const general_cons = [
             { name: 'Wolframite', coef: -1.0 },
             { name: 'Uranium_Ore', coef: -1.0 },
         ],
-        bnds: { type: glpk.GLP_FX, ub: 0.0, lb: 0.0 },
+        bnds: { type: glpk.GLP_FX, ub: 0.0, lb: 0.0},
     },
+
     {
         vars: [
             { name: 'Wood_Log', coef: 1.0 },
             { name: 'Wood_Plank', coef: -1.0 },
             { name: 'Graphite', coef: -3.0 },
         ],
-        bnds: { type: glpk.GLP_LO, lb: 0.0 },
+        bnds: { type: glpk.GLP_LO, lb: 0.0},
     },
     {
         vars: [
@@ -106,7 +117,7 @@ const general_cons = [
             { name: 'Sand', coef: -1.0 },
             { name: 'Concrete_ALT', coef: -20.0 },
         ],
-        bnds: { type: glpk.GLP_LO, lb: 0.0 },
+        bnds: { type: glpk.GLP_LO, lb: 0.0},
     },
     {
         vars: [
@@ -115,14 +126,14 @@ const general_cons = [
             { name: 'Steel_STD', coef: -6.0 },
             { name: 'Steel_ALT', coef: -4.0 },
         ],
-        bnds: { type: glpk.GLP_LO, lb: 0.0 },
+        bnds: { type: glpk.GLP_LO, lb: 0.0},
     },
     {
         vars: [
             { name: 'Copper_Ore', coef: 1.0 },
             { name: 'Copper_Ingot', coef: -1.0 },
         ],
-        bnds: { type: glpk.GLP_LO, lb: 0.0 },
+        bnds: { type: glpk.GLP_LO, lb: 0.0},
     },
     {
         vars: [
@@ -131,28 +142,28 @@ const general_cons = [
             { name: 'Steel_ALT', coef: -4.0 },
             { name: 'Coal_Power_Plant', coef: -1.0 * CPP_RATE },
         ],
-        bnds: { type: glpk.GLP_LO, lb: 0.0 },
+        bnds: { type: glpk.GLP_LO, lb: 0.0},
     },
     {
         vars: [
             { name: 'Wolframite', coef: 1.0 },
             { name: 'Tungsten_Ore', coef: -5.0 },
         ],
-        bnds: { type: glpk.GLP_LO, lb: 0.0 },
+        bnds: { type: glpk.GLP_LO, lb: 0.0},
     },
     {
         vars: [
             { name: 'Uranium_Ore', coef: 1.0 },
             { name: 'Enriched_Uranium', coef: -30.0 },
         ],
-        bnds: { type: glpk.GLP_LO, lb: 0.0 },
+        bnds: { type: glpk.GLP_LO, lb: 0.0},
     },
     {
         vars: [
             { name: 'Atomic_Locator', coef: 1.0 },
             { name: 'Matter_Duplicator', coef: -4.0 },
         ],
-        bnds: { type: glpk.GLP_LO, lb: 0.0 },
+        bnds: { type: glpk.GLP_LO, lb: 0.0},
     },
     {
         vars: [
@@ -160,7 +171,7 @@ const general_cons = [
             { name: 'Energy_Cube', coef: -2.0 },
             { name: 'Electric_Motor_STD', coef: -1.0 },
         ],
-        bnds: { type: glpk.GLP_LO, lb: 0.0 },
+        bnds: { type: glpk.GLP_LO, lb: 0.0},
     },
     {
         vars: [
@@ -169,7 +180,7 @@ const general_cons = [
             { name: 'Copper_Wire_ALT', coef: -0.125 },
             { name: 'Industrial_Frame_ALT', coef: -4.0 },
         ],
-        bnds: { type: glpk.GLP_LO, lb: 0.0 },
+        bnds: { type: glpk.GLP_LO, lb: 0.0},
     },
     {
         vars: [
@@ -179,7 +190,7 @@ const general_cons = [
             { name: 'Super_Computer_ALT', coef: -1.0 },
             { name: 'Turbocharger_ALT', coef: -1.0 },
         ],
-        bnds: { type: glpk.GLP_LO, lb: 0.0 },
+        bnds: { type: glpk.GLP_LO, lb: 0.0},
     },
     {
         vars: [
@@ -187,7 +198,7 @@ const general_cons = [
             { name: 'Concrete_STD', coef: -1.0 },
             { name: 'Concrete_ALT', coef: -1.0 },
         ],
-        bnds: { type: glpk.GLP_FX, ub: 0.0, lb: 0.0 },
+        bnds: { type: glpk.GLP_FX, ub: 0.0, lb: 0.0},
     },
     {
         vars: [
@@ -196,14 +207,14 @@ const general_cons = [
             { name: 'Tank', coef: -4.0 },
             { name: 'Atomic_Locator', coef: -24.0 },
         ],
-        bnds: { type: glpk.GLP_LO, lb: 0.0 },
+        bnds: { type: glpk.GLP_LO, lb: 0.0},
     },
     {
         vars: [
             { name: 'Condenser_Lens', coef: 1.0 },
             { name: 'Electron_Microscope', coef: -4.0 },
         ],
-        bnds: { type: glpk.GLP_LO, lb: 0.0 },
+        bnds: { type: glpk.GLP_LO, lb: 0.0},
     },
     {
         vars: [
@@ -212,7 +223,7 @@ const general_cons = [
             { name: 'Heat_Sink', coef: -5.0 },
             { name: 'Rotor_ALT', coef: -18.0 },
         ],
-        bnds: { type: glpk.GLP_LO, lb: 0.0 },
+        bnds: { type: glpk.GLP_LO, lb: 0.0},
     },
     {
         vars: [
@@ -220,7 +231,7 @@ const general_cons = [
             { name: 'Copper_Wire_STD', coef: -1.0 },
             { name: 'Copper_Wire_ALT', coef: -1.0 },
         ],
-        bnds: { type: glpk.GLP_FX, ub: 0.0, lb: 0.0 },
+        bnds: { type: glpk.GLP_FX, ub: 0.0, lb: 0.0},
     },
     {
         vars: [
@@ -230,7 +241,7 @@ const general_cons = [
             { name: 'Gyroscope', coef: -12.0 },
             { name: 'Atomic_Locator', coef: -50.0 },
         ],
-        bnds: { type: glpk.GLP_LO, lb: 0.0 },
+        bnds: { type: glpk.GLP_LO, lb: 0.0},
     },
     {
         vars: [
@@ -238,7 +249,7 @@ const general_cons = [
             { name: 'Turbocharger_STD', coef: -4.0 },
             { name: 'Super_Computer_STD', coef: -8.0 },
         ],
-        bnds: { type: glpk.GLP_LO, lb: 0.0 },
+        bnds: { type: glpk.GLP_LO, lb: 0.0},
     },
     {
         vars: [
@@ -246,7 +257,7 @@ const general_cons = [
             { name: 'Electric_Motor_STD', coef: -1.0 },
             { name: 'Electric_Motor_ALT', coef: -1.0 },
         ],
-        bnds: { type: glpk.GLP_FX, ub: 0.0, lb: 0.0 },
+        bnds: { type: glpk.GLP_FX, ub: 0.0, lb: 0.0},
     },
     {
         vars: [
@@ -254,7 +265,7 @@ const general_cons = [
             { name: 'Stabilizer', coef: -1.0 },
             { name: 'Matter_Compressor', coef: -2.0 },
         ],
-        bnds: { type: glpk.GLP_LO, lb: 0.0 },
+        bnds: { type: glpk.GLP_LO, lb: 0.0},
     },
     {
         vars: [
@@ -262,7 +273,7 @@ const general_cons = [
             { name: 'Electromagnet_STD', coef: -1.0 },
             { name: 'Electromagnet_ALT', coef: -1.0 },
         ],
-        bnds: { type: glpk.GLP_FX, ub: 0.0, lb: 0.0 },
+        bnds: { type: glpk.GLP_FX, ub: 0.0, lb: 0.0},
     },
     {
         vars: [
@@ -272,14 +283,14 @@ const general_cons = [
             { name: 'Magnetic_Field_Generator', coef: -10.0 },
             { name: 'Electric_Motor_ALT', coef: -6.0 },
         ],
-        bnds: { type: glpk.GLP_LO, lb: 0.0 },
+        bnds: { type: glpk.GLP_LO, lb: 0.0},
     },
     {
         vars: [
             { name: 'Electron_Microscope', coef: 1.0 },
             { name: 'Atomic_Locator', coef: -2.0 },
         ],
-        bnds: { type: glpk.GLP_LO, lb: 0.0 },
+        bnds: { type: glpk.GLP_LO, lb: 0.0},
     },
     {
         vars: [
@@ -287,21 +298,21 @@ const general_cons = [
             { name: 'Nuclear_Fuel_Cell', coef: -1.0 },
             { name: 'Electric_Motor_ALT', coef: -1.0 },
         ],
-        bnds: { type: glpk.GLP_LO, lb: 0.0 },
+        bnds: { type: glpk.GLP_LO, lb: 0.0},
     },
     {
         vars: [
             { name: 'Energy_Cube', coef: 1.0 },
             { name: 'Matter_Duplicator', coef: -5.0 },
         ],
-        bnds: { type: glpk.GLP_LO, lb: 0.0 },
+        bnds: { type: glpk.GLP_LO, lb: 0.0},
     },
     {
         vars: [
             { name: 'Enriched_Uranium', coef: 1.0 },
             { name: 'Nuclear_Fuel_Cell', coef: -1.0 },
         ],
-        bnds: { type: glpk.GLP_LO, lb: 0.0 },
+        bnds: { type: glpk.GLP_LO, lb: 0.0},
     },
     {
         vars: [
@@ -311,7 +322,7 @@ const general_cons = [
             { name: 'Empty_Fuel_Cell', coef: -5.0 },
             { name: 'Tank', coef: -2.0 },
         ],
-        bnds: { type: glpk.GLP_LO, lb: 0.0 },
+        bnds: { type: glpk.GLP_LO, lb: 0.0},
     },
     {
         vars: [
@@ -321,7 +332,7 @@ const general_cons = [
             { name: 'Steel_STD', coef: -1.0 },
             { name: 'Tungsten_Carbide_STD', coef: -1.0 },
         ],
-        bnds: { type: glpk.GLP_LO, lb: 0.0 },
+        bnds: { type: glpk.GLP_LO, lb: 0.0},
     },
     {
         vars: [
@@ -330,7 +341,7 @@ const general_cons = [
             { name: 'Super_Computer_ALT', coef: -1.0 },
             { name: 'Turbocharger_ALT', coef: -1.0 },
         ],
-        bnds: { type: glpk.GLP_LO, lb: 0.0 },
+        bnds: { type: glpk.GLP_LO, lb: 0.0},
     },
     {
         vars: [
@@ -340,7 +351,7 @@ const general_cons = [
             { name: 'Logic_Circuit_ALT', coef: -1.0 },
             { name: 'Turbocharger_ALT', coef: -4.0 },
         ],
-        bnds: { type: glpk.GLP_LO, lb: 0.0 },
+        bnds: { type: glpk.GLP_LO, lb: 0.0},
     },
     {
         vars: [
@@ -348,7 +359,7 @@ const general_cons = [
             { name: 'Industrial_Frame_STD', coef: -1.0 },
             { name: 'Industrial_Frame_ALT', coef: -1.0 },
         ],
-        bnds: { type: glpk.GLP_FX, ub: 0.0, lb: 0.0 },
+        bnds: { type: glpk.GLP_FX, ub: 0.0, lb: 0.0},
     },
     {
         vars: [
@@ -358,7 +369,7 @@ const general_cons = [
             { name: 'Magnetic_Field_Generator', coef: -1.0 },
             { name: 'Super_Computer_ALT', coef: -0.5 },
         ],
-        bnds: { type: glpk.GLP_LO, lb: 0.0 },
+        bnds: { type: glpk.GLP_LO, lb: 0.0},
     },
     {
         vars: [
@@ -366,7 +377,7 @@ const general_cons = [
             { name: 'Iron_Gear_STD', coef: -1.0 },
             { name: 'Iron_Gear_ALT', coef: -1.0 },
         ],
-        bnds: { type: glpk.GLP_FX, ub: 0.0, lb: 0.0 },
+        bnds: { type: glpk.GLP_FX, ub: 0.0, lb: 0.0},
     },
     {
         vars: [
@@ -374,7 +385,7 @@ const general_cons = [
             { name: 'Electric_Motor_STD', coef: -4.0 },
             { name: 'Turbocharger_STD', coef: -8.0 },
         ],
-        bnds: { type: glpk.GLP_LO, lb: 0.0 },
+        bnds: { type: glpk.GLP_LO, lb: 0.0},
     },
     {
         vars: [
@@ -383,7 +394,7 @@ const general_cons = [
             { name: 'Iron_Plating', coef: -2.0 },
             { name: 'Electromagnet_STD', coef: -2.0 },
         ],
-        bnds: { type: glpk.GLP_LO, lb: 0.0 },
+        bnds: { type: glpk.GLP_LO, lb: 0.0},
     },
     {
         vars: [
@@ -394,7 +405,7 @@ const general_cons = [
             { name: 'Industrial_Frame_ALT', coef: -10.0 },
             { name: 'Logic_Circuit_ALT', coef: -1.0 },
         ],
-        bnds: { type: glpk.GLP_LO, lb: 0.0 },
+        bnds: { type: glpk.GLP_LO, lb: 0.0},
     },
     {
         vars: [
@@ -402,7 +413,7 @@ const general_cons = [
             { name: 'Logic_Circuit_STD', coef: -1.0 },
             { name: 'Logic_Circuit_ALT', coef: -1.0 },
         ],
-        bnds: { type: glpk.GLP_FX, ub: 0.0, lb: 0.0 },
+        bnds: { type: glpk.GLP_FX, ub: 0.0, lb: 0.0},
     },
     {
         vars: [
@@ -410,28 +421,28 @@ const general_cons = [
             { name: 'Computer', coef: -3.0 },
             { name: 'Turbocharger_STD', coef: -4.0 },
         ],
-        bnds: { type: glpk.GLP_LO, lb: 0.0 },
+        bnds: { type: glpk.GLP_LO, lb: 0.0},
     },
     {
         vars: [
             { name: 'Magnetic_Field_Generator', coef: 1.0 },
             { name: 'Quantum_Entangler', coef: -1.0 },
         ],
-        bnds: { type: glpk.GLP_LO, lb: 0.0 },
+        bnds: { type: glpk.GLP_LO, lb: 0.0},
     },
     {
         vars: [
             { name: 'Matter_Compressor', coef: 1.0 },
             { name: 'Particle_Glue', coef: -0.1 },
         ],
-        bnds: { type: glpk.GLP_LO, lb: 0.0 },
+        bnds: { type: glpk.GLP_LO, lb: 0.0},
     },
     {
         vars: [
             { name: 'Matter_Duplicator', coef: 1.0 },
             { name: 'Earth_Token', coef: -1.0 },
         ],
-        bnds: { type: glpk.GLP_LO, lb: 0.0 },
+        bnds: { type: glpk.GLP_LO, lb: 0.0},
     },
     {
         vars: [
@@ -440,7 +451,7 @@ const general_cons = [
             { name: 'Industrial_Frame_STD', coef: -2.0 },
             { name: 'Electron_Microscope', coef: -2.0 },
         ],
-        bnds: { type: glpk.GLP_LO, lb: 0.0 },
+        bnds: { type: glpk.GLP_LO, lb: 0.0},
     },
     {
         vars: [
@@ -448,23 +459,23 @@ const general_cons = [
             { name: 'Electron_Microscope', coef: -2.0 },
             { name: 'Turbocharger_STD', coef: -2.0 },
             { name: 'Magnetic_Field_Generator', coef: -10.0 },
-            { name: 'Electromagnet_ALT', coef: -1.0 / 12.0 },
+            { name: 'Electromagnet_ALT', coef: -1.0/12.0 },
         ],
-        bnds: { type: glpk.GLP_LO, lb: 0.0 },
+        bnds: { type: glpk.GLP_LO, lb: 0.0},
     },
     {
         vars: [
             { name: 'Particle_Glue', coef: 1.0 },
             { name: 'Matter_Duplicator', coef: -100.0 },
         ],
-        bnds: { type: glpk.GLP_LO, lb: 0.0 },
+        bnds: { type: glpk.GLP_LO, lb: 0.0},
     },
     {
         vars: [
             { name: 'Quantum_Entangler', coef: 1.0 },
             { name: 'Matter_Duplicator', coef: -2.0 },
         ],
-        bnds: { type: glpk.GLP_LO, lb: 0.0 },
+        bnds: { type: glpk.GLP_LO, lb: 0.0},
     },
     {
         vars: [
@@ -472,7 +483,7 @@ const general_cons = [
             { name: 'Rotor_STD', coef: -1.0 },
             { name: 'Rotor_ALT', coef: -1.0 },
         ],
-        bnds: { type: glpk.GLP_FX, ub: 0.0, lb: 0.0 },
+        bnds: { type: glpk.GLP_FX, ub: 0.0, lb: 0.0},
     },
     {
         vars: [
@@ -480,7 +491,7 @@ const general_cons = [
             { name: 'Gyroscope', coef: -2.0 },
             { name: 'Electric_Motor_STD', coef: -2.0 },
         ],
-        bnds: { type: glpk.GLP_LO, lb: 0.0 },
+        bnds: { type: glpk.GLP_LO, lb: 0.0},
     },
     {
         vars: [
@@ -489,7 +500,7 @@ const general_cons = [
             { name: 'Glass', coef: -4.0 },
             { name: 'Concrete_STD', coef: -10.0 },
         ],
-        bnds: { type: glpk.GLP_LO, lb: 0.0 },
+        bnds: { type: glpk.GLP_LO, lb: 0.0},
     },
     {
         vars: [
@@ -497,7 +508,7 @@ const general_cons = [
             { name: 'Logic_Circuit_STD', coef: -2.0 },
             { name: 'Super_Computer_ALT', coef: -20.0 },
         ],
-        bnds: { type: glpk.GLP_LO, lb: 0.0 },
+        bnds: { type: glpk.GLP_LO, lb: 0.0},
     },
     {
         vars: [
@@ -505,7 +516,7 @@ const general_cons = [
             { name: 'Quantum_Entangler', coef: -2.0 },
             { name: 'Magnetic_Field_Generator', coef: -1.0 },
         ],
-        bnds: { type: glpk.GLP_LO, lb: 0.0 },
+        bnds: { type: glpk.GLP_LO, lb: 0.0},
     },
     {
         vars: [
@@ -513,7 +524,7 @@ const general_cons = [
             { name: 'Steel_STD', coef: -1.0 },
             { name: 'Steel_ALT', coef: -1.0 },
         ],
-        bnds: { type: glpk.GLP_FX, ub: 0.0, lb: 0.0 },
+        bnds: { type: glpk.GLP_FX, ub: 0.0, lb: 0.0},
     },
     {
         vars: [
@@ -524,7 +535,7 @@ const general_cons = [
             { name: 'Tungsten_Carbide_ALT', coef: -0.5 },
             { name: 'Industrial_Frame_ALT', coef: -18.0 },
         ],
-        bnds: { type: glpk.GLP_LO, lb: 0.0 },
+        bnds: { type: glpk.GLP_LO, lb: 0.0},
     },
     {
         vars: [
@@ -532,9 +543,9 @@ const general_cons = [
             { name: 'Rotor_STD', coef: -1.0 },
             { name: 'Concrete_STD', coef: -1.0 },
             { name: 'Nuclear_Fuel_Cell', coef: -1.0 },
-            { name: 'Electromagnet_ALT', coef: -1.0 / 12.0 },
+            { name: 'Electromagnet_ALT', coef: -1.0/12.0 },
         ],
-        bnds: { type: glpk.GLP_LO, lb: 0.0 },
+        bnds: { type: glpk.GLP_LO, lb: 0.0},
     },
     {
         vars: [
@@ -542,21 +553,21 @@ const general_cons = [
             { name: 'Super_Computer_STD', coef: -1.0 },
             { name: 'Super_Computer_ALT', coef: -1.0 },
         ],
-        bnds: { type: glpk.GLP_FX, ub: 0.0, lb: 0.0 },
+        bnds: { type: glpk.GLP_FX, ub: 0.0, lb: 0.0},
     },
     {
         vars: [
             { name: 'Super_Computer', coef: 1.0 },
             { name: 'Atomic_Locator', coef: -2.0 },
         ],
-        bnds: { type: glpk.GLP_LO, lb: 0.0 },
+        bnds: { type: glpk.GLP_LO, lb: 0.0},
     },
     {
         vars: [
             { name: 'Tank', coef: 1.0 },
             { name: 'Matter_Compressor', coef: -1.0 },
         ],
-        bnds: { type: glpk.GLP_LO, lb: 0.0 },
+        bnds: { type: glpk.GLP_LO, lb: 0.0},
     },
     {
         vars: [
@@ -564,7 +575,7 @@ const general_cons = [
             { name: 'Tungsten_Carbide_STD', coef: -1.0 },
             { name: 'Tungsten_Carbide_ALT', coef: -1.0 },
         ],
-        bnds: { type: glpk.GLP_FX, ub: 0.0, lb: 0.0 },
+        bnds: { type: glpk.GLP_FX, ub: 0.0, lb: 0.0},
     },
     {
         vars: [
@@ -575,7 +586,7 @@ const general_cons = [
             { name: 'Tank', coef: -4.0 },
             { name: 'Turbocharger_ALT', coef: -1.0 },
         ],
-        bnds: { type: glpk.GLP_LO, lb: 0.0 },
+        bnds: { type: glpk.GLP_LO, lb: 0.0},
     },
     {
         vars: [
@@ -583,7 +594,7 @@ const general_cons = [
             { name: 'Tungsten_Carbide_STD', coef: -2.0 },
             { name: 'Tungsten_Carbide_ALT', coef: -0.5 },
         ],
-        bnds: { type: glpk.GLP_LO, lb: 0.0 },
+        bnds: { type: glpk.GLP_LO, lb: 0.0},
     },
     {
         vars: [
@@ -591,7 +602,7 @@ const general_cons = [
             { name: 'Turbocharger_STD', coef: -1.0 },
             { name: 'Turbocharger_ALT', coef: -1.0 },
         ],
-        bnds: { type: glpk.GLP_FX, ub: 0.0, lb: 0.0 },
+        bnds: { type: glpk.GLP_FX, ub: 0.0, lb: 0.0},
     },
     {
         vars: [
@@ -599,7 +610,7 @@ const general_cons = [
             { name: 'Super_Computer_STD', coef: -1.0 },
             { name: 'Matter_Compressor', coef: -2.0 },
         ],
-        bnds: { type: glpk.GLP_LO, lb: 0.0 },
+        bnds: { type: glpk.GLP_LO, lb: 0.0},
     },
     {
         vars: [
@@ -607,17 +618,19 @@ const general_cons = [
             { name: 'Metal_Frame', coef: -1.0 },
             { name: 'Concrete_ALT', coef: -4.0 },
         ],
-        bnds: { type: glpk.GLP_LO, lb: 0.0 },
+        bnds: { type: glpk.GLP_LO, lb: 0.0},
     },
     {
         vars: [
             { name: 'Wood_Plank', coef: 1.0 },
             { name: 'Wood_Frame', coef: -4.0 },
         ],
-        bnds: { type: glpk.GLP_LO, lb: 0.0 },
+        bnds: { type: glpk.GLP_LO, lb: 0.0},
     }
 ];
-function status_text(status) {
+
+
+function status_text(status: number) {
     switch (status) {
         case glpk.GLP_UNDEF:
             return "Solution is undefined";
@@ -635,14 +648,20 @@ function status_text(status) {
             return `Unknown status (${status})`;
     }
 }
-function get_extractor_name(item_name) {
-    return item_name.split('_')[0];
+
+
+function get_extractor_name(item_name: ItemId): string {
+    return item_name.split('_')[0] as string;
 }
+
+
 // #region Add Constraint Functions
-function add_extractor_cons(constraints, extractors) {
+
+function add_extractor_cons(constraints: Constraint[], extractors: ItemMap) {
     for (const name of RAW_ITEMS) {
         const ex_name = get_extractor_name(name);
         const ex_bound = extractors.get(name) ?? 0;
+
         const constraint = {
             vars: [
                 { name: `${ex_name}_Ex`, coef: 1.0 },
@@ -652,12 +671,13 @@ function add_extractor_cons(constraints, extractors) {
         constraints.push(constraint);
     }
 }
-function add_alt_cons(constraints, alt_ratios) {
+
+
+function add_alt_cons(constraints: Constraint[], alt_ratios: ItemMap) {
     for (const name of ALT_ITEMS) {
         const ratio = alt_ratios.get(name);
-        if (ratio === undefined) {
-            continue;
-        }
+        if (ratio === undefined) { continue; }
+
         const constraint = {
             vars: [
                 { name: name, coef: -1 * ratio },
@@ -668,42 +688,82 @@ function add_alt_cons(constraints, alt_ratios) {
         constraints.push(constraint);
     }
 }
-// Power plants needed for the boosts: the patch estimate's plants for raw items without boost shares,
-// a fixed number of extractors per plant for items with shares. A plant count that is filled in is used
-// as it is (it can be more than needed: those plants still burn fuel).
-function add_pp_con(constraints, plant, kind, pp, fracs, estimated, est_plants, per_plant, per_plant_ur, gen) {
+
+
+function add_coal_pp_con(
+    constraints: Constraint[], 
+    coal_pp: number | undefined,
+    coal_fracs: ItemMap,
+    gen: VariantId
+) {
     const gen_i = (gen == V.GEN1) ? 0 : 1;
-    if (typeof pp === "number") {
+
+    if (typeof coal_pp === "number") {
         constraints.push({
             vars: [
-                { name: plant, coef: 1.0 },
+                { name: 'Coal_Power_Plant', coef: 1.0 },
             ],
-            bnds: { type: glpk.GLP_FX, ub: pp, lb: pp },
+            bnds: { type: glpk.GLP_FX, ub: coal_pp, lb: coal_pp },
+        });
+    } 
+    if (coal_fracs.size < RAW_ITEMS.length) {
+        constraints.push({
+            vars: [
+                { name: 'Coal_Power_Plant', coef: 1.0 },
+                { name: 'Wood_Coal_Ex', coef: -1.0 / EX_CPP[gen_i] },
+                { name: 'Stone_Coal_Ex', coef: -1.0 / EX_CPP[gen_i] },
+                { name: 'Iron_Coal_Ex', coef: -1.0 / EX_CPP[gen_i] },
+                { name: 'Copper_Coal_Ex', coef: -1.0 / EX_CPP[gen_i] },
+                { name: 'Coal_Coal_Ex', coef: -1.0 / EX_CPP[gen_i] },
+                { name: 'Wolframite_Coal_Ex', coef: -1.0 / EX_CPP[gen_i] },
+                { name: 'Uranium_Coal_Ex', coef: -1.0 / EX_CPP_UR[gen_i] },
+            ],
+            bnds: { type: glpk.GLP_LO, lb: 0.0 },
         });
     }
-    // every share filled in: the plants are as given (as before; an empty count then means no plants)
-    if (fracs.size >= RAW_ITEMS.length) {
-        return;
-    }
-    const vars = [{ name: plant, coef: 1.0 }];
-    for (const name of RAW_ITEMS) {
-        if (estimated.includes(name)) {
-            continue;
-        }
-        const per = (name == I.Uranium_Ore) ? per_plant_ur[gen_i] : per_plant[gen_i];
-        vars.push({ name: `${get_extractor_name(name)}_${kind}_Ex`, coef: -1.0 / per });
-    }
-    for (const t of est_plants)
-        vars.push({ name: t.name, coef: -t.coef });
-    constraints.push({ vars, bnds: { type: glpk.GLP_LO, lb: 0.0 } });
 }
-function add_coal_cons(constraints, coal_fracs) {
+
+
+function add_nuclear_pp_con(
+    constraints: Constraint[], 
+    nuclear_pp: number | undefined,
+    nuclear_fracs: ItemMap,
+    gen: VariantId
+) {
+    const gen_i = (gen == V.GEN1) ? 0 : 1;
+
+    if (typeof nuclear_pp === "number") {
+        constraints.push({
+            vars: [
+                { name: 'Nuclear_Power_Plant', coef: 1.0 },
+            ],
+            bnds: { type: glpk.GLP_FX, ub: nuclear_pp, lb: nuclear_pp },
+        });
+    } 
+    if (nuclear_fracs.size < RAW_ITEMS.length) {
+        constraints.push({
+            vars: [
+                { name: 'Nuclear_Power_Plant', coef: 1.0 },
+                { name: 'Wood_Nuc_Ex', coef: -1.0 / EX_NPP[gen_i] },
+                { name: 'Stone_Nuc_Ex', coef: -1.0 / EX_NPP[gen_i] },
+                { name: 'Iron_Nuc_Ex', coef: -1.0 / EX_NPP[gen_i] },
+                { name: 'Copper_Nuc_Ex', coef: -1.0 / EX_NPP[gen_i] },
+                { name: 'Coal_Nuc_Ex', coef: -1.0 / EX_NPP[gen_i] },
+                { name: 'Wolframite_Nuc_Ex', coef: -1.0 / EX_NPP[gen_i] },
+                { name: 'Uranium_Nuc_Ex', coef: -1.0 / EX_NPP_UR[gen_i] },
+            ],
+            bnds: { type: glpk.GLP_LO, lb: 0.0},
+        });
+    }
+}
+
+
+function add_coal_cons(constraints: Constraint[], coal_fracs: ItemMap) {
     for (const name of RAW_ITEMS) {
         const ex_name = get_extractor_name(name);
         const fraction = coal_fracs.get(name);
-        if (fraction === undefined) {
-            continue;
-        }
+        if (fraction === undefined) { continue; }
+
         const constraint = {
             vars: [
                 { name: `${ex_name}_Ex`, coef: -1 * fraction },
@@ -714,13 +774,14 @@ function add_coal_cons(constraints, coal_fracs) {
         constraints.push(constraint);
     }
 }
-function add_nuclear_cons(constraints, nuclear_fracs) {
+
+
+function add_nuclear_cons(constraints: Constraint[], nuclear_fracs: ItemMap) {
     for (const name of RAW_ITEMS) {
         const ex_name = get_extractor_name(name);
         const fraction = nuclear_fracs.get(name);
-        if (fraction === undefined) {
-            continue;
-        }
+        if (fraction === undefined) { continue; }
+
         const constraint = {
             vars: [
                 { name: `${ex_name}_Ex`, coef: -1 * fraction },
@@ -731,47 +792,53 @@ function add_nuclear_cons(constraints, nuclear_fracs) {
         constraints.push(constraint);
     }
 }
-function add_nuclear_gen1_cons(constraints, nuclear_fracs, gen, estimated) {
-    if (gen != V.GEN1) {
-        return;
-    }
+
+
+function add_nuclear_gen1_cons(
+    constraints: Constraint[], 
+    nuclear_fracs: ItemMap,
+    gen: VariantId
+) {
+    if (gen != V.GEN1) { return; }
+
     for (const name of RAW_ITEMS) {
-        if (estimated.includes(name)) {
-            continue;
-        }
         const nuc_frac = nuclear_fracs.get(name);
-        if (typeof nuc_frac === "number") {
-            continue;
-        }
+        if (typeof nuc_frac === "number") { continue; }
+
         const max_frac = (name == I.Uranium_Ore) ? 0.2 : 0.9;
         const ex_name = get_extractor_name(name);
+
         const constraint = {
             vars: [
                 { name: `${ex_name}_Nuc_Ex`, coef: 1.0 },
                 { name: `${ex_name}_Ex`, coef: -1 * max_frac },
             ],
-            bnds: { type: glpk.GLP_UP, ub: 0.0 },
+            bnds: { type: glpk.GLP_UP, ub: 0.0},
         };
         constraints.push(constraint);
     }
 }
-function add_max_total_cons(constraints, coal_fracs, nuclear_fracs, gen, estimated) {
+
+
+function add_max_total_cons(
+    constraints: Constraint[],
+    coal_fracs: ItemMap,
+    nuclear_fracs: ItemMap,
+    gen: VariantId
+) {
     for (const name of RAW_ITEMS) {
-        if (estimated.includes(name)) {
-            continue;
-        }
         const coal_frac = coal_fracs.get(name);
         const nuc_frac = nuclear_fracs.get(name);
+
         let max_frac = (gen == V.GEN1) ? 0.95 : 1.00;
         if (typeof coal_frac === "number" && typeof nuc_frac === "number") {
             continue;
-        }
-        else if (typeof coal_frac === "number") {
+        } else if (typeof coal_frac === "number") {
             max_frac = Math.max(coal_frac, max_frac);
-        }
-        else if (typeof nuc_frac === "number") {
+        } else if (typeof nuc_frac === "number") {
             max_frac = Math.max(nuc_frac, max_frac);
         }
+        
         const ex_name = get_extractor_name(name);
         const constraint = {
             vars: [
@@ -779,16 +846,23 @@ function add_max_total_cons(constraints, coal_fracs, nuclear_fracs, gen, estimat
                 { name: `${ex_name}_Nuc_Ex`, coef: 1.0 },
                 { name: `${ex_name}_Ex`, coef: -1.0 * max_frac },
             ],
-            bnds: { type: glpk.GLP_UP, ub: 0.0 },
+            bnds: { type: glpk.GLP_UP, ub: 0.0},
         };
         constraints.push(constraint);
     }
 }
-function add_raw_item_cons(constraints, tiers, gen) {
+
+
+function add_raw_item_cons(
+    constraints: Constraint[], 
+    tiers: BuildMap, 
+    gen: VariantId
+) {
     for (const name of RAW_ITEMS) {
         const norm_speed = get_speed(tiers, name, gen);
         const coal_extra = get_speed(tiers, name, gen, C_BOOST) - norm_speed;
         const nuc_extra = get_speed(tiers, name, gen, N_BOOST) - norm_speed;
+
         const ex_name = get_extractor_name(name);
         const constraint = {
             vars: [
@@ -797,22 +871,37 @@ function add_raw_item_cons(constraints, tiers, gen) {
                 { name: `${ex_name}_Nuc_Ex`, coef: -1 * nuc_extra },
                 { name: `${ex_name}_Ex`, coef: -1 * norm_speed },
             ],
-            bnds: { type: glpk.GLP_UP, ub: 0.0 },
+            bnds: { type: glpk.GLP_UP, ub: 0.0},
         };
         constraints.push(constraint);
     }
 }
-function add_target_con(constraints, item_name, amount) {
+
+function add_target_con(
+    constraints: Constraint[], 
+    item_name: ItemId, 
+    amount: number
+) {
     constraints.push({
         vars: [
             { name: item_name, coef: 1.0 },
         ],
-        bnds: { type: glpk.GLP_FX, ub: amount, lb: amount },
+        bnds: { type: glpk.GLP_FX, ub: amount, lb: amount},
     });
 }
+
 // #endregion
-async function solve_max(item_name, constraints) {
-    const lp_max = {
+
+
+
+
+
+async function solve_max(
+    item_name: string, 
+    constraints: Constraint[]
+): Promise<LPResult> {
+
+    const lp_max: LPModel = {
         name: 'LP',
         objective: {
             direction: glpk.GLP_MAX,
@@ -822,15 +911,20 @@ async function solve_max(item_name, constraints) {
         },
         subjectTo: constraints,
     };
-    const result = await glpk.solve(lp_max, { msglev: glpk.GLP_MSG_OFF });
+    const result = await glpk.solve(lp_max, {msglev: glpk.GLP_MSG_OFF});
     const status = result.result.status;
     if (status !== glpk.GLP_OPT) {
-        throw new Error(`Max Solver: ${status_text(status)}`);
+        throw new Error(`Max Solver: ${status_text(status)}`)
     }
     return result;
 }
-async function solve_min_resources(constraints) {
-    const lp_min = {
+
+
+async function solve_min_resources(
+    constraints: Constraint[]
+): Promise<LPResult> {
+
+    const lp_min: LPModel = {
         name: 'LP',
         objective: {
             direction: glpk.GLP_MIN,
@@ -840,89 +934,103 @@ async function solve_min_resources(constraints) {
         },
         subjectTo: constraints,
     };
-    const result = await glpk.solve(lp_min, { msglev: glpk.GLP_MSG_OFF });
+    const result = await glpk.solve(lp_min, {msglev: glpk.GLP_MSG_OFF});
     const status = result.result.status;
     if (status !== glpk.GLP_OPT) {
-        throw new Error(`Min Solver: ${status_text(status)}`);
+        throw new Error(`Min Solver: ${status_text(status)}`)
     }
     return result;
 }
-export async function resource_solver(settings) {
-    const { extractors, alt_ratios, coal_fracs, tiers, nuclear_fracs, coal_pp, nuclear_pp, gen, selected_item } = settings;
+
+
+export async function resource_solver(settings: Settings): Promise<NumberRec> {
+    const {
+        extractors, alt_ratios, coal_fracs, tiers, 
+        nuclear_fracs, coal_pp, nuclear_pp, gen,
+        selected_item
+    } = settings;
+
     const constraints = general_cons.concat(boost_cons);
-    add_extractor_cons(constraints, extractors);
-    add_alt_cons(constraints, alt_ratios);
-    // raw items with a boost share left empty (the other share empty or 0, e.g. that boost turned off):
-    // boosts and plants from the patch estimate
-    const estimated = RAW_ITEMS.filter((name) => {
-        const c = coal_fracs.get(name), n = nuclear_fracs.get(name);
-        return (c === undefined && !n) || (n === undefined && !c);
-    });
-    const est = add_estimate_cons(constraints, glpk.GLP_UP, extractors, estimated, gen, get_extractor_name);
-    add_pp_con(constraints, I.Coal_Power_Plant, "Coal", coal_pp, coal_fracs, estimated, est.coal, EX_CPP, EX_CPP_UR, gen);
-    add_pp_con(constraints, I.Nuclear_Power_Plant, "Nuc", nuclear_pp, nuclear_fracs, estimated, est.nuclear, EX_NPP, EX_NPP_UR, gen);
-    add_coal_cons(constraints, coal_fracs);
-    add_nuclear_cons(constraints, nuclear_fracs);
-    add_max_total_cons(constraints, coal_fracs, nuclear_fracs, gen, estimated);
-    add_raw_item_cons(constraints, tiers, gen);
-    add_nuclear_gen1_cons(constraints, nuclear_fracs, gen, estimated);
+    
+    add_extractor_cons   (constraints, extractors);
+    add_alt_cons         (constraints, alt_ratios);
+    add_coal_pp_con      (constraints, coal_pp, coal_fracs, gen);
+    add_nuclear_pp_con   (constraints, nuclear_pp, nuclear_fracs, gen);
+    add_coal_cons        (constraints, coal_fracs);
+    add_nuclear_cons     (constraints, nuclear_fracs);
+    add_max_total_cons   (constraints, coal_fracs, nuclear_fracs, gen);
+    add_raw_item_cons    (constraints, tiers, gen);
+    add_nuclear_gen1_cons(constraints, nuclear_fracs, gen);
+
     const max_result = await solve_max(selected_item, constraints);
-    // at least the maximum (minus a rounding margin: an exact equality can make GLPK fail)
-    const z = max_result.result.z;
-    constraints.push({
-        vars: [
-            { name: selected_item, coef: 1.0 },
-        ],
-        bnds: { type: glpk.GLP_LO, lb: z - 1e-9 * Math.max(1, Math.abs(z)) },
-    });
-    // fewest resources for that maximum; if GLPK fails on it, the maximum's own solution is still valid
-    let vars;
-    try {
-        vars = (await solve_min_resources(constraints)).result.vars;
-    }
-    catch (e) {
-        console.warn("Min Solver failed, using the max solution:", e);
-        vars = max_result.result.vars;
-    }
+
+    add_target_con(constraints, selected_item, max_result.result.z);
+
+    const min_res_result = await solve_min_resources(constraints);
+
     console.log("Resource Solver finished");
-    return vars;
+    return min_res_result.result.vars;
 }
-export async function goal_solver(settings) {
-    const { alt_ratios, selected_item, goal_amount, coal_pp, nuclear_pp } = settings;
+
+
+export async function goal_solver(settings: Settings): Promise<NumberRec> {
+    const { 
+        alt_ratios, selected_item, 
+        goal_amount, coal_pp, nuclear_pp 
+    } = settings;
+
     const constraints = [...general_cons];
+
     add_alt_cons(constraints, alt_ratios);
     add_target_con(constraints, selected_item, goal_amount);
     add_target_con(constraints, I.Coal_Power_Plant, coal_pp || 0);
     add_target_con(constraints, I.Nuclear_Power_Plant, nuclear_pp || 0);
-    const min_res_result = await solve_min_resources(constraints);
+
+    const min_res_result = await solve_min_resources(constraints)
+
     console.log("Goal Solver finished");
     return min_res_result.result.vars;
 }
-export function get_resource_boosts(all_items) {
-    const coal_fracs = new Map();
-    const nuclear_fracs = new Map();
+
+
+export function get_resource_boosts(
+    all_items: NumberRec
+): {coal_fracs: ItemMap, nuclear_fracs: ItemMap} {
+
+    const coal_fracs: ItemMap = new Map();
+    const nuclear_fracs: ItemMap = new Map();
+
     for (const name of RAW_ITEMS) {
         const ex_name = get_extractor_name(name);
+
         const total_ex = all_items[ex_name + "_Ex"] ?? 0;
         const coal_ex = all_items[ex_name + "_Coal_Ex"] ?? 0;
-        const nuc_ex = all_items[ex_name + "_Nuc_Ex"] ?? 0;
+        const nuc_ex  = all_items[ex_name + "_Nuc_Ex"] ?? 0;
+
         const coal_per = (total_ex <= 0) ? 0 : Math.max(0, Math.min(1, coal_ex / total_ex));
-        const nuc_per = (total_ex <= 0) ? 0 : Math.max(0, Math.min(1, nuc_ex / total_ex));
+        const nuc_per  = (total_ex <= 0) ? 0 : Math.max(0, Math.min(1, nuc_ex / total_ex));
+        
         coal_fracs.set(name, coal_per);
         nuclear_fracs.set(name, nuc_per);
     }
-    return { coal_fracs, nuclear_fracs };
+
+    return {coal_fracs, nuclear_fracs};
 }
-export function get_alt_ratios(all_items) {
-    const alt_ratios = new Map();
+
+
+export function get_alt_ratios(all_items: NumberRec): ItemMap {
+    const alt_ratios: ItemMap = new Map();
+
     for (const name of ALT_ITEMS) {
         const alt = all_items[name + "_ALT"] ?? 0;
         const std = all_items[name + "_STD"] ?? 0;
+
         const total = alt + std;
         const value = (total <= 0) ? 0 : (alt / total);
         const percent = Math.max(0, Math.min(1, value));
+
         alt_ratios.set(name, percent);
     }
+
     return alt_ratios;
 }
-//# sourceMappingURL=solver.js.map

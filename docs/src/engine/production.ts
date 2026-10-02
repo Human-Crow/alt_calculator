@@ -105,11 +105,13 @@ export function get_build_amount(
         const nuc_speed = get_speed(tiers, item_name, variant, N_BOOST);
 
         if (is_total) {
-            amounts.push(amount / (
+            const total = amount / (
                 norm_speed * norm_frac + 
                 coal_speed * coal_frac + 
                 nuc_speed * nuc_frac
-            ));
+            );
+            const max_deps = settings.extractors.get(item_name) ?? 0;
+            amounts.push(Math.min(max_deps, total));
         } else {
             amounts.push(norm_frac > 0 ? amount / norm_speed: 0);
             amounts.push(coal_frac > 0 ? amount / coal_speed : 0);
