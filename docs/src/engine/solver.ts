@@ -1033,4 +1033,4 @@ export function get_alt_ratios(all_items: NumberRec): ItemMap {
     }
 
     return alt_ratios;
-}
+}
