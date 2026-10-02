@@ -45,6 +45,10 @@
     list-style: none;
 }
 
+.tree-summary::-webkit-details-marker {
+    display: none;
+}
+
 .tree-table {
     width: max-content;
     border-collapse: collapse;
