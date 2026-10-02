@@ -4,6 +4,17 @@
     list-style: none;
 }
 
+/* hide the browser's own arrow, so only the hollow one below shows:
+   Safari (iPhone, iPad, Mac) ignores list-style here and needs -webkit-details-marker,
+   other browsers use ::marker */
+.collap-summary::-webkit-details-marker {
+    display: none;
+}
+
+.collap-summary::marker {
+    content: "";
+}
+
 .collapsible > .collap-summary {
     cursor: pointer;
     font-weight: bold;

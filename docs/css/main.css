@@ -8,6 +8,6 @@
 @import "components/select.css";
 @import "components/fake-select.css";
 @import "components/tables.css";
-@import "components/collapsible.css";
+@import "components/collapsible.css?v=2";
 @import "components/tree.css";
 @import "components/min-plus-input.css";
