@@ -315,14 +315,27 @@ export function render_boosts(settings: Settings) {
         const span = document.createElement("span");
         span.textContent = name;
 
-        wrap.append(create_item_image(key), span);
+        // Small bar: normal share faint, coal yellow, nuclear green
+        const bar = document.createElement("div");
+        bar.className = "boost-bar";
+        for (const [frac, cls] of [[coal_frac, "boost-seg-coal"], [nuc_frac, "boost-seg-nuc"]] as const) {
+            if (frac <= 0) continue;
+            const seg = document.createElement("div");
+            seg.className = cls;
+            seg.style.width = `${Math.min(1, frac) * 100}%`;
+            bar.appendChild(seg);
+        }
+
+        wrap.append(create_item_image(key), span, bar);
         tdTitle.appendChild(wrap);
         r1.appendChild(tdTitle);
 
         // Row 2: percentages
         const r2 = document.createElement("tr");
 
-        const tdLabelPct = td("fraction", "sub-label");
+        // Row labels as icons (fraction pie, extractor), like the other views
+        const tdLabelPct = td("", "sub-label");
+        tdLabelPct.appendChild(create_item_image("Fraction"));
         const tdNormPct = td("", "num frac-cell1");
         const tdCoalPct = td("", "num frac-cell2 boost-coal");
         const tdNucPct = td("", "num frac-cell3 boost-nuc");
@@ -334,7 +347,8 @@ export function render_boosts(settings: Settings) {
         // Row 3: extractors
         const r3 = document.createElement("tr");
 
-        const tdLabelEx = td("extractors", "sub-label");
+        const tdLabelEx = td("", "sub-label");
+        tdLabelEx.appendChild(create_item_image(get_build_name(settings.tiers, key, settings.gen)));
         const tdNormEx = td("", "num number-cell1");
         const tdCoalEx = td("", "num number-cell2 boost-coal");
         const tdNucEx = td("", "num number-cell3 boost-nuc");
@@ -370,7 +384,7 @@ export function render_ratios(settings: Settings) {
     body.appendChild(title);
 
     const table = document.createElement("table");
-    table.className = "tree-table";
+    table.className = "tree-table ratio-table";
     let empty = true;
     
     for (const [key, ratio] of settings.alt_ratios) {
@@ -383,9 +397,20 @@ export function render_ratios(settings: Settings) {
         const tdImg = td("", "tree-indent2");
         tdImg.appendChild(create_item_image(key));
         const tdName = td(name, "tree-indent2");
+
+        // Small bar: standard share white, alt share purple
+        const tdBar = td("", "tree-indent2");
+        const bar = document.createElement("div");
+        bar.className = "ratio-bar";
+        const alt = document.createElement("div");
+        alt.className = "ratio-bar-alt";
+        alt.style.width = `${Math.max(0, Math.min(1, ratio)) * 100}%`;
+        bar.appendChild(alt);
+        tdBar.appendChild(bar);
+
         const tdValue = td("", "tree-indent2 frac-cell");
 
-        tr.append(tdImg, tdName, tdValue);
+        tr.append(tdImg, tdName, tdBar, tdValue);
         table.appendChild(tr);
         populate_frac_cell(settings.is_rounded, tr, ratio);
     }
@@ -395,6 +420,7 @@ export function render_ratios(settings: Settings) {
     }
     return body;
 }
+
 
 
 export type CombiEntry = {

@@ -1,13 +1,13 @@
-@import "base/variables.css?v=2";
+@import "base/variables.css?v=3";
 @import "base/reset.css";
-@import "base/utilities.css";
+@import "base/utilities.css?v=2";
 
 @import "components/buttons.css";
 @import "components/inputs.css";
 @import "components/checkbox.css";
 @import "components/select.css";
 @import "components/fake-select.css";
-@import "components/tables.css";
+@import "components/tables.css?v=8";
 @import "components/collapsible.css?v=2";
-@import "components/tree.css?v=5";
-@import "components/min-plus-input.css";
+@import "components/tree.css?v=10";
+@import "components/min-plus-input.css";

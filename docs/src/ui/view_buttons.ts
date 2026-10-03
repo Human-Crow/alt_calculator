@@ -167,4 +167,4 @@ export function init_view_btns() {
     combi_btn.addEventListener("click", run_combi);
     ratios_btn.addEventListener("click", run_ratios);
     boosts_btn.addEventListener("click", run_boosts);
-}
+}

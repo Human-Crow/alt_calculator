@@ -102,4 +102,4 @@ export const coal_inputs = buildElemMap<RawItemId, HTMLInputElement>(
 
 export const nuclear_inputs = buildElemMap<RawItemId, HTMLInputElement>(
     RAW_ITEMS, "_NB"
-);
+);

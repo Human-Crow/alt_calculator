@@ -29,4 +29,4 @@ init_collapse_all();
 init_drag();
 init_number();
 init_hide();
-init_url(); // needs to be last
+init_url(); // needs to be last

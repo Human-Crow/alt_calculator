@@ -60,7 +60,7 @@
 }
 
 .color-green {
-    color: #4ec9b0;
+    color: var(--nuclear); /* nuclear: same colour as the boosts */
 }
 
 .color-purple {

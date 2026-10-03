@@ -129,3 +129,29 @@
     font-size: 19px;
     letter-spacing: -0.5px;
 }
+
+
+/* Alt ratios view: small bar, standard share white, alt share purple */
+.ratio-bar {
+    width: 60px;
+    height: 8px;
+    border-radius: 4px;
+    overflow: hidden;
+    background-color: rgba(255, 255, 255, 0.15);
+}
+
+.ratio-bar-alt {
+    height: 100%;
+    background-color: #c586c0;
+}
+
+.ratio-table td {
+    padding-top: 6px;
+    padding-bottom: 6px;
+}
+
+/* Right-align the percentages so they line up */
+.ratio-table .frac-cell {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+}

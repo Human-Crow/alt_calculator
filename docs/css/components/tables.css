@@ -54,3 +54,41 @@
 .item-boosts .res-gap td {
     padding: 9px 0;
 }
+
+/* Tighter columns so the boosts fit on phones */
+.item-boosts th,
+.item-boosts td {
+    padding-left: 5px;
+    padding-right: 5px;
+}
+
+/* Row label icons (fraction, extractor): smaller, indented under the resource */
+.item-boosts td.sub-label {
+    padding-left: 22px;
+}
+
+.item-boosts td.sub-label .item-img {
+    display: block;
+    width: 24px;
+    height: 24px;
+}
+
+/* Boost bar after the resource name, right-aligned so the bars line up */
+.item-boosts .boost-bar {
+    display: flex;
+    flex: none;
+    width: 90px;
+    height: 8px;
+    margin-left: auto;
+    border-radius: 4px;
+    overflow: hidden;
+    background-color: rgba(255, 255, 255, 0.15);
+}
+
+.item-boosts .boost-seg-coal {
+    background-color: var(--coal);
+}
+
+.item-boosts .boost-seg-nuc {
+    background-color: var(--nuclear);
+}
