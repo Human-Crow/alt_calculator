@@ -687,9 +687,18 @@ export async function goal_solver(settings) {
     const { alt_ratios, selected_item, goal_amount, coal_pp, nuclear_pp } = settings;
     const constraints = [...general_cons];
     add_alt_cons(constraints, alt_ratios);
-    add_fix_con(constraints, selected_item, goal_amount);
-    add_fix_con(constraints, I.Coal_Power_Plant, coal_pp || 0);
-    add_fix_con(constraints, I.Nuclear_Power_Plant, nuclear_pp || 0);
+    // Fix every amount only once: when the goal item is itself a power
+    // plant, fixing it to both the goal and the power plant count makes
+    // the problem infeasible (e.g. Nuclear_Power_Plant = 1 and = 0).
+    // The total is then the larger of the two, like in the tree (tree.ts).
+    const fixed = new Map([
+        [I.Coal_Power_Plant, coal_pp || 0],
+        [I.Nuclear_Power_Plant, nuclear_pp || 0],
+    ]);
+    fixed.set(selected_item, Math.max(goal_amount, fixed.get(selected_item) ?? 0));
+    for (const [item_name, amount] of fixed) {
+        add_fix_con(constraints, item_name, amount);
+    }
     const min_res_result = await solve_min_resources(constraints);
     console.log("Goal Solver finished");
     return min_res_result.result.vars;

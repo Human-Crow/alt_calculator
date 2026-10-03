@@ -86,3 +86,46 @@
 .conn-head {
     fill: var(--conn);
 }
+
+
+/* Tree view: [1|2|3|...] bar to show the tree up to a level */
+.level-bar {
+    display: flex;
+    width: 100%;
+    height: var(--btn-h);
+    margin: 3px 0;
+    border: 2px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+}
+
+.level-btn {
+    flex: 1;
+    min-width: 0;
+    padding: 0;
+    color: var(--text);
+    background-color: var(--bg);
+    border: none;
+    border-left: 2px solid var(--border);
+    font-size: var(--font-size);
+    cursor: pointer;
+}
+
+.level-btn:first-child {
+    border-left: none;
+}
+
+.level-btn:hover {
+    background-color: var(--panel-hover);
+}
+
+.level-btn.active {
+    background-color: var(--panel);
+    font-weight: bold;
+}
+
+/* Two-digit levels: a bit smaller so "10", "11" fit their segment */
+.level-bar.many .level-btn {
+    font-size: 19px;
+    letter-spacing: -0.5px;
+}

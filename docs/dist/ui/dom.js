@@ -21,6 +21,7 @@ export const list_btn = document.getElementById("list_view_btn");
 export const mat_btn = document.getElementById("mat_view_btn");
 export const dep_btn = document.getElementById("dep_view_btn");
 export const collapse_btn = document.getElementById("collapse_all_btn");
+export const level_bar = document.getElementById("level_bar");
 export const combi_btn = document.getElementById("combi_view_btn");
 export const tree_btn = document.getElementById("tree_view_btn");
 export const ratios_btn = document.getElementById("alt_ratios_btn");

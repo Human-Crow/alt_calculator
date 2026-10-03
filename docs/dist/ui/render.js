@@ -86,6 +86,7 @@ export function render_node(settings, node, render_child, kind) {
 export function render_main(settings, tree, render_child, kind) {
     const body = document.createElement("div");
     body.className = "tree";
+    body.dataset.kind = kind;
     for (const node of tree) {
         body.appendChild(render_node(settings, node, render_child, kind));
     }
