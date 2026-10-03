@@ -10,9 +10,9 @@
     padding: 0;
 }
 
+/* Indent children; the connector lines are drawn in the gap (connectors.ts) */
 .tree-indent1, .tree-details .tree-details {
-    border-left: 3px solid #444;
-    padding-left: 18px;
+    padding-left: 30px;
 }
 
 .tree-indent1, .tree-indent2 {
@@ -59,4 +59,30 @@
    that the other views have between an item and its children */
 .combi-mat {
     margin-bottom: 5px;
+}
+
+
+/* Connector overlay (lines from an item to its materials / dependents) */
+#output {
+    position: relative;
+}
+
+.conn-svg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    overflow: visible;
+    pointer-events: none;
+}
+
+.conn-line {
+    fill: none;
+    stroke: var(--conn);
+    stroke-width: 2.5px;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.conn-head {
+    fill: var(--conn);
 }

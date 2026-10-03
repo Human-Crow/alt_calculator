@@ -1,9 +1,10 @@
 import { build_list, build_dependents, build_materials } from '../engine/build.js';
-import { sort_list, sort_mat_dep, convert_mat_dep, convert_list, add_tree_info } from '../engine/convert.js';
+import { sort_list, sort_mat_dep, combi_var_priority, convert_mat_dep, convert_list, add_tree_info } from '../engine/convert.js';
 import { render_dep_child, render_list, render_main, render_mat_child, render_tree_child, render_boosts, render_ratios, render_combi } from './render.js';
 import { make_item_key } from '../utils/item_keys.js';
 import { output_el, tree_btn, list_btn, mat_btn, dep_btn, combi_btn, ratios_btn, boosts_btn } from './dom.js';
 import { get_cached_view } from './cache.js';
+import { draw_connectors, init_connectors } from './connectors.js';
 async function run_view(key, render, needs_tree = true) {
     output_el.innerHTML = "Loading...";
     try {
@@ -13,6 +14,7 @@ async function run_view(key, render, needs_tree = true) {
         if (isEmpty) {
             output_el.innerHTML = "None";
         }
+        draw_connectors(output_el);
     }
     catch (err) {
         console.log(err);
@@ -23,7 +25,7 @@ async function run_view(key, render, needs_tree = true) {
 async function run_tree() {
     await run_view("tree", (settings, tree) => {
         const info_tree = add_tree_info(settings, tree, false);
-        return render_main(settings, info_tree, render_tree_child);
+        return render_main(settings, info_tree, render_tree_child, "tree");
     });
 }
 async function run_list() {
@@ -39,7 +41,7 @@ async function run_materials() {
         const map = build_materials(tree, settings.alt_ratios);
         const conv_tree = convert_mat_dep(map);
         const info_tree = sort_mat_dep(add_tree_info(settings, conv_tree, true), settings.selected_item);
-        return render_main(settings, info_tree, render_mat_child);
+        return render_main(settings, info_tree, render_mat_child, "mat");
     });
 }
 async function run_dependents() {
@@ -47,7 +49,7 @@ async function run_dependents() {
         const map = build_dependents(tree, settings.alt_ratios);
         const conv_tree = convert_mat_dep(map);
         const info_tree = sort_mat_dep(add_tree_info(settings, conv_tree, true), settings.selected_item);
-        return render_main(settings, info_tree, render_dep_child);
+        return render_main(settings, info_tree, render_dep_child, "dep");
     });
 }
 async function run_combi() {
@@ -66,7 +68,7 @@ async function run_combi() {
             if (!mat_map.has(key_of(n)))
                 nodes.push(n);
         }
-        sort_mat_dep(nodes, settings.selected_item);
+        sort_mat_dep(nodes, settings.selected_item, combi_var_priority);
         const entries = nodes.map(node => {
             const key = key_of(node);
             const materials = mat_map.get(key)?.children ?? [];
@@ -75,7 +77,6 @@ async function run_combi() {
             sort_mat_dep(dependents);
             return { node, materials, dependents };
         });
-        console.log(entries);
         return render_combi(settings, entries);
     });
 }
@@ -90,6 +91,7 @@ async function run_boosts() {
     }, false);
 }
 export function init_view_btns() {
+    init_connectors(output_el);
     tree_btn.addEventListener("click", run_tree);
     list_btn.addEventListener("click", run_list);
     mat_btn.addEventListener("click", run_materials);

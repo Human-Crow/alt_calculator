@@ -11,6 +11,7 @@ import {
 } from './table_cells.js';
 
 import { RAW_ITEMS } from '../data/name_lists.js';
+import { add_connectors, icon_of, ConnKind } from './connectors.js';
 
 
 function create_row(
@@ -106,7 +107,8 @@ function createSpacerRow(colSpan: number): HTMLTableRowElement {
 export function render_node(
     settings: Settings,
     node: RecipeNode, 
-    render_child: ChildRenderer
+    render_child: ChildRenderer,
+    kind: ConnKind
 ): HTMLDetailsElement {
     
     const summary = document.createElement("summary");
@@ -125,11 +127,14 @@ export function render_node(
 
     const tbody = document.createElement("tbody");
     const {children} = node;
+    const child_els: HTMLElement[] = [];
 
     if (children.length > 0) {
         body.appendChild(tbody);
         for (const child of children) {
-            tbody.appendChild(render_child(settings, child));
+            const el = render_child(settings, child);
+            child_els.push(el);
+            tbody.appendChild(el);
         }
     }
 
@@ -137,6 +142,7 @@ export function render_node(
     details.className = "tree-details";
     details.open = true;
     details.append(summary, body);
+    add_connectors(details, kind, icon_of(row), child_els.map(icon_of));
 
     return details;
 }
@@ -145,12 +151,13 @@ export function render_node(
 export function render_main(
     settings: Settings,
     tree: RecipeNode[], 
-    render_child: ChildRenderer
+    render_child: ChildRenderer,
+    kind: ConnKind
 ): HTMLDivElement {
     const body = document.createElement("div");
     body.className = "tree";
     for (const node of tree) {
-        body.appendChild(render_node(settings, node, render_child));
+        body.appendChild(render_node(settings, node, render_child, kind));
     }
     return body;
 }
@@ -240,7 +247,7 @@ export function render_tree_child(
     settings: Settings,
     node: RecipeNode
 ): HTMLDetailsElement {
-    return render_node(settings, node, render_tree_child);
+    return render_node(settings, node, render_tree_child, "tree");
 }
 
 
@@ -417,11 +424,9 @@ export function render_combi_node(
 
     // Materials going in (above the item)
     let mat_table: HTMLTableElement | undefined;
-    if (materials.length > 0) {
-        mat_table = create_child_table(
-            materials.map(child => render_mat_child(settings, child)),
-            "combi-mat"
-        );
+    const mat_rows = materials.map(child => render_mat_child(settings, child));
+    if (mat_rows.length > 0) {
+        mat_table = create_child_table(mat_rows, "combi-mat");
         wrap.appendChild(mat_table);
     }
 
@@ -432,7 +437,8 @@ export function render_combi_node(
     const summary_table = document.createElement("table");
     summary_table.className = "tree-table";
     const summary_tbody = document.createElement("tbody");
-    summary_tbody.appendChild(create_item_row(settings, node, "tree-indent2"));
+    const item_row = create_item_row(settings, node, "tree-indent2");
+    summary_tbody.appendChild(item_row);
     summary_table.appendChild(summary_tbody);
     summary.appendChild(summary_table);
 
@@ -442,12 +448,15 @@ export function render_combi_node(
     details.appendChild(summary);
 
     // Dependents going out (below the item)
-    if (dependents.length > 0) {
-        details.appendChild(create_child_table(
-            dependents.map(child => render_dep_child(settings, child)),
-            "combi-dep"
-        ));
+    const dep_rows = dependents.map(child => render_dep_child(settings, child));
+    if (dep_rows.length > 0) {
+        details.appendChild(create_child_table(dep_rows, "combi-dep"));
     }
+
+    // Materials flow into the item, the item flows into its dependents
+    const item_icon = icon_of(item_row);
+    add_connectors(wrap, "mat-above", item_icon, mat_rows.map(icon_of));
+    add_connectors(details, "dep", item_icon, dep_rows.map(icon_of));
 
     // Collapse the materials together with the dependents
     if (mat_table) {

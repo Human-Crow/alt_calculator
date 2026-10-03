@@ -26,6 +26,7 @@ export const min_btn    = document.getElementById("min_tier_btn"    ) as HTMLBut
 export const list_btn   = document.getElementById("list_view_btn"   ) as HTMLButtonElement;
 export const mat_btn    = document.getElementById("mat_view_btn"    ) as HTMLButtonElement;
 export const dep_btn    = document.getElementById("dep_view_btn"    ) as HTMLButtonElement;
+export const collapse_btn = document.getElementById("collapse_all_btn") as HTMLButtonElement;
 export const combi_btn  = document.getElementById("combi_view_btn"  ) as HTMLButtonElement;
 export const tree_btn   = document.getElementById("tree_view_btn"   ) as HTMLButtonElement;
 export const ratios_btn = document.getElementById("alt_ratios_btn"  ) as HTMLButtonElement;

@@ -23,6 +23,15 @@ const var_priority: VariantMap = new Map([
     [V.GEN2, 5]
 ]);
 
+// Combi view: standard recipe first, then alt, then the split total
+export const combi_var_priority: VariantMap = new Map([
+    [V.STD, 1],
+    [V.ALT, 2],
+    [V.SPLIT, 3],
+    [V.GEN1, 4],
+    [V.GEN2, 5]
+]);
+
 
 export function sort_list(list: RecipeNode[], first_name?: ItemId): RecipeNode[] {
     const raw_priority: ItemMap = new Map([
@@ -65,7 +74,11 @@ export function sort_list(list: RecipeNode[], first_name?: ItemId): RecipeNode[]
 }
 
 
-export function sort_mat_dep(list: RecipeNode[], first_name?: ItemId): RecipeNode[] {
+export function sort_mat_dep(
+    list: RecipeNode[],
+    first_name?: ItemId,
+    priority: VariantMap = var_priority
+): RecipeNode[] {
     const raw_priority: ItemMap = new Map();
     if (first_name) {
         raw_priority.set(first_name, 0);
@@ -86,8 +99,8 @@ export function sort_mat_dep(list: RecipeNode[], first_name?: ItemId): RecipeNod
 
         const varA = a.variant;
         const varB = b.variant;
-        const varRankA = var_priority.get(varA) ?? 999;
-        const varRankB = var_priority.get(varB) ?? 999;
+        const varRankA = priority.get(varA) ?? 999;
+        const varRankB = priority.get(varB) ?? 999;
         if (varRankA !== varRankB) {
             return varRankA - varRankB;
         }

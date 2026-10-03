@@ -8,6 +8,7 @@ import {
 import { 
     sort_list,
     sort_mat_dep,
+    combi_var_priority,
     convert_mat_dep,
     convert_list,
     add_tree_info
@@ -41,6 +42,7 @@ import {
 } from './dom.js';
 
 import { get_cached_view } from './cache.js';
+import { draw_connectors, init_connectors } from './connectors.js';
 
 
 
@@ -59,6 +61,7 @@ async function run_view(
         if (isEmpty) {
             output_el.innerHTML = "None";
         }
+        draw_connectors(output_el);
     } catch (err) {
         console.log(err);
         const message = err instanceof Error ? err.message : String(err);
@@ -69,7 +72,7 @@ async function run_view(
 async function run_tree() {
     await run_view("tree", (settings, tree) => {
         const info_tree = add_tree_info(settings, tree!, false);
-        return render_main(settings, info_tree, render_tree_child);
+        return render_main(settings, info_tree, render_tree_child, "tree");
     });
 }
 
@@ -92,7 +95,7 @@ async function run_materials() {
         const info_tree = sort_mat_dep(
             add_tree_info(settings, conv_tree, true), settings.selected_item
         );
-        return render_main(settings, info_tree, render_mat_child);
+        return render_main(settings, info_tree, render_mat_child, "mat");
     });
 }
 
@@ -104,7 +107,7 @@ async function run_dependents() {
         const info_tree = sort_mat_dep(
             add_tree_info(settings, conv_tree, true), settings.selected_item
         );
-        return render_main(settings, info_tree, render_dep_child);
+        return render_main(settings, info_tree, render_dep_child, "dep");
     });
 }
 
@@ -120,7 +123,7 @@ async function run_combi() {
         const key_of = (n: RecipeNode) => make_item_key(n.item_name, n.variant);
         const mat_map = new Map(mat_tree.map(n => [key_of(n), n]));
         const dep_map = new Map(dep_tree.map(n => [key_of(n), n]));
-    
+
         // One node per item: prefer the materials node (amount produced),
         // fall back to the dependents node (e.g. split items)
         const nodes: RecipeNode[] = [];
@@ -128,7 +131,7 @@ async function run_combi() {
         for (const n of dep_tree) {
             if (!mat_map.has(key_of(n))) nodes.push(n);
         }
-        sort_mat_dep(nodes, settings.selected_item);
+        sort_mat_dep(nodes, settings.selected_item, combi_var_priority);
 
         const entries: CombiEntry[] = nodes.map(node => {
             const key = key_of(node);
@@ -138,7 +141,6 @@ async function run_combi() {
             sort_mat_dep(dependents);
             return { node, materials, dependents };
         });
-        console.log(entries)
         return render_combi(settings, entries);
     });
 }
@@ -157,6 +159,7 @@ async function run_boosts() {
 
 
 export function init_view_btns() {
+    init_connectors(output_el);
     tree_btn.addEventListener("click", run_tree);
     list_btn.addEventListener("click", run_list);
     mat_btn.addEventListener("click", run_materials);
