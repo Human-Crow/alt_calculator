@@ -152,21 +152,25 @@ function td(text = "", className = "") {
 export function render_boosts(settings) {
     const title = document.createElement("p");
     title.textContent = "Resource Boosts:";
-    const body = document.createElement("div");
+    let body = document.createElement("div");
     body.appendChild(title);
     const table = document.createElement("table");
     table.className = "item-boosts";
     // Small header for the two columns
     const thead = document.createElement("thead");
     const headRow = document.createElement("tr");
-    headRow.innerHTML = `<th></th><th class="num">Normal</th><th class="num">Coal</th><th class="num">Nuclear</th>`;
+    headRow.innerHTML = `<th></th><th class="num">Normal</th><th class="num boost-coal">Coal</th><th class="num boost-nuc">Nuclear</th>`;
     thead.appendChild(headRow);
     table.appendChild(thead);
     const tbody = document.createElement("tbody");
+    let empty = true;
     for (const key of RAW_ITEMS) {
         const extractors = settings.extractors.get(key) ?? 0;
         const coal_frac = settings.coal_fracs.get(key) ?? 0;
         const nuc_frac = settings.nuclear_fracs.get(key) ?? 0;
+        if (empty && (coal_frac > 0 || nuc_frac > 0)) {
+            empty = false;
+        }
         const norm_frac = 1 - coal_frac - nuc_frac;
         const coal_ex = coal_frac * extractors;
         const nuc_ex = nuc_frac * extractors;
@@ -187,8 +191,8 @@ export function render_boosts(settings) {
         const r2 = document.createElement("tr");
         const tdLabelPct = td("fraction", "sub-label");
         const tdNormPct = td("", "num frac-cell1");
-        const tdCoalPct = td("", "num frac-cell2");
-        const tdNucPct = td("", "num frac-cell3");
+        const tdCoalPct = td("", "num frac-cell2 boost-coal");
+        const tdNucPct = td("", "num frac-cell3 boost-nuc");
         r2.append(tdLabelPct, tdNormPct, tdCoalPct, tdNucPct);
         populate_frac_cell(settings.is_rounded, r2, norm_frac, "1");
         populate_frac_cell(settings.is_rounded, r2, coal_frac, "2");
@@ -197,8 +201,8 @@ export function render_boosts(settings) {
         const r3 = document.createElement("tr");
         const tdLabelEx = td("extractors", "sub-label");
         const tdNormEx = td("", "num number-cell1");
-        const tdCoalEx = td("", "num number-cell2");
-        const tdNucEx = td("", "num number-cell3");
+        const tdCoalEx = td("", "num number-cell2 boost-coal");
+        const tdNucEx = td("", "num number-cell3 boost-nuc");
         r3.append(tdLabelEx, tdNormEx, tdCoalEx, tdNucEx);
         populate_amount_cell(settings.is_rounded, r3, norm_ex, "1", false);
         populate_amount_cell(settings.is_rounded, r3, coal_ex, "2", false);
@@ -213,16 +217,23 @@ export function render_boosts(settings) {
     }
     table.appendChild(tbody);
     body.appendChild(table);
+    if (empty) {
+        body = document.createElement("div");
+    }
     return body;
 }
 export function render_ratios(settings) {
     const title = document.createElement("p");
     title.textContent = 'Used Alt recipes:';
-    const body = document.createElement("div");
+    let body = document.createElement("div");
     body.appendChild(title);
     const table = document.createElement("table");
     table.className = "tree-table";
+    let empty = true;
     for (const [key, ratio] of settings.alt_ratios) {
+        if (empty && ratio > 0) {
+            empty = false;
+        }
         const name = key.replaceAll("_", " ");
         const tr = document.createElement("tr");
         const tdImg = td("", "tree-indent2");
@@ -234,6 +245,9 @@ export function render_ratios(settings) {
         populate_frac_cell(settings.is_rounded, tr, ratio);
     }
     body.appendChild(table);
+    if (empty) {
+        body = document.createElement("div");
+    }
     return body;
 }
 //# sourceMappingURL=render.js.map

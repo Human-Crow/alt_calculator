@@ -8,6 +8,10 @@ async function run_view(key, render, needs_tree = true) {
     try {
         const body = await get_cached_view(key, render, needs_tree);
         output_el.replaceChildren(body);
+        const isEmpty = [...output_el.children].every(el => el.children.length === 0 && !el.textContent.trim());
+        if (isEmpty) {
+            output_el.innerHTML = "None";
+        }
     }
     catch (err) {
         console.log(err);

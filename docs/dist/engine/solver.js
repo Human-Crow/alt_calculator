@@ -583,12 +583,42 @@ function add_alt_cons(constraints, alt_ratios) {
         constraints.push(constraint);
     }
 }
-function add_target_con(constraints, item_name, amount) {
+function add_fix_con(constraints, item_name, amount) {
     constraints.push({
         vars: [
             { name: item_name, coef: 1.0 },
         ],
         bnds: { type: glpk.GLP_FX, ub: amount, lb: amount },
+    });
+}
+// at least the maximum (minus a rounding margin: an exact equality can make GLPK fail)
+function get_target_con(item_name, amount, margin = 0) {
+    return {
+        vars: [
+            { name: item_name, coef: 1.0 },
+        ],
+        bnds: { type: glpk.GLP_LO, lb: amount - margin * Math.max(1, Math.abs(amount)) },
+    };
+}
+// raw items, power plant boosts and power plants (boosts.ts)
+async function solve_shortfall(constraints, settings) {
+    const shortfall = await add_boosts(constraints, glpk, settings);
+    if (shortfall.length <= 0)
+        return;
+    // entered boost shares: plants left out only when the fuel cannot run the estimated number
+    const lp = {
+        name: 'LP',
+        objective: { direction: glpk.GLP_MIN, vars: shortfall.map((name) => ({ name, coef: 1.0 })) },
+        subjectTo: constraints,
+    };
+    const result = await glpk.solve(lp, { msglev: glpk.GLP_MSG_OFF });
+    if (result.result.status !== glpk.GLP_OPT) {
+        throw new Error(`Shortfall Solver: ${status_text(result.result.status)}`);
+    }
+    const s = result.result.z;
+    constraints.push({
+        vars: shortfall.map((name) => ({ name, coef: 1.0 })),
+        bnds: { type: glpk.GLP_UP, ub: s + 1e-9 * Math.max(1, s), lb: 0.0 },
     });
 }
 async function solve_max(item_name, constraints) {
@@ -631,53 +661,35 @@ export async function resource_solver(settings) {
     const { alt_ratios, selected_item } = settings;
     const constraints = [...general_cons];
     add_alt_cons(constraints, alt_ratios);
-    // raw items, power plant boosts and power plants (boosts.ts)
-    const shortfall = await add_boosts(constraints, glpk, settings);
-    if (shortfall.length) {
-        // entered boost shares: plants left out only when the fuel cannot run the estimated number
-        const lp = {
-            name: 'LP',
-            objective: { direction: glpk.GLP_MIN, vars: shortfall.map((name) => ({ name, coef: 1.0 })) },
-            subjectTo: constraints,
-        };
-        const result = await glpk.solve(lp, { msglev: glpk.GLP_MSG_OFF });
-        if (result.result.status !== glpk.GLP_OPT) {
-            throw new Error(`Shortfall Solver: ${status_text(result.result.status)}`);
-        }
-        const s = result.result.z;
-        constraints.push({
-            vars: shortfall.map((name) => ({ name, coef: 1.0 })),
-            bnds: { type: glpk.GLP_UP, ub: s + 1e-9 * Math.max(1, s), lb: 0.0 },
-        });
-    }
+    await solve_shortfall(constraints, settings);
     const max_result = await solve_max(selected_item, constraints);
-    // at least the maximum (minus a rounding margin: an exact equality can make GLPK fail)
     const z = max_result.result.z;
-    constraints.push({
-        vars: [
-            { name: selected_item, coef: 1.0 },
-        ],
-        bnds: { type: glpk.GLP_LO, lb: z - 1e-9 * Math.max(1, Math.abs(z)) },
-    });
-    // fewest resources for that maximum; if GLPK fails on it, the maximum's own solution is still valid
-    let vars;
-    try {
-        vars = (await solve_min_resources(constraints)).result.vars;
+    let min_res_result;
+    let last_error;
+    for (const margin of [1e-9, 1e-7, 1e-6]) {
+        const target = get_target_con(selected_item, z, margin);
+        try {
+            min_res_result = await solve_min_resources([...constraints, target]);
+            break;
+        }
+        catch (e) {
+            last_error = e;
+        }
     }
-    catch (e) {
-        console.warn("Min Solver failed, using the max solution:", e);
-        vars = max_result.result.vars;
+    if (min_res_result === undefined) {
+        const reason = last_error instanceof Error ? last_error.message : String(last_error);
+        throw new Error(reason);
     }
     console.log("Resource Solver finished");
-    return vars;
+    return min_res_result.result.vars;
 }
 export async function goal_solver(settings) {
     const { alt_ratios, selected_item, goal_amount, coal_pp, nuclear_pp } = settings;
     const constraints = [...general_cons];
     add_alt_cons(constraints, alt_ratios);
-    add_target_con(constraints, selected_item, goal_amount);
-    add_target_con(constraints, I.Coal_Power_Plant, coal_pp || 0);
-    add_target_con(constraints, I.Nuclear_Power_Plant, nuclear_pp || 0);
+    add_fix_con(constraints, selected_item, goal_amount);
+    add_fix_con(constraints, I.Coal_Power_Plant, coal_pp || 0);
+    add_fix_con(constraints, I.Nuclear_Power_Plant, nuclear_pp || 0);
     const min_res_result = await solve_min_resources(constraints);
     console.log("Goal Solver finished");
     return min_res_result.result.vars;

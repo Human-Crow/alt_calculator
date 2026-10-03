@@ -40,6 +40,17 @@
     font-size: 0.95em;
 }
 
+/* boost columns: coal yellow, nuclear turquoise */
+.item-boosts .boost-coal,
+.item-boosts .boost-coal .number {
+    color: var(--coal);
+}
+
+.item-boosts .boost-nuc,
+.item-boosts .boost-nuc .number {
+    color: var(--nuclear);
+}
+
 .item-boosts .res-gap td {
     padding: 9px 0;
 }

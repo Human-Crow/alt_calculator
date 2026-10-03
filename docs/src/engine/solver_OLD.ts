@@ -986,7 +986,7 @@ export async function goal_solver(settings: Settings): Promise<NumberRec> {
     add_target_con(constraints, I.Coal_Power_Plant, coal_pp || 0);
     add_target_con(constraints, I.Nuclear_Power_Plant, nuclear_pp || 0);
 
-    const min_res_result = await solve_min_resources(constraints)
+    const min_res_result = await solve_min_resources(constraints);
 
     console.log("Goal Solver finished");
     return min_res_result.result.vars;
