@@ -250,4 +250,58 @@ export function render_ratios(settings) {
     }
     return body;
 }
+function create_child_table(rows, class_name) {
+    const table = document.createElement("table");
+    table.className = `tree-table tree-node ${class_name}`;
+    const tbody = document.createElement("tbody");
+    tbody.append(...rows);
+    table.appendChild(tbody);
+    return table;
+}
+export function render_combi_node(settings, entry) {
+    const { node, materials, dependents } = entry;
+    const wrap = document.createElement("div");
+    wrap.className = "combi-node";
+    // Materials going in (above the item)
+    let mat_table;
+    if (materials.length > 0) {
+        mat_table = create_child_table(materials.map(child => render_mat_child(settings, child)), "combi-mat");
+        wrap.appendChild(mat_table);
+    }
+    // The item itself, as a <details> so clicking it collapses
+    // the same way as in the other views (number taps & drags excluded)
+    const summary = document.createElement("summary");
+    summary.className = "tree-summary";
+    const summary_table = document.createElement("table");
+    summary_table.className = "tree-table";
+    const summary_tbody = document.createElement("tbody");
+    summary_tbody.appendChild(create_item_row(settings, node, "tree-indent2"));
+    summary_table.appendChild(summary_tbody);
+    summary.appendChild(summary_table);
+    const details = document.createElement("details");
+    details.className = "tree-details";
+    details.open = true;
+    details.appendChild(summary);
+    // Dependents going out (below the item)
+    if (dependents.length > 0) {
+        details.appendChild(create_child_table(dependents.map(child => render_dep_child(settings, child)), "combi-dep"));
+    }
+    // Collapse the materials together with the dependents
+    if (mat_table) {
+        const table = mat_table;
+        details.addEventListener("toggle", () => {
+            table.classList.toggle("hidden", !details.open);
+        });
+    }
+    wrap.appendChild(details);
+    return wrap;
+}
+export function render_combi(settings, entries) {
+    const body = document.createElement("div");
+    body.className = "tree";
+    for (const entry of entries) {
+        body.appendChild(render_combi_node(settings, entry));
+    }
+    return body;
+}
 //# sourceMappingURL=render.js.map

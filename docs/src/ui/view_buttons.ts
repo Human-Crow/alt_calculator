@@ -20,8 +20,12 @@ import {
     render_mat_child,
     render_tree_child,
     render_boosts,
-    render_ratios
+    render_ratios,
+    render_combi,
+    CombiEntry
 } from './render.js'
+
+import { make_item_key } from '../utils/item_keys.js';
 
 import { Settings, RecipeNode } from '../data/types.js';
 
@@ -31,6 +35,7 @@ import {
     list_btn,
     mat_btn,
     dep_btn,
+    combi_btn,
     ratios_btn,
     boosts_btn
 } from './dom.js';
@@ -103,6 +108,41 @@ async function run_dependents() {
     });
 }
 
+async function run_combi() {
+    await run_view("combi", (settings, tree) => {
+        const mat_tree = add_tree_info(
+            settings, convert_mat_dep(build_materials(tree!, settings.alt_ratios)), true
+        );
+        const dep_tree = add_tree_info(
+            settings, convert_mat_dep(build_dependents(tree!, settings.alt_ratios)), true
+        );
+
+        const key_of = (n: RecipeNode) => make_item_key(n.item_name, n.variant);
+        const mat_map = new Map(mat_tree.map(n => [key_of(n), n]));
+        const dep_map = new Map(dep_tree.map(n => [key_of(n), n]));
+    
+        // One node per item: prefer the materials node (amount produced),
+        // fall back to the dependents node (e.g. split items)
+        const nodes: RecipeNode[] = [];
+        for (const n of mat_tree) nodes.push(n);
+        for (const n of dep_tree) {
+            if (!mat_map.has(key_of(n))) nodes.push(n);
+        }
+        sort_mat_dep(nodes, settings.selected_item);
+
+        const entries: CombiEntry[] = nodes.map(node => {
+            const key = key_of(node);
+            const materials = mat_map.get(key)?.children ?? [];
+            const dependents = dep_map.get(key)?.children ?? [];
+            sort_mat_dep(materials);
+            sort_mat_dep(dependents);
+            return { node, materials, dependents };
+        });
+        console.log(entries)
+        return render_combi(settings, entries);
+    });
+}
+
 async function run_ratios() {
     await run_view("ratios", (settings) => {
         return render_ratios(settings);
@@ -121,6 +161,7 @@ export function init_view_btns() {
     list_btn.addEventListener("click", run_list);
     mat_btn.addEventListener("click", run_materials);
     dep_btn.addEventListener("click", run_dependents);
+    combi_btn.addEventListener("click", run_combi);
     ratios_btn.addEventListener("click", run_ratios);
     boosts_btn.addEventListener("click", run_boosts);
 }
