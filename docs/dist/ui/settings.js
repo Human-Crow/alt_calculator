@@ -1,7 +1,7 @@
 import { V, I } from '../data/enums.js';
 import { is_item_id } from '../utils/validation.js';
 import { tier_inputs, alt_inputs, cpp_in, coal_inputs, npp_in, nuclear_inputs, item_sel, goal_in, extractor_inputs, gen2_box, rounded_box, alt_box, c_boost_box, n_boost_box } from './dom.js';
-import { resource_solver, get_alt_ratios, get_resource_boosts, goal_solver } from '../engine/solver.js';
+import { resource_solver, take_solver_warning, get_alt_ratios, get_resource_boosts, goal_solver } from '../engine/solver.js';
 import { is_mode_goal } from './solver_mode.js';
 function get_value(el) {
     const value = el.value;
@@ -63,6 +63,9 @@ export async function update_settings(settings) {
     }
     else {
         solution = await resource_solver(settings);
+        const warning = take_solver_warning();
+        if (warning !== undefined)
+            new_settings.warning = warning;
         const new_fracs = get_resource_boosts(solution);
         new_settings.coal_fracs = new_fracs.coal_fracs;
         new_settings.nuclear_fracs = new_fracs.nuclear_fracs;

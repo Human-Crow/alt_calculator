@@ -691,7 +691,15 @@ async function solve_min_resources(constraints) {
     }
     return result;
 }
+/** set by resource_solver when its safety net was used (read once with take_solver_warning) */
+let solver_warning;
+export function take_solver_warning() {
+    const w = solver_warning;
+    solver_warning = undefined;
+    return w;
+}
 export async function resource_solver(settings) {
+    solver_warning = undefined;
     const { alt_ratios, selected_item } = settings;
     const constraints = [...general_cons];
     add_alt_cons(constraints, alt_ratios);
@@ -714,6 +722,9 @@ export async function resource_solver(settings) {
         if (min_res_result !== undefined) {
             console.warn(`Resource Solver: the fewest-resources step reached ${reached} instead of ${z}; showing the maximum's own solution`);
         }
+        solver_warning = "The fewest-resources step did not work out for these inputs, so this shows the first plan that " +
+            "reaches the maximum: the amount is right, but it may use more resources than needed. Please report these " +
+            "inputs (Export) so it can be fixed.";
         console.log("Resource Solver finished");
         return max_result.result.vars;
     }

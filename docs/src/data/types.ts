@@ -54,6 +54,7 @@ export type Settings = {
     
     is_goal      : boolean;
     is_rounded   : boolean;
+    warning?     : string;      // shown above the results (resource_solver's safety net)
 };
 
 export type RunContext = {

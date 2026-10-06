@@ -20,6 +20,7 @@ import {
 
 import { 
     resource_solver, 
+    take_solver_warning,
     get_alt_ratios, 
     get_resource_boosts, 
     goal_solver
@@ -103,6 +104,8 @@ export async function update_settings(settings: Settings): Promise<Settings> {
         
     } else {
         solution = await resource_solver(settings);
+        const warning = take_solver_warning();
+        if (warning !== undefined) new_settings.warning = warning;
         const new_fracs = get_resource_boosts(solution);
         new_settings.coal_fracs = new_fracs.coal_fracs;
         new_settings.nuclear_fracs = new_fracs.nuclear_fracs;

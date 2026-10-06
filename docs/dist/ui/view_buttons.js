@@ -3,13 +3,21 @@ import { sort_list, sort_mat_dep, combi_var_priority, convert_mat_dep, convert_l
 import { render_dep_child, render_list, render_main, render_mat_child, render_tree_child, render_boosts, render_ratios, render_combi } from './render.js';
 import { make_item_key } from '../utils/item_keys.js';
 import { output_el, tree_btn, list_btn, mat_btn, dep_btn, combi_btn, ratios_btn, boosts_btn } from './dom.js';
-import { get_cached_view } from './cache.js';
+import { get_cached_view, get_cached_settings } from './cache.js';
 import { draw_connectors, init_connectors } from './connectors.js';
 async function run_view(key, render, needs_tree = true) {
     output_el.innerHTML = "Loading...";
     try {
         const body = await get_cached_view(key, render, needs_tree);
         output_el.replaceChildren(body);
+        const warning = (await get_cached_settings()).warning;
+        if (warning) { // above the results, where it is seen (the console is not)
+            const note = document.createElement("p");
+            note.className = "note solver-warning";
+            note.style.marginBottom = "8px";
+            note.textContent = warning;
+            output_el.prepend(note);
+        }
         const isEmpty = [...output_el.children].every(el => el.children.length === 0 && !el.textContent.trim());
         if (isEmpty) {
             output_el.innerHTML = "None";

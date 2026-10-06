@@ -41,7 +41,7 @@ import {
     boosts_btn
 } from './dom.js';
 
-import { get_cached_view } from './cache.js';
+import { get_cached_view, get_cached_settings } from './cache.js';
 import { draw_connectors, init_connectors } from './connectors.js';
 
 
@@ -55,6 +55,14 @@ async function run_view(
     try {
         const body = await get_cached_view(key, render, needs_tree);
         output_el.replaceChildren(body);
+        const warning = (await get_cached_settings()).warning;
+        if (warning) {                 // above the results, where it is seen (the console is not)
+            const note = document.createElement("p");
+            note.className = "note solver-warning";
+            note.style.marginBottom = "8px";
+            note.textContent = warning;
+            output_el.prepend(note);
+        }
         const isEmpty = [...output_el.children].every(el =>
             el.children.length === 0 && !el.textContent.trim()
         );
@@ -167,4 +175,4 @@ export function init_view_btns() {
     combi_btn.addEventListener("click", run_combi);
     ratios_btn.addEventListener("click", run_ratios);
     boosts_btn.addEventListener("click", run_boosts);
-}
+}
