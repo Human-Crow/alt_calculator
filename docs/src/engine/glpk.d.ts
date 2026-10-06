@@ -39,6 +39,7 @@ declare module "./glpk.js" {
     }
 
     export interface Constraint {
+        name?: string;              // needed to get its dual price back (LPResult.result.dual)
         vars: { name: string; coef: number }[];
         bnds: {
             type: number;
@@ -51,6 +52,7 @@ declare module "./glpk.js" {
         result: {
             z: number;
             vars: Record<string, number>;
+            dual?: Record<string, number>;     // per named constraint: its dual price (LP only)
             status: number;
         };
     }

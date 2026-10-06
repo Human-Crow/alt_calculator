@@ -1,6 +1,5 @@
 import { ALT_ITEMS, RAW_ITEMS } from '../data/name_lists.js';
 import { BuildingId } from '../data/types.js';
-import { formatNumber } from '../utils/math.js';
 import { get_asset } from '../utils/asset_path.js';
 import { get_cached_settings } from './cache.js';
 import { clear_url } from './url.js';
@@ -101,15 +100,21 @@ function do_clear_website() {
 
 
 
+/** a value written into an input at full precision (the exact number the solver used: rounding it would change the
+    next result slightly); tiny rounding noise around 0 is written as 0 */
+function exact(v: number): string {
+    return Math.abs(v) < 1e-12 ? "0" : String(v);
+}
+
 async function do_optimal() {
     const s = await get_cached_settings();
-    cpp_in.value = formatNumber(s.coal_pp ?? 0);
-    npp_in.value = formatNumber(s.nuclear_pp ?? 0);
+    cpp_in.value = exact(s.coal_pp ?? 0);
+    npp_in.value = exact(s.nuclear_pp ?? 0);
     for (const name of ALT_ITEMS) {
         const input = alt_inputs.get(name);
         const value = s.alt_ratios.get(name);
         if (input instanceof HTMLInputElement && typeof value === "number") {
-            input.value = formatNumber(value);
+            input.value = exact(value);
         }
     }
     for (const name of RAW_ITEMS) {
@@ -118,10 +123,10 @@ async function do_optimal() {
         const c_value = s.coal_fracs.get(name);
         const n_value = s.nuclear_fracs.get(name);
         if (c_input instanceof HTMLInputElement && typeof c_value === "number") {
-            c_input.value = formatNumber(c_value);
+            c_input.value = exact(c_value);
         }
         if (n_input instanceof HTMLInputElement && typeof n_value === "number") {
-            n_input.value = formatNumber(n_value);
+            n_input.value = exact(n_value);
         }
     }
 }

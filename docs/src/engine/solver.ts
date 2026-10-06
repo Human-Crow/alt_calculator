@@ -611,22 +611,6 @@ function add_fix_con(
 }
 
 
-// at least the maximum (minus a rounding margin: an exact equality can make GLPK fail)
-function get_target_con(
-    item_name: ItemId, 
-    amount: number,
-    margin: number = 0
-) {
-    return {
-        vars: [
-            { name: item_name, coef: 1.0 },
-        ],
-        bnds: { type: glpk.GLP_LO, lb: amount - margin * Math.max(1, Math.abs(amount)) },
-    };
-}
-
-
-
 // raw items, power plant boosts and power plants (boosts.ts)
 async function solve_shortfall(constraints: Constraint[], settings: Settings) {
     const shortfall = await add_boosts(constraints, glpk, settings);
@@ -664,7 +648,8 @@ async function solve_max(
                 { name: item_name, coef: 1.0 },
             ],
         },
-        subjectTo: constraints,
+        // named: GLPK then reports every constraint's dual price (used by optimal_face)
+        subjectTo: constraints.map((c, i) => ({ ...c, name: `r${i}` })),
     };
     const result = await glpk.solve(lp_max, {msglev: glpk.GLP_MSG_OFF});
     const status = result.result.status;
@@ -672,6 +657,45 @@ async function solve_max(
         throw new Error(`Max Solver: ${status_text(status)}`)
     }
     return result;
+}
+
+
+/**
+ * The constraints of every solution that reaches the maximum, from the maximum's dual prices (complementary
+ * slackness), so the second solve needs no target number and no margin:
+ *   - a constraint with a non-zero price is a bottleneck: it stays exactly at its bound (made = used, all
+ *     extracted, ...), at the original bound from the input;
+ *   - a variable that is 0 in the maximum and would lower it (non-zero reduced cost) stays 0.
+ * Any solution of these constraints reaches the same maximum, and the maximum's own solution is one of them (only
+ * constraints that are tight there and variables that are 0 there are fixed), so the second solve always has a
+ * solution.
+ */
+function optimal_face(item_name: string, constraints: Constraint[], max: LPResult): Constraint[] {
+    const dual = max.result.dual ?? {};
+    const x = max.result.vars;
+    const reduced = new Map<string, number>([[item_name, 1.0]]);     // c_j - sum_i y_i a_ij
+    const face: Constraint[] = [];
+    constraints.forEach((c, i) => {
+        const y = dual[`r${i}`] ?? 0;
+        let bnds = c.bnds;
+        for (const t of c.vars) reduced.set(t.name, (reduced.get(t.name) ?? 0) - y * t.coef);
+        if (y !== 0 && (c.bnds.type === glpk.GLP_LO || c.bnds.type === glpk.GLP_UP)) {
+            const bound = (c.bnds.type === glpk.GLP_LO ? c.bnds.lb : c.bnds.ub) ?? 0;
+            // tight in the maximum's solution (within GLPK's own tolerance, relative to the size of the row's terms)
+            let activity = 0, size = Math.abs(bound);
+            for (const t of c.vars) { const v = t.coef * (x[t.name] ?? 0); activity += v; size += Math.abs(v); }
+            if (Math.abs(activity - bound) <= 1e-7 * Math.max(1, size)) {
+                bnds = { type: glpk.GLP_FX, lb: bound, ub: bound };
+            }
+        }
+        face.push({ vars: c.vars, bnds });
+    });
+    for (const [name, d] of reduced) {
+        if ((x[name] ?? 0) === 0 && Math.abs(d) > 1e-11) {
+            face.push({ vars: [{ name, coef: 1.0 }], bnds: { type: glpk.GLP_FX, lb: 0.0, ub: 0.0 } });
+        }
+    }
+    return face;
 }
 
 
@@ -705,21 +729,26 @@ export async function resource_solver(settings: Settings): Promise<NumberRec> {
     add_alt_cons(constraints, alt_ratios);
 
     await solve_shortfall(constraints, settings);
+    // 1. the maximum
     const max_result = await solve_max(selected_item, constraints);
-
     const z = max_result.result.z;
+
+    // 2. among all solutions reaching that maximum, the one using the fewest resources (see optimal_face)
     let min_res_result: LPResult | undefined;
-    let last_error;
-    for (const margin of [1e-9, 1e-7, 1e-6]) {
-        const target = get_target_con(selected_item, z, margin);
-        try {
-            min_res_result = await solve_min_resources([...constraints, target]);
-            break;
-        } catch (e) { last_error = e; }
+    try {
+        min_res_result = await solve_min_resources(optimal_face(selected_item, constraints, max_result));
+    } catch (e) {
+        console.warn("Resource Solver: the fewest-resources step failed, showing the maximum's own solution", e);
     }
-    if (min_res_result === undefined) {
-        const reason = last_error instanceof Error ? last_error.message : String(last_error)
-        throw new Error(reason)
+    const reached = min_res_result?.result.vars[selected_item] ?? 0;
+    const same = Math.abs(reached - z) <= 1e-9 * Math.max(1, Math.abs(z))
+        || (Math.abs(z) < 1e-7 && Math.abs(reached) < 1e-7);     // nothing can be made: both are rounding noise around 0
+    if (min_res_result === undefined || !same) {
+        if (min_res_result !== undefined) {
+            console.warn(`Resource Solver: the fewest-resources step reached ${reached} instead of ${z}; showing the maximum's own solution`);
+        }
+        console.log("Resource Solver finished");
+        return max_result.result.vars;
     }
 
     console.log("Resource Solver finished");
