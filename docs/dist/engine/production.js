@@ -41,7 +41,7 @@ export function get_belt_amount(tiers, items) {
     const speed = tiers.get(B.Belt) ?? 0;
     return items / speed;
 }
-export function get_build_amount(settings, item_name, variant, amount, is_total = false) {
+export function get_build_amount(settings, item_name, variant, amount, is_total = false, is_goal = false) {
     const { alt_ratios, coal_fracs, nuclear_fracs, tiers } = settings;
     const amounts = [];
     if (is_raw_item(item_name)) {
@@ -55,8 +55,13 @@ export function get_build_amount(settings, item_name, variant, amount, is_total 
             const total = amount / (norm_speed * norm_frac +
                 coal_speed * coal_frac +
                 nuc_speed * nuc_frac);
-            const max_deps = settings.extractors.get(item_name) ?? 0;
-            amounts.push(Math.min(max_deps, total));
+            let new_total = total;
+            if (!is_goal) {
+                const max_deps = settings.extractors.get(item_name) ?? 0;
+                new_total = Math.min(max_deps, total);
+            }
+            console.log(item_name, new_total, is_goal);
+            amounts.push(new_total);
         }
         else {
             amounts.push(norm_frac > 0 ? amount / norm_speed : 0);

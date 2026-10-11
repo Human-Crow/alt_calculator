@@ -162,6 +162,7 @@ function add_node_info(
     settings: Settings, 
     node: RecipeNode,
     is_total: boolean,
+    is_goal: boolean,
     parent_amount?: number
 ): RecipeNode {
 
@@ -177,13 +178,13 @@ function add_node_info(
 
         build_amounts: get_build_amount(
             settings, item_name, variant, item_amount,
-            is_total
+            is_total, is_goal
         ),
         belt_amount: get_belt_amount(settings.tiers, item_amount),
         fraction,
 
         children: children.map(child =>
-            add_node_info(settings, child, false, item_amount)
+            add_node_info(settings, child, false, false, item_amount)
         )
     };
 }
@@ -192,13 +193,14 @@ function add_node_info(
 export function add_tree_info(
     settings: Settings, 
     tree: RecipeNode[],
-    is_total: boolean
+    is_total: boolean,
+    is_goal: boolean
 ): RecipeNode[] {
     const info_tree: RecipeNode[] = [];
     for (const node of tree) {
-        info_tree.push(add_node_info(settings, node, is_total));
+        info_tree.push(add_node_info(settings, node, is_total, is_goal));
     }
     return info_tree;
 }
 
-// #endregion
+// #endregion

@@ -116,7 +116,7 @@ export function convert_mat_dep(material_map) {
 }
 // #endregion
 // #region Add info
-function add_node_info(settings, node, is_total, parent_amount) {
+function add_node_info(settings, node, is_total, is_goal, parent_amount) {
     const { item_name, variant, item_amount, children } = node;
     const fraction = (parent_amount === undefined)
         ? 1
@@ -125,16 +125,16 @@ function add_node_info(settings, node, is_total, parent_amount) {
         item_name: item_name,
         variant: variant,
         item_amount: item_amount,
-        build_amounts: get_build_amount(settings, item_name, variant, item_amount, is_total),
+        build_amounts: get_build_amount(settings, item_name, variant, item_amount, is_total, is_goal),
         belt_amount: get_belt_amount(settings.tiers, item_amount),
         fraction,
-        children: children.map(child => add_node_info(settings, child, false, item_amount))
+        children: children.map(child => add_node_info(settings, child, false, false, item_amount))
     };
 }
-export function add_tree_info(settings, tree, is_total) {
+export function add_tree_info(settings, tree, is_total, is_goal) {
     const info_tree = [];
     for (const node of tree) {
-        info_tree.push(add_node_info(settings, node, is_total));
+        info_tree.push(add_node_info(settings, node, is_total, is_goal));
     }
     return info_tree;
 }

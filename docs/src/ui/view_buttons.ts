@@ -43,6 +43,7 @@ import {
 
 import { get_cached_view, get_cached_settings } from './cache.js';
 import { draw_connectors, init_connectors } from './connectors.js';
+import { is_mode_goal } from './solver_mode.js';
 
 
 
@@ -79,7 +80,7 @@ async function run_view(
 
 async function run_tree() {
     await run_view("tree", (settings, tree) => {
-        const info_tree = add_tree_info(settings, tree!, false);
+        const info_tree = add_tree_info(settings, tree!, false, is_mode_goal());
         return render_main(settings, info_tree, render_tree_child, "tree");
     });
 }
@@ -89,7 +90,7 @@ async function run_list() {
         const split_map = build_list(tree!);
         const conv_tree = convert_list(split_map);
         const info_tree = sort_list(
-            add_tree_info(settings, conv_tree, true), settings.selected_item
+            add_tree_info(settings, conv_tree, true, is_mode_goal()), settings.selected_item
         );
         return render_list(settings, info_tree);
     });
@@ -101,7 +102,7 @@ async function run_materials() {
         const map = build_materials(tree!, settings.alt_ratios);
         const conv_tree = convert_mat_dep(map);
         const info_tree = sort_mat_dep(
-            add_tree_info(settings, conv_tree, true), settings.selected_item
+            add_tree_info(settings, conv_tree, true, is_mode_goal()), settings.selected_item
         );
         return render_main(settings, info_tree, render_mat_child, "mat");
     });
@@ -113,7 +114,7 @@ async function run_dependents() {
         const map = build_dependents(tree!, settings.alt_ratios);
         const conv_tree = convert_mat_dep(map);
         const info_tree = sort_mat_dep(
-            add_tree_info(settings, conv_tree, true), settings.selected_item
+            add_tree_info(settings, conv_tree, true, is_mode_goal()), settings.selected_item
         );
         return render_main(settings, info_tree, render_dep_child, "dep");
     });
@@ -122,10 +123,12 @@ async function run_dependents() {
 async function run_combi() {
     await run_view("combi", (settings, tree) => {
         const mat_tree = add_tree_info(
-            settings, convert_mat_dep(build_materials(tree!, settings.alt_ratios)), true
+            settings, convert_mat_dep(build_materials(tree!, settings.alt_ratios)), 
+            true, is_mode_goal()
         );
         const dep_tree = add_tree_info(
-            settings, convert_mat_dep(build_dependents(tree!, settings.alt_ratios)), true
+            settings, convert_mat_dep(build_dependents(tree!, settings.alt_ratios)), 
+            true, is_mode_goal()
         );
 
         const key_of = (n: RecipeNode) => make_item_key(n.item_name, n.variant);

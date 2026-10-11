@@ -5,6 +5,7 @@ import { make_item_key } from '../utils/item_keys.js';
 import { output_el, tree_btn, list_btn, mat_btn, dep_btn, combi_btn, ratios_btn, boosts_btn } from './dom.js';
 import { get_cached_view, get_cached_settings } from './cache.js';
 import { draw_connectors, init_connectors } from './connectors.js';
+import { is_mode_goal } from './solver_mode.js';
 async function run_view(key, render, needs_tree = true) {
     output_el.innerHTML = "Loading...";
     try {
@@ -32,7 +33,7 @@ async function run_view(key, render, needs_tree = true) {
 }
 async function run_tree() {
     await run_view("tree", (settings, tree) => {
-        const info_tree = add_tree_info(settings, tree, false);
+        const info_tree = add_tree_info(settings, tree, false, is_mode_goal());
         return render_main(settings, info_tree, render_tree_child, "tree");
     });
 }
@@ -40,7 +41,7 @@ async function run_list() {
     await run_view("list", (settings, tree) => {
         const split_map = build_list(tree);
         const conv_tree = convert_list(split_map);
-        const info_tree = sort_list(add_tree_info(settings, conv_tree, true), settings.selected_item);
+        const info_tree = sort_list(add_tree_info(settings, conv_tree, true, is_mode_goal()), settings.selected_item);
         return render_list(settings, info_tree);
     });
 }
@@ -48,7 +49,7 @@ async function run_materials() {
     await run_view("materials", (settings, tree) => {
         const map = build_materials(tree, settings.alt_ratios);
         const conv_tree = convert_mat_dep(map);
-        const info_tree = sort_mat_dep(add_tree_info(settings, conv_tree, true), settings.selected_item);
+        const info_tree = sort_mat_dep(add_tree_info(settings, conv_tree, true, is_mode_goal()), settings.selected_item);
         return render_main(settings, info_tree, render_mat_child, "mat");
     });
 }
@@ -56,14 +57,14 @@ async function run_dependents() {
     await run_view("dependents", (settings, tree) => {
         const map = build_dependents(tree, settings.alt_ratios);
         const conv_tree = convert_mat_dep(map);
-        const info_tree = sort_mat_dep(add_tree_info(settings, conv_tree, true), settings.selected_item);
+        const info_tree = sort_mat_dep(add_tree_info(settings, conv_tree, true, is_mode_goal()), settings.selected_item);
         return render_main(settings, info_tree, render_dep_child, "dep");
     });
 }
 async function run_combi() {
     await run_view("combi", (settings, tree) => {
-        const mat_tree = add_tree_info(settings, convert_mat_dep(build_materials(tree, settings.alt_ratios)), true);
-        const dep_tree = add_tree_info(settings, convert_mat_dep(build_dependents(tree, settings.alt_ratios)), true);
+        const mat_tree = add_tree_info(settings, convert_mat_dep(build_materials(tree, settings.alt_ratios)), true, is_mode_goal());
+        const dep_tree = add_tree_info(settings, convert_mat_dep(build_dependents(tree, settings.alt_ratios)), true, is_mode_goal());
         const key_of = (n) => make_item_key(n.item_name, n.variant);
         const mat_map = new Map(mat_tree.map(n => [key_of(n), n]));
         const dep_map = new Map(dep_tree.map(n => [key_of(n), n]));
