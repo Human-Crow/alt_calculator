@@ -115,7 +115,6 @@ export function get_build_amount(
                 const max_deps = settings.extractors.get(item_name) ?? 0;
                 new_total = Math.min(max_deps, total);
             }
-            console.log(item_name, new_total, is_goal)
             amounts.push(new_total);
         } else {
             amounts.push(norm_frac > 0 ? amount / norm_speed: 0);
