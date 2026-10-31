@@ -1,14 +1,14 @@
-import { V, B } from '../data/enums.js';
-import { get_asset, get_build_name } from '../utils/asset_path.js';
-import { is_raw_item } from '../utils/validation.js';
-import { get_item_display, populate_amount_cell, populate_belt_cell, populate_build_cell, populate_frac_cell } from './table_cells.js';
-import { RAW_ITEMS } from '../data/name_lists.js';
-import { add_connectors, icon_of } from './connectors.js';
-import { build_sub_tree } from '../engine/tree.js';
-import { add_tree_info } from '../engine/convert.js';
-import { rounded_box } from './dom.js';
-import { was_drag } from './click_drag.js';
-import { keep_in_place } from './keep_scroll.js';
+import { V, B } from '../data/enums.js?v=1.0.19';
+import { get_asset, get_build_name } from '../utils/asset_path.js?v=1.0.19';
+import { is_raw_item } from '../utils/validation.js?v=1.0.19';
+import { get_item_display, populate_amount_cell, populate_belt_cell, populate_build_cell, populate_frac_cell } from './table_cells.js?v=1.0.19';
+import { RAW_ITEMS } from '../data/name_lists.js?v=1.0.19';
+import { add_connectors, icon_of } from './connectors.js?v=1.0.19';
+import { build_sub_tree } from '../engine/tree.js?v=1.0.19';
+import { add_tree_info } from '../engine/convert.js?v=1.0.19';
+import { rounded_box } from './dom.js?v=1.0.19';
+import { was_drag } from './click_drag.js?v=1.0.19';
+import { keep_in_place } from './keep_scroll.js?v=1.0.19';
 function create_row(is_rounded, td_class, item_name, display_name, item_amount, build_img, belt_img, build_amounts, belt_amount) {
     const tr = document.createElement("tr");
     tr.innerHTML = `

@@ -1,8 +1,8 @@
-import { V, I } from '../data/enums.js';
-import { is_item_id } from '../utils/validation.js';
-import { tier_inputs, alt_inputs, cpp_in, coal_inputs, npp_in, nuclear_inputs, item_sel, goal_in, extractor_inputs, gen2_box, rounded_box, alt_box, c_boost_box, n_boost_box } from './dom.js';
-import { resource_solver, take_solver_warning, get_alt_ratios, get_resource_boosts, goal_solver } from '../engine/solver.js';
-import { is_mode_goal } from './solver_mode.js';
+import { V, I } from '../data/enums.js?v=1.0.19';
+import { is_item_id } from '../utils/validation.js?v=1.0.19';
+import { tier_inputs, alt_inputs, cpp_in, coal_inputs, npp_in, nuclear_inputs, item_sel, goal_in, extractor_inputs, gen2_box, rounded_box, alt_box, c_boost_box, n_boost_box } from './dom.js?v=1.0.19';
+import { resource_solver, take_solver_warning, get_alt_ratios, get_resource_boosts, goal_solver } from '../engine/solver.js?v=1.0.19';
+import { is_mode_goal } from './solver_mode.js?v=1.0.19';
 function get_value(el) {
     const value = el.value;
     if (value === "")

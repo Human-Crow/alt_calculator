@@ -1,4 +1,4 @@
-import { RECIPES } from '../data/recipes.js';
+import { RECIPES } from '../data/recipes.js?v=1.0.19';
 export function get_recipes(item_name) {
     const recipes = RECIPES.get(item_name);
     if (!recipes) {

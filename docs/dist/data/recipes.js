@@ -1,5 +1,5 @@
-import { I, V, B } from './enums.js';
-import { Item, Recipe } from './models.js';
+import { I, V, B } from './enums.js?v=1.0.19';
+import { Item, Recipe } from './models.js?v=1.0.19';
 const ex_map = new Map([
     [V.GEN1, new Recipe(1, 8, B.Extractor, [])],
     [V.GEN2, new Recipe(1, 4, B.Extractor, [])]

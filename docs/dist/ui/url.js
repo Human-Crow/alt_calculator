@@ -1,8 +1,8 @@
-import { extractor_inputs, goal_in, item_sel, alt_box, c_boost_box, n_boost_box, gen2_box, mode_btn } from "./dom.js";
-import { get_default, get_elem_value } from "./defaults.js";
-import { is_mode_goal } from "./solver_mode.js";
-import { import_bulk, importing_bulk } from "./bulk.js";
-import { update_page } from "./update_page.js";
+import { extractor_inputs, goal_in, item_sel, alt_box, c_boost_box, n_boost_box, gen2_box, mode_btn } from "./dom.js?v=1.0.19";
+import { get_default, get_elem_value } from "./defaults.js?v=1.0.19";
+import { is_mode_goal } from "./solver_mode.js?v=1.0.19";
+import { import_bulk, importing_bulk } from "./bulk.js?v=1.0.19";
+import { update_page } from "./update_page.js?v=1.0.19";
 const url_map = {
     Wood_Log: "wd",
     Stone: "st",

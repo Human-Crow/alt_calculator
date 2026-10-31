@@ -1,6 +1,6 @@
-import { import_btn, export_btn, copy_txt_btn, copy_url_btn, bulk_in, } from "./dom.js";
-import { get_default, get_elem_value } from "./defaults.js";
-import { update_page } from "./update_page.js";
+import { import_btn, export_btn, copy_txt_btn, copy_url_btn, bulk_in, } from "./dom.js?v=1.0.19";
+import { get_default, get_elem_value } from "./defaults.js?v=1.0.19";
+import { update_page } from "./update_page.js?v=1.0.19";
 const bulk_map = new Map([
     // General
     ["mode", "mode_btn"],

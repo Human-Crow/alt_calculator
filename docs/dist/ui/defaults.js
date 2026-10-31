@@ -1,4 +1,4 @@
-import { html_ids } from "./bulk.js";
+import { html_ids } from "./bulk.js?v=1.0.19";
 const default_values = new Map();
 export function get_default(html_id) {
     const default_val = default_values.get(html_id);

@@ -1,6 +1,6 @@
-import { get_asset } from '../utils/asset_path.js';
-import { item_sel, fake_sel, } from './dom.js';
-import { update_page } from './update_page.js';
+import { get_asset } from '../utils/asset_path.js?v=1.0.19';
+import { item_sel, fake_sel, } from './dom.js?v=1.0.19';
+import { update_page } from './update_page.js?v=1.0.19';
 function make_fake_select(realSelect, fakeSelect, withImages = false) {
     const selectedBtn = fakeSelect.querySelector(".selected");
     const optionsDiv = fakeSelect.querySelector(".options");

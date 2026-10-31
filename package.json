@@ -8,6 +8,7 @@
   },
   "scripts": {
     "build": "tsc && node add_version.mjs",
+    "watch": "node watch.mjs",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {

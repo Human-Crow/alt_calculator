@@ -1,6 +1,6 @@
-import { build_full_tree } from '../engine/tree.js';
-import { get_settings, update_settings } from './settings.js';
-import { get_bulk_key } from './bulk.js';
+import { build_full_tree } from '../engine/tree.js?v=1.0.19';
+import { get_settings, update_settings } from './settings.js?v=1.0.19';
+import { get_bulk_key } from './bulk.js?v=1.0.19';
 let settings_cache;
 let tree_cache;
 const view_cache = new Map();

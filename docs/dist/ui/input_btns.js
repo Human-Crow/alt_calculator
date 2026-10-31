@@ -1,4 +1,4 @@
-import { update_page } from "./update_page.js";
+import { update_page } from "./update_page.js?v=1.0.19";
 const belt_speeds = [
     150, 165, 180, 195, 210, 240,
     270, 300, 330, 375, 420, 450, 480

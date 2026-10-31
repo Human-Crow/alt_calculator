@@ -1,4 +1,4 @@
-import { rounded_box } from "./dom.js";
+import { rounded_box } from "./dom.js?v=1.0.19";
 export function create_num_el(is_rounded, amount, f_formatter, r_formatter, wrapper_tag, color) {
     const el = document.createElement("span");
     el.className = "number" + (color ? " " + color : "");

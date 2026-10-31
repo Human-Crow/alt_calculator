@@ -1,7 +1,7 @@
-import GLPK from './glpk.js';
-import { I } from '../data/enums.js';
-import { ALT_ITEMS, RAW_ITEMS } from '../data/name_lists.js';
-import { add_boosts, ex_name } from './boosts.js';
+import GLPK from './glpk.js?v=1.0.19';
+import { I } from '../data/enums.js?v=1.0.19';
+import { ALT_ITEMS, RAW_ITEMS } from '../data/name_lists.js?v=1.0.19';
+import { add_boosts, ex_name } from './boosts.js?v=1.0.19';
 const glpk = await GLPK();
 const general_cons = [
     {

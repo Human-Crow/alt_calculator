@@ -1,8 +1,8 @@
-import { get_recipe, get_recipes } from '../utils/get_recipe.js';
-import { is_raw_item } from '../utils/validation.js';
-import { make_item_key, split_item_key } from '../utils/item_keys.js';
-import { V, I } from '../data/enums.js';
-import { roundN } from '../utils/math.js';
+import { get_recipe, get_recipes } from '../utils/get_recipe.js?v=1.0.19';
+import { is_raw_item } from '../utils/validation.js?v=1.0.19';
+import { make_item_key, split_item_key } from '../utils/item_keys.js?v=1.0.19';
+import { V, I } from '../data/enums.js?v=1.0.19';
+import { roundN } from '../utils/math.js?v=1.0.19';
 function build_tree(amount, item_name, alt_ratios, gen, split_nodes) {
     if (is_raw_item(item_name)) {
         return {

@@ -1,4 +1,4 @@
-import { output_el, collapse_btn, level_bar } from './dom.js';
+import { output_el, collapse_btn, level_bar } from './dom.js?v=1.0.19';
 /** All items that can be opened / closed, except those inside an
  *  ingredient's recipe tree (materials view): "Expand All" would
  *  otherwise build and open every one of those trees. */

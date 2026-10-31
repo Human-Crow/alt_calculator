@@ -1,7 +1,7 @@
-import { html_ids } from "./bulk.js";
-import { output_el } from "./dom.js";
-import { is_approximate, is_coal_approx, is_nuclear_approx } from "./hide.js";
-import { boost_note, c_boost_note, n_boost_note } from "./dom.js";
+import { html_ids } from "./bulk.js?v=1.0.19";
+import { output_el } from "./dom.js?v=1.0.19";
+import { is_approximate, is_coal_approx, is_nuclear_approx } from "./hide.js?v=1.0.19";
+import { boost_note, c_boost_note, n_boost_note } from "./dom.js?v=1.0.19";
 export function update_page(el, eventInitDict) {
     output_el.innerHTML = "";
     if (el instanceof HTMLInputElement || el instanceof HTMLSelectElement) {

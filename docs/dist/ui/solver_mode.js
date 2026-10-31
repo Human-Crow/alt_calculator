@@ -1,5 +1,5 @@
-import { mode_btn } from './dom.js';
-import { toggle_hide_mode } from './hide.js';
+import { mode_btn } from './dom.js?v=1.0.19';
+import { toggle_hide_mode } from './hide.js?v=1.0.19';
 let goal_bool = false;
 function toggle_mode() {
     goal_bool = !goal_bool;

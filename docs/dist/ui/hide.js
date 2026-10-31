@@ -1,6 +1,6 @@
-import { alt_box, c_boost_box, n_boost_box, boosts_btn, ratios_btn, boost_note, alt_div, alt_note, coal_div, coal_note, nuclear_div, nuclear_note, goal_collap, ex_collap, c_boost_label, n_boost_label, able_all_btn, able_alt_btn, able_coal_btn, able_nuc_btn, coal_inputs, nuclear_inputs, cpp_in, npp_in, c_boost_note, n_boost_note } from "./dom.js";
-import { is_mode_goal } from "./solver_mode.js";
-import { update_page } from "./update_page.js";
+import { alt_box, c_boost_box, n_boost_box, boosts_btn, ratios_btn, boost_note, alt_div, alt_note, coal_div, coal_note, nuclear_div, nuclear_note, goal_collap, ex_collap, c_boost_label, n_boost_label, able_all_btn, able_alt_btn, able_coal_btn, able_nuc_btn, coal_inputs, nuclear_inputs, cpp_in, npp_in, c_boost_note, n_boost_note } from "./dom.js?v=1.0.19";
+import { is_mode_goal } from "./solver_mode.js?v=1.0.19";
+import { update_page } from "./update_page.js?v=1.0.19";
 function check_enabled(button) {
     if (button.textContent.toLowerCase().includes("enable")) {
         return true;

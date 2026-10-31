@@ -1,11 +1,11 @@
-import { ALT_ITEMS, RAW_ITEMS } from '../data/name_lists.js';
-import { get_asset } from '../utils/asset_path.js';
-import { get_cached_settings } from './cache.js';
-import { clear_url } from './url.js';
-import { is_approximate, is_coal_approx, is_nuclear_approx } from "./hide.js";
-import { boost_note, c_boost_note, n_boost_note } from "./dom.js";
-import { cpp_in, npp_in, alt_inputs, coal_inputs, nuclear_inputs, extractor_inputs, tier_inputs, tier_images, max_btn, min_btn, clear_all_btn, optimal_btn, clear_alt_btn, clear_coal_btn, clear_nuc_btn, clear_ext_btn, clear_goal_btn, reset_btn, goal_in } from './dom.js';
-import { update_page } from './update_page.js';
+import { ALT_ITEMS, RAW_ITEMS } from '../data/name_lists.js?v=1.0.19';
+import { get_asset } from '../utils/asset_path.js?v=1.0.19';
+import { get_cached_settings } from './cache.js?v=1.0.19';
+import { clear_url } from './url.js?v=1.0.19';
+import { is_approximate, is_coal_approx, is_nuclear_approx } from "./hide.js?v=1.0.19";
+import { boost_note, c_boost_note, n_boost_note } from "./dom.js?v=1.0.19";
+import { cpp_in, npp_in, alt_inputs, coal_inputs, nuclear_inputs, extractor_inputs, tier_inputs, tier_images, max_btn, min_btn, clear_all_btn, optimal_btn, clear_alt_btn, clear_coal_btn, clear_nuc_btn, clear_ext_btn, clear_goal_btn, reset_btn, goal_in } from './dom.js?v=1.0.19';
+import { update_page } from './update_page.js?v=1.0.19';
 function set_max_tiers() {
     for (const input of tier_inputs.values()) {
         input.value = input.max;

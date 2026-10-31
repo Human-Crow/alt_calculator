@@ -1,5 +1,5 @@
-import { get_recipe, get_recipes } from './get_recipe.js';
-import { ITEMS, BUILDINGS, TIER_BUILDINGS } from '../data/name_lists.js';
+import { get_recipe, get_recipes } from './get_recipe.js?v=1.0.19';
+import { ITEMS, BUILDINGS, TIER_BUILDINGS } from '../data/name_lists.js?v=1.0.19';
 const assets = new Set(["Fraction", "Unknown", "Sum"]);
 for (const item of ITEMS) {
     assets.add(item);

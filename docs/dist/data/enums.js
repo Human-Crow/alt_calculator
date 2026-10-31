@@ -1,4 +1,4 @@
-import { VARIANTS, BUILDINGS, ITEMS } from "./name_lists.js";
+import { VARIANTS, BUILDINGS, ITEMS } from "./name_lists.js?v=1.0.19";
 function createEnum(arr) {
     return Object.fromEntries(arr.map(v => [v, v]));
 }

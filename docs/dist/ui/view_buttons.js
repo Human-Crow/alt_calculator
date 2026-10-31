@@ -1,12 +1,12 @@
-import { build_list, build_dependents, build_materials } from '../engine/build.js';
-import { sort_list, sort_mat_dep, combi_var_priority, convert_mat_dep, convert_list, add_tree_info } from '../engine/convert.js';
-import { render_dep_child, render_list, render_main, render_mat_tree_child, render_tree_child, render_boosts, render_ratios, render_combi } from './render.js';
-import { make_item_key } from '../utils/item_keys.js';
-import { output_el, tree_btn, list_btn, mat_btn, dep_btn, combi_btn, ratios_btn, boosts_btn } from './dom.js';
-import { get_cached_view, get_cached_settings } from './cache.js';
-import { draw_connectors, init_connectors } from './connectors.js';
-import { is_mode_goal } from './solver_mode.js';
-import { reset_scroll_room } from './keep_scroll.js';
+import { build_list, build_dependents, build_materials } from '../engine/build.js?v=1.0.19';
+import { sort_list, sort_mat_dep, combi_var_priority, convert_mat_dep, convert_list, add_tree_info } from '../engine/convert.js?v=1.0.19';
+import { render_dep_child, render_list, render_main, render_mat_tree_child, render_tree_child, render_boosts, render_ratios, render_combi } from './render.js?v=1.0.19';
+import { make_item_key } from '../utils/item_keys.js?v=1.0.19';
+import { output_el, tree_btn, list_btn, mat_btn, dep_btn, combi_btn, ratios_btn, boosts_btn } from './dom.js?v=1.0.19';
+import { get_cached_view, get_cached_settings } from './cache.js?v=1.0.19';
+import { draw_connectors, init_connectors } from './connectors.js?v=1.0.19';
+import { is_mode_goal } from './solver_mode.js?v=1.0.19';
+import { reset_scroll_room } from './keep_scroll.js?v=1.0.19';
 async function run_view(key, render, needs_tree = true) {
     output_el.innerHTML = "Loading...";
     try {

@@ -1,7 +1,7 @@
-import { is_raw_item } from '../utils/validation.js';
-import { get_recipe, get_recipes } from '../utils/get_recipe.js';
-import { V, B } from '../data/enums.js';
-import { C_BOOST, N_BOOST } from '../data/constants.js';
+import { is_raw_item } from '../utils/validation.js?v=1.0.19';
+import { get_recipe, get_recipes } from '../utils/get_recipe.js?v=1.0.19';
+import { V, B } from '../data/enums.js?v=1.0.19';
+import { C_BOOST, N_BOOST } from '../data/constants.js?v=1.0.19';
 // #region Tier Factor
 function factorMap(value, gen2) {
     return new Map([

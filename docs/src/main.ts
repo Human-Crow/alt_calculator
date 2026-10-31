@@ -1,4 +1,4 @@
-// cd alt_calculator; if ($?) { npx tsc --watch }
+// cd alt_calculator; if ($?) { npm run watch }   (tsc --watch + versions, see watch.mjs)
 // git rm -r --cached .
 
 

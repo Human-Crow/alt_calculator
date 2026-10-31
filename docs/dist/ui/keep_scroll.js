@@ -1,4 +1,4 @@
-import { output_el } from './dom.js';
+import { output_el } from './dom.js?v=1.0.19';
 // Opening / closing a tree changes the page above or below the item that
 // was clicked: a combi tree opens above its row, and closing a big tree
 // near the bottom makes the page shorter (the browser then scrolls up).

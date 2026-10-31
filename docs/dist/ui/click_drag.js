@@ -1,4 +1,4 @@
-import { click_number } from "./numbers.js";
+import { click_number } from "./numbers.js?v=1.0.19";
 let isDragging = false;
 let startX = 0;
 let startY = 0;

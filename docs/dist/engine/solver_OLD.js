@@ -1,8 +1,8 @@
-import GLPK from './glpk.js';
-import { I, V } from '../data/enums.js';
-import { C_BOOST, N_BOOST } from '../data/constants.js';
-import { ALT_ITEMS, RAW_ITEMS } from '../data/name_lists.js';
-import { get_speed } from './production.js';
+import GLPK from './glpk.js?v=1.0.19';
+import { I, V } from '../data/enums.js?v=1.0.19';
+import { C_BOOST, N_BOOST } from '../data/constants.js?v=1.0.19';
+import { ALT_ITEMS, RAW_ITEMS } from '../data/name_lists.js?v=1.0.19';
+import { get_speed } from './production.js?v=1.0.19';
 const glpk = await GLPK();
 const EX_CPP = [11, 4];
 const EX_CPP_UR = [6.5, 3.0];

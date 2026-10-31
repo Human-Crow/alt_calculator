@@ -1,6 +1,6 @@
-import { split_item_key } from '../utils/item_keys.js';
-import { get_build_amount, get_belt_amount } from '../engine/production.js';
-import { I, V } from '../data/enums.js';
+import { split_item_key } from '../utils/item_keys.js?v=1.0.19';
+import { get_build_amount, get_belt_amount } from '../engine/production.js?v=1.0.19';
+import { I, V } from '../data/enums.js?v=1.0.19';
 // #region Sort
 const var_priority = new Map([
     [V.SPLIT, 1],

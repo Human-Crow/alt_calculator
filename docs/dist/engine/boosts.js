@@ -21,11 +21,11 @@
 //                          kind may use what is left after the items with an entered share (at least the
 //                          plants those need). With a share entered for every raw item nothing is estimated:
 //                          the boosts and the plants are as entered.
-import { I, V } from '../data/enums.js';
-import { C_BOOST, N_BOOST } from '../data/constants.js';
-import { RAW_ITEMS } from '../data/name_lists.js';
-import { ESTIMATE_GEN1, ESTIMATE_GEN2 } from '../data/estimate_data.js';
-import { get_speed } from './production.js';
+import { I, V } from '../data/enums.js?v=1.0.19';
+import { C_BOOST, N_BOOST } from '../data/constants.js?v=1.0.19';
+import { RAW_ITEMS } from '../data/name_lists.js?v=1.0.19';
+import { ESTIMATE_GEN1, ESTIMATE_GEN2 } from '../data/estimate_data.js?v=1.0.19';
+import { get_speed } from './production.js?v=1.0.19';
 const KINDS = ["Coal", "Nuc"];
 /** extractor name of a raw item: "Iron_Ore" -> "Iron" */
 export function ex_name(item) {

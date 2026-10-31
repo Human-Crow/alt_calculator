@@ -1,7 +1,7 @@
-import { create_num_el } from './numbers.js';
-import { V } from '../data/enums.js';
-import { round_sig, formatNumber, formatCeil, roundN } from '../utils/math.js';
-import { is_alt_item } from '../utils/validation.js';
+import { create_num_el } from './numbers.js?v=1.0.19';
+import { V } from '../data/enums.js?v=1.0.19';
+import { round_sig, formatNumber, formatCeil, roundN } from '../utils/math.js?v=1.0.19';
+import { is_alt_item } from '../utils/validation.js?v=1.0.19';
 export function populate_amount_cell(is_rounded, root, amount, id = "", strong = true) {
     const cell = root.querySelector(`.number-cell${id}`);
     cell.appendChild(create_num_el(is_rounded, amount, formatNumber, x => round_sig(x, 6), strong ? "strong" : ""));
