@@ -15,6 +15,7 @@ import { init_url } from './ui/url.js';
 import { init_defaults } from './ui/defaults.js';
 import { init_hide } from './ui/hide.js';
 import { init_update_page } from './ui/update_page.js';
+import { init_keep_scroll } from './ui/keep_scroll.js';
 
 
 init_update_page();
@@ -26,7 +27,8 @@ init_fake_select();
 init_field_btns();
 init_view_btns();
 init_collapse_all();
+init_keep_scroll();
 init_drag();
 init_number();
 init_hide();
-init_url(); // needs to be last
+init_url(); // needs to be last

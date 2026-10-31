@@ -112,4 +112,13 @@ export function build_full_tree(settings) {
     const split_branches = build_split_branches(alt_ratios, gen, split_nodes);
     return [...result, ...split_branches];
 }
+/**
+ * Recipe tree of a single item at a given amount (materials view).
+ * Split items stop at their own node, like in the tree view, but no
+ * separate std / alt branches are made: how much of this amount goes
+ * through each recipe isn't known.
+ */
+export function build_sub_tree(amount, item_name, alt_ratios, gen) {
+    return build_tree(amount, item_name, alt_ratios, gen, new Map());
+}
 //# sourceMappingURL=tree.js.map

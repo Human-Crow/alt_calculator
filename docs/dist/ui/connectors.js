@@ -72,6 +72,14 @@ function draw_group(root, svg, group, ox, oy) {
             svg.appendChild(make_path(`M ${end_x} ${y} H ${x + r} Q ${x} ${y} ${x} ${y + r} V ${Math.max(y_end, y + r)}`, true));
             continue;
         }
+        if (kind === "dep-above") {
+            // Child above the item: from the item, up, curve right into the child
+            const y_start = s_top - GAP;
+            const x_end = end_x - ARROW;
+            const r = Math.max(0, Math.min(RADIUS, x_end - x, y_start - y));
+            svg.appendChild(make_path(`M ${x} ${y_start} V ${y + r} Q ${x} ${y} ${x + r} ${y} H ${Math.max(x_end, x + r)}`, true));
+            continue;
+        }
         // Child below the item
         const y_start = s_bot + GAP;
         if (kind === "mat") {

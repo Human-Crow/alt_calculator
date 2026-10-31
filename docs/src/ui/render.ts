@@ -12,6 +12,11 @@ import {
 
 import { RAW_ITEMS } from '../data/name_lists.js';
 import { add_connectors, icon_of, ConnKind } from './connectors.js';
+import { build_sub_tree } from '../engine/tree.js';
+import { add_tree_info } from '../engine/convert.js';
+import { rounded_box } from './dom.js';
+import { was_drag } from './click_drag.js';
+import { keep_in_place } from './keep_scroll.js';
 
 
 function create_row(
@@ -134,7 +139,12 @@ export function render_node(
         for (const child of children) {
             const el = render_child(settings, child);
             child_els.push(el);
-            tbody.appendChild(el);
+            // A child can bring its own <tbody> (materials view: row + its tree)
+            if (el instanceof HTMLTableSectionElement) {
+                body.appendChild(el);
+            } else {
+                tbody.appendChild(el);
+            }
         }
     }
 
@@ -214,6 +224,104 @@ export function render_mat_child(
     td_class: string = "tree-indent1"
 ): HTMLElement {
     return create_item_row(settings, node, td_class);
+}
+
+
+/** Materials view, inside an ingredient's recipe tree: like the tree view, but with material arrows */
+function render_sub_tree_child(
+    settings: Settings,
+    node: RecipeNode
+): HTMLDetailsElement {
+    return render_node(settings, node, render_sub_tree_child, "mat");
+}
+
+
+/** Make a row open / close something on click or Enter / Space
+ *  (number taps and drags excluded, like the <summary> rows). */
+function make_toggle_row(row: HTMLElement, toggle: () => void) {
+    row.tabIndex = 0;
+    row.setAttribute("role", "button");
+    row.addEventListener("click", (event) => {
+        // Tapping a number switches it between full / rounded; drags scroll
+        const target = event.target as Element | null;
+        if (was_drag() || target?.closest(".number")) return;
+        keep_in_place(row, toggle);
+    });
+    row.addEventListener("keydown", (event) => {
+        if (event.key !== "Enter" && event.key !== " ") return;
+        event.preventDefault();
+        keep_in_place(row, toggle);
+    });
+}
+
+
+/**
+ * Materials / combi view: an ingredient row that opens its full recipe
+ * tree. The tree is only built the first time it's opened.
+ * Raw resources and split items stop at their row (nothing to open).
+ * Returns a <tbody> so the row stays in the same table as the other
+ * ingredients and the columns keep lining up.
+ *
+ * The tree opens below the row, like the tree view.
+ */
+export function render_mat_tree_child(
+    settings: Settings,
+    node: RecipeNode
+): HTMLTableSectionElement {
+    const section = document.createElement("tbody");
+    const row = render_mat_child(settings, node);
+    row.classList.add("mat-row");
+    section.appendChild(row);
+
+    const {item_name, variant, item_amount} = node;
+    if (is_raw_item(item_name) || variant === V.SPLIT) {
+        return section;
+    }
+
+    row.classList.add("mat-expand");
+    row.setAttribute("aria-expanded", "false");
+    row.title = "Show how to make this";
+
+    const sub_row = document.createElement("tr");
+    sub_row.className = "sub-tree-row hidden";
+    const cell = document.createElement("td");
+    cell.colSpan = 7;
+    cell.className = "sub-tree-cell";
+    sub_row.appendChild(cell);
+    section.appendChild(sub_row);
+
+    let built = false;
+    const build = () => {
+        // The numbers follow the "rounded" box as it is now, not as it was
+        // when the view was made (the view itself is cached)
+        const now = {...settings, is_rounded: rounded_box.checked};
+        const sub = build_sub_tree(item_amount, item_name, settings.alt_ratios, settings.gen);
+        const [info] = add_tree_info(now, [sub], false, false);
+        if (!info) return;
+
+        const table = document.createElement("table");
+        table.className = "tree-table tree-node";
+        const tbody = document.createElement("tbody");
+        const child_els = info.children.map(child => render_sub_tree_child(now, child));
+        tbody.append(...child_els);
+        table.appendChild(tbody);
+
+        const wrap = document.createElement("div");
+        wrap.className = "sub-tree";
+        wrap.appendChild(table);
+        add_connectors(sub_row, "mat", icon_of(row), child_els.map(icon_of));
+        cell.appendChild(wrap);
+        built = true;
+    };
+
+    make_toggle_row(row, () => {
+        if (!built) build();
+        const open = sub_row.classList.toggle("hidden") === false;
+        row.classList.toggle("open", open);
+        row.setAttribute("aria-expanded", String(open));
+    });
+
+    return section;
 }
 
 
@@ -449,12 +557,10 @@ export function render_combi_node(
     const wrap = document.createElement("div");
     wrap.className = "combi-node";
 
-    // Materials going in (above the item)
-    let mat_table: HTMLTableElement | undefined;
-    const mat_rows = materials.map(child => render_mat_child(settings, child));
-    if (mat_rows.length > 0) {
-        mat_table = create_child_table(mat_rows, "combi-mat");
-        wrap.appendChild(mat_table);
+    // Dependents going out (above the item): read up toward the end product
+    const dep_rows = dependents.map(child => render_dep_child(settings, child));
+    if (dep_rows.length > 0) {
+        wrap.appendChild(create_child_table(dep_rows, "combi-dep"));
     }
 
     // The item itself, as a <details> so clicking it collapses
@@ -474,24 +580,25 @@ export function render_combi_node(
     details.open = true;
     details.appendChild(summary);
 
-    // Dependents going out (below the item)
-    const dep_rows = dependents.map(child => render_dep_child(settings, child));
-    if (dep_rows.length > 0) {
-        details.appendChild(create_child_table(dep_rows, "combi-dep"));
+    // Materials going in (below the item), each can open its recipe tree
+    // below it, like in the materials view. Every row comes in its own
+    // <tbody>, so they share one table (columns line up)
+    const mat_rows = materials.map(child => render_mat_tree_child(settings, child));
+    if (mat_rows.length > 0) {
+        const mat_table = document.createElement("table");
+        mat_table.className = "tree-table tree-node combi-mat";
+        mat_table.append(...mat_rows);
+        details.appendChild(mat_table);
     }
 
     // Materials flow into the item, the item flows into its dependents
     const item_icon = icon_of(item_row);
-    add_connectors(wrap, "mat-above", item_icon, mat_rows.map(icon_of));
-    add_connectors(details, "dep", item_icon, dep_rows.map(icon_of));
+    add_connectors(wrap, "dep-above", item_icon, dep_rows.map(icon_of));
+    add_connectors(details, "mat", item_icon, mat_rows.map(icon_of));
 
-    // Collapse the materials together with the dependents
-    if (mat_table) {
-        const table = mat_table;
-        details.addEventListener("toggle", () => {
-            table.classList.toggle("hidden", !details.open);
-        });
-    }
+    // The dependents collapse together with the materials: done in CSS
+    // (.combi-node:has(...)), so it happens at once and not a moment later
+    // in a "toggle" event, which would make the page jump
 
     wrap.appendChild(details);
     return wrap;

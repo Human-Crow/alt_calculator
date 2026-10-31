@@ -7,7 +7,8 @@ export type ConnKind =
     | "tree"      // parent above child, plain line
     | "dep"       // parent above child, arrow parent -> child
     | "mat"       // parent above child, arrow child -> parent
-    | "mat-above"; // child above parent (combi), arrow child -> parent
+    | "mat-above" // child above parent, arrow child -> parent
+    | "dep-above"; // child above parent (combi), arrow parent -> child
 
 type ConnGroup = {
     kind: ConnKind;
@@ -109,6 +110,18 @@ function draw_group(
             const r = Math.max(0, Math.min(RADIUS, end_x - x, y_end - y));
             svg.appendChild(make_path(
                 `M ${end_x} ${y} H ${x + r} Q ${x} ${y} ${x} ${y + r} V ${Math.max(y_end, y + r)}`,
+                true
+            ));
+            continue;
+        }
+
+        if (kind === "dep-above") {
+            // Child above the item: from the item, up, curve right into the child
+            const y_start = s_top - GAP;
+            const x_end = end_x - ARROW;
+            const r = Math.max(0, Math.min(RADIUS, x_end - x, y_start - y));
+            svg.appendChild(make_path(
+                `M ${x} ${y_start} V ${y + r} Q ${x} ${y} ${x + r} ${y} H ${Math.max(x_end, x + r)}`,
                 true
             ));
             continue;

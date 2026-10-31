@@ -1,6 +1,10 @@
 import { output_el, collapse_btn, level_bar } from './dom.js';
+/** All items that can be opened / closed, except those inside an
+ *  ingredient's recipe tree (materials view): "Expand All" would
+ *  otherwise build and open every one of those trees. */
 function get_details() {
-    return [...output_el.querySelectorAll("details")];
+    return [...output_el.querySelectorAll("details")]
+        .filter(d => !d.closest(".sub-tree-row"));
 }
 function is_tree_view() {
     return output_el.querySelector('.tree[data-kind="tree"]') !== null;

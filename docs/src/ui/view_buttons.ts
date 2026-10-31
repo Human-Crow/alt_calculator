@@ -18,7 +18,7 @@ import {
     render_dep_child,
     render_list,
     render_main,
-    render_mat_child,
+    render_mat_tree_child,
     render_tree_child,
     render_boosts,
     render_ratios,
@@ -44,6 +44,7 @@ import {
 import { get_cached_view, get_cached_settings } from './cache.js';
 import { draw_connectors, init_connectors } from './connectors.js';
 import { is_mode_goal } from './solver_mode.js';
+import { reset_scroll_room } from './keep_scroll.js';
 
 
 
@@ -55,6 +56,7 @@ async function run_view(
     output_el.innerHTML = "Loading...";
     try {
         const body = await get_cached_view(key, render, needs_tree);
+        reset_scroll_room();
         output_el.replaceChildren(body);
         const warning = (await get_cached_settings()).warning;
         if (warning) {                 // above the results, where it is seen (the console is not)
@@ -104,7 +106,7 @@ async function run_materials() {
         const info_tree = sort_mat_dep(
             add_tree_info(settings, conv_tree, true, is_mode_goal()), settings.selected_item
         );
-        return render_main(settings, info_tree, render_mat_child, "mat");
+        return render_main(settings, info_tree, render_mat_tree_child, "mat");
     });
 }
 

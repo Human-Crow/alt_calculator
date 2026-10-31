@@ -55,16 +55,24 @@
     border-spacing: 0;
 }
 
-/* Combi view: materials sit above the item, so mirror the gap
+/* Combi view: dependents sit above the item, so mirror the gap
    that the other views have between an item and its children */
-.combi-mat {
+.combi-dep {
     margin-bottom: 5px;
+}
+
+/* Closed combi item: hide its dependents too */
+.combi-node:has(> .tree-details:not([open])) > .combi-dep {
+    display: none;
 }
 
 
 /* Connector overlay (lines from an item to its materials / dependents) */
 #output {
     position: relative;
+    /* The page is kept in place by keep_scroll.ts; the browser's own
+       scroll anchoring would pick some other item and fight it */
+    overflow-anchor: none;
 }
 
 .conn-svg {
@@ -154,4 +162,35 @@
 .ratio-table .frac-cell {
     text-align: right;
     font-variant-numeric: tabular-nums;
+}
+
+
+/* Materials view: ingredient rows that open their recipe tree below them */
+.mat-expand {
+    cursor: pointer;
+}
+
+.mat-expand:hover > td,
+.mat-expand:focus-visible > td {
+    background-color: var(--panel-hover);
+}
+
+.mat-expand:focus-visible {
+    outline: none;
+}
+
+/* Normal line height, like the tree view: it gives every item in the
+   tree the room it needs between itself and its children for the arrows */
+.sub-tree-cell {
+    padding: 0;
+}
+
+/* Line the tree up under the ingredient, like a child in the tree view.
+   Zero width so a wide tree overflows to the right instead of stretching
+   the columns of the ingredient rows above it */
+.sub-tree {
+    width: 0;
+    padding-top: 6px;
+    padding-left: 30px;
+    overflow: visible;
 }
